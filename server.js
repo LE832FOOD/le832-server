@@ -36,9 +36,11 @@ const STATE_FILE = path.join(__dirname, 'flamme_state.json');
 const SUBS_FILE = path.join(__dirname, 'flamme_subscriptions.json');
 
 const VAPID = {
-  publicKey:  process.env.VAPID_PUBLIC  || 'REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY',
-  privateKey: process.env.VAPID_PRIVATE || 'REPLACE_WITH_YOUR_VAPID_PRIVATE_KEY',
-  subject:    process.env.VAPID_SUBJECT || 'mailto:contact@le832.fr'
+  publicKey:  process.env.VAPID_PUBLIC  || 'BJr4xIN3n05AHBGoadYFLb666sMan7qZ27kDt1iKb5_aKsuokCH3JPNKdDVMn1ReF-YBZjK6-GrsUbxphm7coNw',
+  privateKey: process.env.VAPID_PRIVATE || 'tZu-C9HaZ62J1iVIJjSOkPlh4Au9sOThoqBo_u7wLPU',
+  subject:    process.env.VAPID_SUBJECT || 'mailto:ton-contact@@eventfod.fr'
+};
+
 };
 const ADMIN_CODE = process.env.ADMIN_CODE || '9999';
 
