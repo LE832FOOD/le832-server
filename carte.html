@@ -253,6 +253,8 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 .tracking-items { background:rgba(255,255,255,0.03); border-radius:8px; padding:10px 12px; margin-top:14px; font-size:12px; color:var(--cream-dim); line-height:1.6; }
 .tracking-actions { display:flex; gap:8px; margin-top:14px; }
 .tracking-call-btn { flex:1; background:var(--green); color:white; border:none; padding:10px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; text-decoration:none; text-align:center; font-family:inherit; }
+.tracking-track-btn { flex:1; background:linear-gradient(135deg,var(--amber-bright),var(--amber)); color:#14110d; border:none; padding:10px; border-radius:8px; font-size:12px; font-weight:800; cursor:pointer; font-family:inherit; box-shadow:0 2px 8px rgba(212,160,86,0.3); }
+.tracking-track-btn:active { transform:scale(0.97); }
 .tracking-refused-msg { background:rgba(214,79,79,0.1); color:var(--red); padding:10px 12px; border-radius:8px; font-size:12px; margin-top:10px; }
 </style>
 </head>
@@ -442,6 +444,16 @@ function toast(msg) {
 function normalizePhone(p) { return (p || '').replace(/[^\d+]/g, ''); }
 function fmt(n) { return (n || 0).toFixed(2).replace('.', ',') + ' €'; }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+// Fetch avec timeout (évite que la PWA reste bloquée si le serveur ne répond pas)
+async function fetchWithTimeout(url, opts = {}, timeoutMs = 15000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...opts, signal: ctrl.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
 function escapeJs(s) { return (s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n'); }
 function getLevel(points) { return LEVELS.find(l => points >= l.minPoints && points <= l.maxPoints) || LEVELS[0]; }
 function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
@@ -455,7 +467,7 @@ try {
 
 async function loadMenu() {
   try {
-    const res = await fetch(`${API_BASE}/api/menu`);
+    const res = await fetchWithTimeout(`${API_BASE}/api/menu`);
     if (res.ok) {
       const data = await res.json();
       currentMenu = data.menu || {};
@@ -614,8 +626,56 @@ function renderCartModal() {
   const slots = generateSlots();
   const modeLabels = { emporter: '🛍 À emporter', livraison: '🚗 Livraison', sur_place: '🪑 Sur place' };
   const userInfo = currentInfo || {};
+  // Pré-remplissage: priorité aux infos serveur, sinon localStorage
+  const extra = JSON.parse(localStorage.getItem('le832_profile_extra') || '{}');
+  const firstName = userInfo.firstName || '';
+  const lastName = userInfo.lastName || '';
+  const phone = currentPhone || userInfo.phone || '';
+  const address = userInfo.address || extra.address || '';
+
+  // Formulaire spécifique selon le mode
+  let formHtml = '';
+  if (currentOrderMode === 'livraison') {
+    formHtml = `
+      <div class="order-form-row">
+        <div class="order-form-label">Téléphone</div>
+        <input type="tel" id="orderPhone" class="order-form-input" placeholder="06 12 34 56 78" value="${escapeHtml(phone)}">
+      </div>
+      <div class="order-form-row">
+        <div class="order-form-label">Prénom</div>
+        <input type="text" id="orderFirstName" class="order-form-input" placeholder="Prénom" value="${escapeHtml(firstName)}">
+      </div>
+      <div class="order-form-row">
+        <div class="order-form-label">Nom</div>
+        <input type="text" id="orderLastName" class="order-form-input" placeholder="Nom" value="${escapeHtml(lastName)}">
+      </div>
+      <div class="order-form-row">
+        <div class="order-form-label">Adresse de livraison</div>
+        <input type="text" id="orderAddress" class="order-form-input" placeholder="12 rue Exemple, Vitry-le-François" value="${escapeHtml(address)}">
+      </div>
+    `;
+  } else if (currentOrderMode === 'sur_place') {
+    formHtml = `
+      <div class="order-form-row">
+        <div class="order-form-label">Numéro de table</div>
+        <input type="text" id="orderTable" class="order-form-input" placeholder="Ex : 4" inputmode="numeric">
+      </div>
+    `;
+  }
+
+  // Bloc heure
+  let slotsHtml = '';
+  if (slots.length > 0) {
+    slotsHtml = `<div class="slot-grid" id="slotGrid">${slots.map(s => `<button class="slot-chip" data-slot="${s}">${s}</button>`).join('')}</div>`;
+  } else {
+    slotsHtml = `<div style="font-size:12px;color:var(--cream-dim);padding:10px;background:var(--surface);border-radius:8px;text-align:center">Aucun créneau disponible aujourd'hui</div>`;
+  }
+
   $('modalContent').innerHTML = `
-    <div class="modal-title">Votre commande</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" style="margin-bottom:0">Votre commande</div>
+      <button id="cartClearBtn" style="background:transparent;border:none;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;padding:4px 8px;font-family:inherit;text-transform:uppercase;letter-spacing:0.05em">🗑 Vider</button>
+    </div>
     <div class="modal-sub">${modeLabels[currentOrderMode]}</div>
     <div class="cart-items" id="cartItemsContainer">
       ${cart.map((i, idx) => `<div class="cart-item">
@@ -628,11 +688,10 @@ function renderCartModal() {
       </div>`).join('')}
     </div>
     <div class="cart-totals"><div class="total-line grand"><span>TOTAL</span><span>${fmt(total)}</span></div></div>
-    ${currentOrderMode === 'livraison' ? `<div class="order-form-row"><div class="order-form-label">Adresse de livraison</div><input type="text" id="orderAddress" class="order-form-input" placeholder="12 rue exemple" value="${escapeHtml(userInfo.address || '')}"></div>` : ''}
-    ${currentOrderMode === 'sur_place' ? `<div class="order-form-row"><div class="order-form-label">Numéro de table</div><input type="text" id="orderTable" class="order-form-input" placeholder="Ex : 4"></div>` : ''}
+    ${formHtml}
     <div class="order-form-row">
       <div class="order-form-label">Heure souhaitée</div>
-      ${slots.length > 0 ? `<div class="slot-grid" id="slotGrid">${slots.map(s => `<button class="slot-chip" data-slot="${s}">${s}</button>`).join('')}</div>` : '<div style="font-size:12px;color:var(--cream-dim)">Aucun créneau disponible.</div>'}
+      ${slotsHtml}
     </div>
     <div class="order-form-row"><div class="order-form-label">Note (optionnel)</div><input type="text" id="orderNote" class="order-form-input" placeholder="Ex : sans oignons..."></div>
     <div style="display:flex;gap:10px;margin-top:16px">
@@ -661,6 +720,18 @@ function renderCartModal() {
   // Boutons modale
   $('cartCancelBtn').addEventListener('click', closeModal);
   $('btnSendOrder').addEventListener('click', sendOrder);
+  $('cartClearBtn').addEventListener('click', clearCart);
+}
+
+function clearCart() {
+  if (cart.length === 0) return;
+  if (!confirm('Vider tout le panier ?')) return;
+  cart = [];
+  selectedSlot = null;
+  saveCart();
+  updateCartUI();
+  closeModal();
+  toast('Panier vidé');
 }
 
 function generateSlots() {
@@ -670,46 +741,71 @@ function generateSlots() {
   const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
   const hours = openHours[dayKey];
   if (!hours || hours.length === 0) return [];
-  const startMin = now.getHours() * 60 + now.getMinutes() + 30;
-  let endMin = 0;
-  for (const slot of hours) {
-    const [, e] = slot.split('-');
-    const [eh, em] = e.split(':').map(Number);
-    endMin = Math.max(endMin, eh * 60 + em);
-  }
+  // Heure de départ : maintenant + 20 min (préparation minimum)
+  const minDelay = 20;
+  const startNowMin = now.getHours() * 60 + now.getMinutes() + minDelay;
   const slots = [];
-  let cur = Math.ceil(startMin / 15) * 15;
-  while (cur <= endMin) {
-    const h = Math.floor(cur / 60);
-    const m = cur % 60;
-    slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-    cur += 15;
+  // Pour chaque période d'ouverture (ex: 11:30-14:30 et 18:00-22:30)
+  for (const period of hours) {
+    const [s, e] = period.split('-');
+    const [sh, sm] = s.split(':').map(Number);
+    const [eh, em] = e.split(':').map(Number);
+    const periodStart = sh * 60 + sm;
+    const periodEnd = eh * 60 + em;
+    // Le créneau commence soit au début de la période, soit à "maintenant + 20 min" si on est déjà dans la période
+    let cur = Math.max(periodStart, startNowMin);
+    cur = Math.ceil(cur / 15) * 15;
+    while (cur <= periodEnd) {
+      const h = Math.floor(cur / 60);
+      const m = cur % 60;
+      slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+      cur += 15;
+    }
   }
-  return slots.slice(0, 24);
+  return slots.slice(0, 30);
 }
 
+let _sendOrderInFlight = false;
 async function sendOrder() {
   if (cart.length === 0) return;
+  if (_sendOrderInFlight) { toast('Envoi en cours…'); return; }
   if (!selectedSlot) { toast('Choisissez une heure'); return; }
+
+  // Récupération des infos selon le mode
   let address = '', table = '';
+  let firstName = '', lastName = '', phone = currentPhone;
+
   if (currentOrderMode === 'livraison') {
-    address = $('orderAddress').value.trim();
+    phone = ($('orderPhone').value || '').trim();
+    firstName = ($('orderFirstName').value || '').trim();
+    lastName = ($('orderLastName').value || '').trim();
+    address = ($('orderAddress').value || '').trim();
+    if (!phone) { toast('Téléphone requis'); return; }
+    if (!firstName) { toast('Prénom requis'); return; }
+    if (!lastName) { toast('Nom requis'); return; }
     if (!address) { toast('Adresse requise'); return; }
-  }
-  if (currentOrderMode === 'sur_place') {
-    table = $('orderTable').value.trim();
+    if (address.length > 200) { toast('Adresse trop longue'); return; }
+  } else if (currentOrderMode === 'sur_place') {
+    table = ($('orderTable').value || '').trim();
     if (!table) { toast('Numéro de table requis'); return; }
+    firstName = (currentInfo && currentInfo.firstName) || '';
+    lastName = (currentInfo && currentInfo.lastName) || '';
+  } else {
+    firstName = (currentInfo && currentInfo.firstName) || '';
+    lastName = (currentInfo && currentInfo.lastName) || '';
   }
-  const note = ($('orderNote').value || '').trim();
+
+  const note = ($('orderNote').value || '').trim().slice(0, 500);
   const btn = $('btnSendOrder');
+  _sendOrderInFlight = true;
   if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
   try {
     const userInfo = currentInfo || {};
     const payload = {
-      phone: currentPhone,
+      phone: phone || currentPhone,
       customer: {
-        firstName: $('profileFirstName').value.trim() || userInfo.firstName || '',
-        lastName: $('profileLastName').value.trim() || userInfo.lastName || '',
+        firstName: firstName,
+        lastName: lastName,
         address: address || userInfo.address || ''
       },
       type: currentOrderMode,
@@ -719,7 +815,7 @@ async function sendOrder() {
       note: note,
       total: cart.reduce((s, i) => s + i.qty * i.price, 0)
     };
-    const res = await fetch(`${API_BASE}/api/order`, {
+    const res = await fetchWithTimeout(`${API_BASE}/api/order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -727,6 +823,7 @@ async function sendOrder() {
     const data = await res.json();
     if (!res.ok || !data.ok) {
       toast('Erreur : ' + (data.error || 'inconnue'));
+      _sendOrderInFlight = false;
       if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
       return;
     }
@@ -744,7 +841,8 @@ async function sendOrder() {
     setTimeout(() => { refreshUserInfo(); loadMyOrders(); }, 1500);
   } catch (e) {
     toast('Erreur de connexion');
-    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
+    _sendOrderInFlight = false;
+      if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
   }
 }
 
@@ -768,7 +866,7 @@ let _myOrders = [];
 
 async function loadMyOrders() {
   try {
-    const res = await fetch(`${API_BASE}/api/my-orders?phone=${encodeURIComponent(currentPhone)}`);
+    const res = await fetchWithTimeout(`${API_BASE}/api/my-orders?phone=${encodeURIComponent(currentPhone)}`);
     if (res.ok) {
       const data = await res.json();
       _myOrders = data.orders || [];
@@ -792,6 +890,179 @@ function renderTracking() {
     return;
   }
   list.innerHTML = _myOrders.map(o => renderOrderCard(o)).join('');
+  // Listeners boutons suivi livraison
+  document.querySelectorAll('.tracking-track-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const oid = btn.dataset.oid;
+      const o = _myOrders.find(x => x.id === oid);
+      if (o) openLiveTrackingMap(o);
+    });
+  });
+}
+
+// ═══ SUIVI LIVE LIVREUR (carte) ═══
+let _liveTrackOrderId = null;
+let _liveTrackTimer = null;
+let _liveTrackMap = null;
+let _liveTrackMarkerLivreur = null;
+let _liveTrackMarkerClient = null;
+let _liveTrackMarkerResto = null;
+let _leafletLoaded = false;
+
+async function ensureLeaflet() {
+  if (_leafletLoaded) return true;
+  return new Promise((resolve) => {
+    // CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(link);
+    // JS
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => { _leafletLoaded = true; resolve(true); };
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+}
+
+async function openLiveTrackingMap(order) {
+  _liveTrackOrderId = order.id;
+  // Modale fullscreen avec carte
+  $('modalContent').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="modal-title" style="margin-bottom:0">🗺 Suivi livraison</div>
+      <button id="liveTrackCloseBtn" style="background:transparent;border:none;color:var(--cream-dim);font-size:18px;cursor:pointer;padding:4px 8px;font-family:inherit">✕</button>
+    </div>
+    <div class="modal-sub">Commande N°${order.number}</div>
+    <div id="liveMap" style="height:60vh;min-height:380px;border-radius:12px;overflow:hidden;background:var(--surface-2);margin-bottom:12px"></div>
+    <div id="liveTrackInfo" style="background:var(--surface);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;text-align:center;color:var(--cream-dim)">
+      <div class="spinner" style="margin:0 auto 8px"></div>
+      Chargement de la carte…
+    </div>
+  `;
+  $('modalOverlay').classList.add('show');
+  $('liveTrackCloseBtn').addEventListener('click', closeLiveTrackingMap);
+
+  const ok = await ensureLeaflet();
+  if (!ok) {
+    $('liveTrackInfo').innerHTML = '<div style="color:var(--red)">❌ Impossible de charger la carte. Vérifiez votre connexion.</div>';
+    return;
+  }
+  initLiveMap(order);
+  startLiveTrackingPolling();
+}
+
+function initLiveMap(order) {
+  const resto = order.restoPosition || { lat: 48.7244, lon: 4.5840, name: 'Restaurant' };
+  const livreur = order.livreurPosition;
+
+  // Centrer la carte sur le livreur si disponible, sinon sur le restaurant
+  const center = livreur ? [livreur.lat, livreur.lon] : [resto.lat, resto.lon];
+  _liveTrackMap = L.map('liveMap', { zoomControl: true, attributionControl: false }).setView(center, 13);
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap'
+  }).addTo(_liveTrackMap);
+
+  // Marker restaurant
+  _liveTrackMarkerResto = L.marker([resto.lat, resto.lon], {
+    icon: L.divIcon({
+      className: '',
+      html: '<div style="background:#7a9a4d;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)">🏪</div>',
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    })
+  }).addTo(_liveTrackMap).bindPopup(resto.name || 'Restaurant');
+
+  // Marker livreur (si disponible)
+  if (livreur) {
+    _liveTrackMarkerLivreur = L.marker([livreur.lat, livreur.lon], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div style="background:#d4a056;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4)">🛵</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 18]
+      })
+    }).addTo(_liveTrackMap).bindPopup('Votre livreur');
+  }
+
+  updateLiveInfo(order);
+}
+
+function updateLiveInfo(order) {
+  const info = $('liveTrackInfo');
+  if (!info) return;
+  if (order.livreurPosition) {
+    const ageSec = Math.floor((Date.now() - order.livreurPosition.ts) / 1000);
+    let ageTxt;
+    if (ageSec < 30) ageTxt = "à l'instant";
+    else if (ageSec < 60) ageTxt = `il y a ${ageSec} sec`;
+    else if (ageSec < 3600) ageTxt = `il y a ${Math.floor(ageSec / 60)} min`;
+    else ageTxt = `il y a ${Math.floor(ageSec / 3600)} h`;
+    info.innerHTML = `🛵 <strong>Position du livreur</strong> mise à jour ${ageTxt}<br><span style="font-size:11px;color:var(--muted)">La carte se rafraîchit automatiquement</span>`;
+  } else {
+    info.innerHTML = `⏳ En attente de la position du livreur…<br><span style="font-size:11px;color:var(--muted)">Le livreur n'a peut-être pas encore activé son GPS</span>`;
+  }
+}
+
+function startLiveTrackingPolling() {
+  stopLiveTrackingPolling();
+  // Refresh toutes les 15 sec
+  _liveTrackTimer = setInterval(refreshLiveTracking, 15000);
+}
+
+function stopLiveTrackingPolling() {
+  if (_liveTrackTimer) { clearInterval(_liveTrackTimer); _liveTrackTimer = null; }
+}
+
+async function refreshLiveTracking() {
+  if (!_liveTrackOrderId) return;
+  await loadMyOrders();
+  const order = _myOrders.find(o => o.id === _liveTrackOrderId);
+  if (!order) {
+    closeLiveTrackingMap();
+    return;
+  }
+  // Si la commande n'est plus en livraison, on ferme
+  if (order.status !== 'en_livraison') {
+    closeLiveTrackingMap();
+    toast(order.status === 'terminee' ? '🏁 Commande livrée !' : 'Suivi terminé');
+    return;
+  }
+  // Mise à jour position livreur sur la carte
+  if (order.livreurPosition && _liveTrackMap) {
+    const pos = [order.livreurPosition.lat, order.livreurPosition.lon];
+    if (_liveTrackMarkerLivreur) {
+      _liveTrackMarkerLivreur.setLatLng(pos);
+    } else {
+      _liveTrackMarkerLivreur = L.marker(pos, {
+        icon: L.divIcon({
+          className: '',
+          html: '<div style="background:#d4a056;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4)">🛵</div>',
+          iconSize: [36, 36],
+          iconAnchor: [18, 18]
+        })
+      }).addTo(_liveTrackMap).bindPopup('Votre livreur');
+    }
+    // Centrer la carte sur le livreur (sauf si l'utilisateur a déplacé)
+    _liveTrackMap.panTo(pos);
+  }
+  updateLiveInfo(order);
+}
+
+function closeLiveTrackingMap() {
+  stopLiveTrackingPolling();
+  if (_liveTrackMap) {
+    _liveTrackMap.remove();
+    _liveTrackMap = null;
+  }
+  _liveTrackMarkerLivreur = null;
+  _liveTrackMarkerClient = null;
+  _liveTrackMarkerResto = null;
+  _liveTrackOrderId = null;
+  closeModal();
 }
 
 function renderOrderCard(o) {
@@ -840,6 +1111,7 @@ function renderOrderCard(o) {
     <div class="tracking-stages">${stagesHtml}</div>
     <div class="tracking-items">${itemsList}${moreItems}</div>
     <div class="tracking-actions">
+      ${(o.type === 'livraison' && o.status === 'en_livraison') ? `<button class="tracking-track-btn" data-oid="${escapeJs(o.id)}">🗺 Suivre la livraison</button>` : ''}
       <a class="tracking-call-btn" href="tel:+33000000000">📞 Appeler le restaurant</a>
     </div>
   </div>`;
@@ -934,7 +1206,7 @@ async function showApp() {
 
 async function refreshUserInfo() {
   try {
-    const res = await fetch(`${API_BASE}/api/customer?phone=${encodeURIComponent(currentPhone)}`);
+    const res = await fetchWithTimeout(`${API_BASE}/api/customer?phone=${encodeURIComponent(currentPhone)}`);
     if (res.ok) currentInfo = await res.json();
   } catch (e) {}
   if (!currentInfo) currentInfo = { found: false, phone: currentPhone, points: 0 };
