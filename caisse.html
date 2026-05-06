@@ -9369,6 +9369,45 @@
   /* ===== VIEW TRACKING (vue client) ===== */
   #view-tracking { display: none; }
   #view-tracking.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: var(--bg); }
+
+  /* ═══ VIEW FLEET — Suivi des livreurs ═══ */
+  #view-fleet { display: none; }
+  #view-fleet.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: var(--bg); }
+  .fleet-header { display: flex; align-items: center; gap: 16px; padding: 14px 20px; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .fleet-back-btn, .fleet-refresh-btn { background: var(--surface-2); color: var(--cream); border: 1px solid var(--line); padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .fleet-back-btn:hover, .fleet-refresh-btn:hover { background: var(--surface-3); }
+  .fleet-title { flex: 1; }
+  .fleet-title h1 { margin: 0; font-size: 18px; font-weight: 800; color: var(--cream); }
+  .fleet-sub { font-size: 11px; color: var(--cream-dim); margin-top: 2px; letter-spacing: 0.05em; }
+  .fleet-refresh-btn { font-size: 18px; padding: 6px 12px; }
+  .fleet-main { flex: 1; display: grid; grid-template-columns: 320px 1fr; min-height: 0; }
+  .fleet-list { overflow-y: auto; background: var(--bg-2); border-right: 1px solid var(--line); padding: 12px; }
+  .fleet-mappane { position: relative; }
+  .fleet-map { width: 100%; height: 100%; }
+  .fleet-empty { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--cream-dim); }
+  .fleet-empty-icon { font-size: 64px; opacity: 0.3; margin-bottom: 14px; }
+  .fleet-empty-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; color: var(--cream); }
+  .fleet-empty-text { font-size: 13px; line-height: 1.5; max-width: 300px; }
+  .fleet-card { background: var(--surface); border: 1px solid var(--line-soft); border-radius: 10px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.15s; }
+  .fleet-card:hover { border-color: var(--amber); }
+  .fleet-card.selected { border-color: var(--amber); background: linear-gradient(135deg, rgba(212,160,86,0.08), transparent); }
+  .fleet-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .fleet-card-num { font-size: 11px; letter-spacing: 0.15em; color: var(--muted); font-weight: 700; text-transform: uppercase; }
+  .fleet-card-num strong { color: var(--amber); font-size: 16px; display: block; margin-top: 2px; letter-spacing: normal; }
+  .fleet-card-status { font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 700; background: rgba(122,154,77,0.15); color: var(--green-bright); text-transform: uppercase; }
+  .fleet-card-info { font-size: 12px; color: var(--cream-dim); line-height: 1.4; margin-bottom: 8px; }
+  .fleet-card-info strong { color: var(--cream); }
+  .fleet-card-meta { display: flex; gap: 10px; font-size: 11px; color: var(--muted); }
+  .fleet-card-meta-item { display: flex; align-items: center; gap: 3px; }
+  .fleet-gps-status { font-size: 10px; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+  .fleet-gps-status.live { background: rgba(122,154,77,0.2); color: var(--green-bright); }
+  .fleet-gps-status.stale { background: rgba(212,160,86,0.15); color: var(--amber); }
+  .fleet-gps-status.offline { background: rgba(214,79,79,0.15); color: var(--red); }
+  /* Mobile: liste collapse */
+  @media (max-width: 768px) {
+    .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .fleet-list { max-height: 200px; border-right: none; border-bottom: 1px solid var(--line); }
+  }
   .track-header {
     padding: 18px 22px;
     background: var(--surface);
@@ -11255,6 +11294,27 @@
           <button class="filter-btn" data-filter="livraison">Livraison</button>
         </div>
         <div id="encoursList"></div>
+      </div>
+    </section>
+
+    <!-- TAB: SUIVI LIVREURS -->
+    <section id="tab-suivi" class="tab-content">
+      <div class="list-tab" style="display:flex;flex-direction:column;height:100%;min-height:0">
+        <div class="list-header">
+          <div class="list-title">🛵 Suivi des livreurs en temps réel</div>
+          <div class="list-count" id="suiviSub">—</div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:300px 1fr;gap:12px;min-height:0;padding:0 12px 12px">
+          <div id="suiviList" style="overflow-y:auto;background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:10px"></div>
+          <div style="position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg-2)">
+            <div id="suiviMap" style="width:100%;height:100%;min-height:400px"></div>
+            <div id="suiviEmpty" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;color:var(--cream-dim);display:none">
+              <div style="font-size:64px;opacity:0.3;margin-bottom:14px">🛵</div>
+              <div style="font-size:16px;font-weight:700;margin-bottom:6px;color:var(--cream)">Aucune livraison en cours</div>
+              <div style="font-size:13px;line-height:1.5">Les livreurs apparaîtront ici une fois en route.</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -13687,6 +13747,7 @@ function buildMobileDrawerNav() {
   const items = [
     { tab: 'nouvelle', label: 'Nouvelle commande', icon: '+' },
     { tab: 'encours', label: 'En cours', icon: '⏱' },
+    { tab: 'suivi', label: 'Suivi livreurs', icon: '🛵' },
     { tab: 'terminees', label: 'Terminées', icon: '✓' },
     { tab: 'salle', label: 'Plan de salle', icon: '⊟' },
     { tab: 'reservations', label: 'Réservations', icon: '📅' },
@@ -15701,6 +15762,11 @@ function showOrderDetail(id) {
     ? `<button class="btn" onclick="showSplitModal('${o.id}')" style="border-color:var(--amber);color:var(--amber)">⊟ Diviser</button>`
     : '';
 
+  // Bouton "Suivre le livreur" pour les commandes en livraison
+  const trackLivreurBtn = (o.status === 'en_livraison' && o.type === 'livraison')
+    ? `<button class="btn" onclick="closeModal();trackOrderId='${o.id}';showView('tracking');setTimeout(startTracking,100)" style="border-color:var(--amber);color:var(--amber);grid-column:1 / -1">🗺 Suivre le livreur sur la carte</button>`
+    : '';
+
   // Cas spécial : commande PWA en attente de confirmation
   if (o.source === 'pwa' && o.awaitingConfirmation) {
     actions = `
@@ -15722,6 +15788,7 @@ function showOrderDetail(id) {
   } else {
     actions = `
       <div class="modal-actions-grid">
+        ${trackLivreurBtn}
         <button class="btn" onclick="closeModal();showPrintFromOrder('${o.id}')">Imprimer</button>
         <button class="btn" onclick="askCodeToEditPay('${o.id}')">Modifier paiement</button>
         ${splitBtn}
@@ -17028,6 +17095,7 @@ function refreshAll() {
   // === Caisse : rafraîchir l'onglet actif ===
   if (currentTab === 'nouvelle') renderProducts();
   if (currentTab === 'encours') renderEncours();
+  if (currentTab === 'suivi') renderSuivi();
   if (currentTab === 'terminees') renderTerminees();
   if (currentTab === 'salle') renderSalle();
   if (currentTab === 'reservations') renderReservations();
@@ -25071,6 +25139,184 @@ function updateTrackingDisplay() {
     // Ajuster la vue pour que les 2 marqueurs soient visibles
     const bounds = L.latLngBounds([[pos.lat, pos.lon], [c.lat, c.lon]]);
     trackMap.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// VUE FLEET — Suivi des livreurs en temps réel (manager)
+// ═══════════════════════════════════════════════════════════════════
+let fleetMap = null;
+let fleetMarkers = { resto: null, livreur: null, clients: [] };
+let fleetTimer = null;
+let fleetSelectedOrderId = null;
+
+// Compatibilité legacy (au cas où)
+function showFleetView() { navTab('suivi'); }
+function exitFleet() { /* legacy */ }
+
+// Nouveau : appelé quand on entre dans l'onglet Suivi
+function renderSuivi() {
+  // Initialiser la carte si pas déjà fait (retardé pour laisser le DOM s'afficher)
+  if (!fleetMap) setTimeout(initFleetMap, 50);
+  // Premier refresh
+  refreshFleet();
+  // Démarrer auto-refresh si pas déjà actif
+  if (!fleetTimer) {
+    fleetTimer = setInterval(() => {
+      // Stop si on n'est plus sur l'onglet
+      if (currentTab !== 'suivi') {
+        clearInterval(fleetTimer);
+        fleetTimer = null;
+        return;
+      }
+      refreshFleet();
+    }, 5000);
+  }
+}
+
+function initFleetMap() {
+  if (fleetMap) return;
+  if (typeof L === 'undefined') return;
+  const mapEl = document.getElementById('suiviMap');
+  if (!mapEl) return;
+  // Centre par défaut : restaurant
+  const restoCenter = (state.config && state.config.restoCenter)
+    ? [state.config.restoCenter.lat, state.config.restoCenter.lon]
+    : [48.7244, 4.5840]; // Vitry-le-François
+  fleetMap = L.map(mapEl, { zoomControl: true }).setView(restoCenter, 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19
+  }).addTo(fleetMap);
+  // Marker restaurant
+  const restoIcon = L.divIcon({
+    className: '',
+    html: '<div style="background:#7a9a4d;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.4)">🏪</div>',
+    iconSize: [36, 36],
+    iconAnchor: [18, 18]
+  });
+  fleetMarkers.resto = L.marker(restoCenter, { icon: restoIcon })
+    .addTo(fleetMap)
+    .bindPopup('<strong>Le 832</strong>');
+  // Force un resize après 100ms (sinon Leaflet ne se redimensionne pas bien)
+  setTimeout(() => { try { fleetMap.invalidateSize(); } catch (e) {} }, 200);
+}
+
+function refreshFleet() {
+  if (!state.orders) return;
+  // Filtrer commandes en livraison
+  const inDelivery = state.orders.filter(o => o.status === 'en_livraison' && o.type === 'livraison');
+  // Stats header
+  const sub = document.getElementById('suiviSub');
+  if (sub) {
+    const count = inDelivery.length;
+    const livreurOk = state.livreurPosition && (Date.now() - state.livreurPosition.ts < 60000);
+    const livreurName = state.livreurPosition ? state.livreurPosition.livreurName : null;
+    sub.innerHTML = `${count} commande${count > 1 ? 's' : ''} en livraison · GPS livreur ${livreurOk ? '<span style="color:var(--green-bright)">●</span> actif' + (livreurName ? ` (${livreurName})` : '') : '<span style="color:var(--muted)">●</span> inactif'}`;
+  }
+  // Liste
+  renderFleetList(inDelivery);
+  // Carte
+  updateFleetMap(inDelivery);
+}
+
+function renderFleetList(orders) {
+  const list = document.getElementById('suiviList');
+  const empty = document.getElementById('suiviEmpty');
+  if (!list) return;
+  if (orders.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:30px 16px;color:var(--cream-dim);font-size:13px">Aucune livraison en cours</div>`;
+    if (empty) empty.style.display = 'flex';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  list.innerHTML = orders.map(o => {
+    const c = o.customer || {};
+    const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
+    const elapsed = o.takenAt ? Math.floor((Date.now() - o.takenAt) / 60000) : 0;
+    let elapsedTxt = '';
+    if (elapsed > 0) elapsedTxt = elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}min` : `${elapsed}min`;
+    let gpsStatus = 'offline', gpsTxt = 'GPS inactif';
+    if (state.livreurPosition && state.livreurPosition.ts) {
+      const ageSec = Math.floor((Date.now() - state.livreurPosition.ts) / 1000);
+      if (ageSec < 30) { gpsStatus = 'live'; gpsTxt = "à l'instant"; }
+      else if (ageSec < 90) { gpsStatus = 'live'; gpsTxt = `${ageSec}s`; }
+      else if (ageSec < 300) { gpsStatus = 'stale'; gpsTxt = `${Math.floor(ageSec/60)}min`; }
+      else { gpsStatus = 'offline'; gpsTxt = `${Math.floor(ageSec/60)}min`; }
+    }
+    return `<div class="fleet-card ${o.id === fleetSelectedOrderId ? 'selected' : ''}" onclick="selectFleetOrder('${o.id}')">
+      <div class="fleet-card-head">
+        <div class="fleet-card-num">Commande<strong>N°${o.number}</strong></div>
+        <div class="fleet-card-status">🚗 En route</div>
+      </div>
+      <div class="fleet-card-info">
+        <strong>${escapeHtml(fullName)}</strong><br>
+        ${escapeHtml(c.address || 'Sans adresse')}
+      </div>
+      <div class="fleet-card-meta">
+        ${elapsedTxt ? `<span class="fleet-card-meta-item">⏱ ${elapsedTxt}</span>` : ''}
+        <span class="fleet-card-meta-item">${fmt(o.total)}</span>
+        <span class="fleet-gps-status ${gpsStatus}">📡 ${gpsTxt}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function selectFleetOrder(orderId) {
+  fleetSelectedOrderId = orderId;
+  refreshFleet();
+  // Centrer la carte sur la commande sélectionnée
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o || !fleetMap) return;
+  const c = o.customer || {};
+  if (c.lat && c.lon) {
+    fleetMap.setView([c.lat, c.lon], 15);
+  } else if (state.livreurPosition) {
+    fleetMap.setView([state.livreurPosition.lat, state.livreurPosition.lon], 15);
+  }
+}
+
+function updateFleetMap(orders) {
+  if (!fleetMap) return;
+  // Nettoyer markers clients précédents
+  fleetMarkers.clients.forEach(m => fleetMap.removeLayer(m));
+  fleetMarkers.clients = [];
+  // Ajouter markers pour chaque commande client
+  orders.forEach(o => {
+    const c = o.customer || {};
+    if (!c.lat || !c.lon) return;
+    const isSelected = o.id === fleetSelectedOrderId;
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="background:${isSelected ? '#d4a056' : '#5fa8d3'};width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3);color:white;font-weight:700">${o.number}</div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15]
+    });
+    const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
+    const m = L.marker([c.lat, c.lon], { icon: icon })
+      .addTo(fleetMap)
+      .bindPopup(`<strong>N°${o.number} — ${fullName}</strong><br>${c.address || ''}`);
+    fleetMarkers.clients.push(m);
+  });
+  // Marker livreur
+  if (state.livreurPosition) {
+    const pos = [state.livreurPosition.lat, state.livreurPosition.lon];
+    const livreurIcon = L.divIcon({
+      className: '',
+      html: '<div style="background:#d4a056;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 4px 12px rgba(212,160,86,0.5)">🛵</div>',
+      iconSize: [40, 40],
+      iconAnchor: [20, 20]
+    });
+    if (fleetMarkers.livreur) {
+      fleetMarkers.livreur.setLatLng(pos);
+    } else {
+      fleetMarkers.livreur = L.marker(pos, { icon: livreurIcon })
+        .addTo(fleetMap)
+        .bindPopup(`<strong>${state.livreurPosition.livreurName || 'Livreur'}</strong>`);
+    }
+  } else if (fleetMarkers.livreur) {
+    fleetMap.removeLayer(fleetMarkers.livreur);
+    fleetMarkers.livreur = null;
   }
 }
 
