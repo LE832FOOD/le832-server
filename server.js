@@ -82,6 +82,160 @@ function persistSubs() {
 
 const normalizePhone = (p) => (p || '').toString().replace(/[^\d+]/g, '');
 
+// ═══ Rate limiting (anti-DDoS / anti-spam) ═══
+const RATE_LIMITS = {
+  '/api/order':           { window: 60000, max: 5  },  // 5 commandes/min/IP
+  '/api/customer-update': { window: 60000, max: 30 },  // 30 updates/min/IP
+  '/api/subscribe':       { window: 60000, max: 10 },  // 10 abonnements/min/IP
+  '/api/my-orders':       { window: 60000, max: 60 },  // 1 req/sec en moyenne
+  '/api/menu':            { window: 60000, max: 60 },
+  '/api/customer':        { window: 60000, max: 60 },
+  default:                { window: 60000, max: 120 } // 2/sec en moyenne
+};
+const rateBuckets = new Map(); // ip+path -> [timestamps]
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (fwd) return fwd.split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+function rateLimitOk(req, pathname) {
+  const limit = RATE_LIMITS[pathname] || RATE_LIMITS.default;
+  const ip = getClientIp(req);
+  const key = ip + ':' + pathname;
+  const now = Date.now();
+  const arr = rateBuckets.get(key) || [];
+  const fresh = arr.filter(t => (now - t) < limit.window);
+  if (fresh.length >= limit.max) {
+    rateBuckets.set(key, fresh);
+    return false;
+  }
+  fresh.push(now);
+  rateBuckets.set(key, fresh);
+  // Nettoyage périodique
+  if (rateBuckets.size > 5000) {
+    const cutoff = now - 5 * 60 * 1000; // 5 min
+    for (const [k, v] of rateBuckets) {
+      const f = v.filter(t => t > cutoff);
+      if (f.length === 0) rateBuckets.delete(k);
+      else rateBuckets.set(k, f);
+    }
+  }
+  return true;
+}
+
+// ═══ Limites métier ═══
+const MAX_ITEMS_PER_ORDER = 50;       // 50 produits différents max
+const MAX_QTY_PER_ITEM    = 30;       // 30 unités max par produit
+const MAX_PENDING_ORDERS  = 200;      // 200 commandes simultanées max
+const MAX_NOTE_LENGTH     = 500;      // 500 caractères max pour la note
+const ORDER_RETENTION_MS  = 7 * 24 * 60 * 60 * 1000; // 7 jours
+
+// ═══ Auto-purge des vieilles commandes ═══
+function purgeOldOrders() {
+  if (!Array.isArray(sharedState.orders)) return;
+  const now = Date.now();
+  const before = sharedState.orders.length;
+  sharedState.orders = sharedState.orders.filter(o => {
+    // Garder si en cours
+    if (o.status === 'en_cours' || o.status === 'en_livraison' || o.awaitingConfirmation) return true;
+    // Garder si terminée récemment
+    const closedAt = o.closedAt || o.refusedAt || o.createdAt || now;
+    return (now - closedAt) < ORDER_RETENTION_MS;
+  });
+  const removed = before - sharedState.orders.length;
+  if (removed > 0) {
+    console.log(`Auto-purge: ${removed} vieilles commandes supprimées`);
+    persistSoon();
+  }
+}
+// Lancer la purge toutes les 6h
+setInterval(purgeOldOrders, 6 * 60 * 60 * 1000);
+
+// ═══ Push notification utilitaire ═══
+async function sendPushTo(phone, title, body, data = {}) {
+  if (!webPush) return;
+  const phoneNorm = normalizePhone(phone);
+  const subs = subscriptions[phoneNorm];
+  if (!subs || subs.length === 0) return;
+  const payload = JSON.stringify({ title, body, data });
+  const removeList = [];
+  for (const sub of subs) {
+    try {
+      await webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
+    } catch (e) {
+      if (e.statusCode === 410 || e.statusCode === 404) {
+        removeList.push(sub.endpoint);
+      }
+    }
+  }
+  if (removeList.length > 0) {
+    subscriptions[phoneNorm] = subs.filter(s => !removeList.includes(s.endpoint));
+    persistSubs();
+  }
+}
+
+// ═══ Détection des changements d'état des commandes PWA + envoi notifs ═══
+// Compare l'ancien état au nouveau et envoie les notifications appropriées
+function detectOrderChangesAndNotify(oldOrders, newOrders) {
+  if (!Array.isArray(newOrders)) return;
+  const oldMap = {};
+  (oldOrders || []).forEach(o => { if (o && o.id) oldMap[o.id] = o; });
+
+  // Limite de protection : max 100 commandes scannées par sync
+  const MAX_SCAN = 100;
+  let scanned = 0;
+
+  for (const newO of newOrders) {
+    if (scanned++ >= MAX_SCAN) break;
+    try {
+      if (!newO || newO.source !== 'pwa') continue;
+      if (!newO.customer || !newO.customer.phone) continue;
+      const phone = newO.customer.phone;
+      const oldO = oldMap[newO.id];
+      if (!oldO) continue;
+      const num = newO.number;
+
+      // 1. Confirmation
+      if (oldO.awaitingConfirmation && !newO.awaitingConfirmation && newO.status !== 'annulee') {
+        sendPushTo(phone, '✓ Commande confirmée',
+          `Commande N°${num} confirmée — votre commande est en préparation.`,
+          { orderId: newO.id, stage: 'confirmed' });
+      }
+      // 2. Refus
+      if (oldO.status !== 'annulee' && newO.status === 'annulee') {
+        const reason = newO.refusedReason ? ` : ${newO.refusedReason}` : '';
+        sendPushTo(phone, '❌ Commande refusée',
+          `Commande N°${num} refusée${reason}`,
+          { orderId: newO.id, stage: 'refused' });
+      }
+      // 3. Cuisine prête
+      if (oldO.kdsStatus !== 'prete' && newO.kdsStatus === 'prete') {
+        if (newO.type !== 'livraison') {
+          sendPushTo(phone, '🛍 Commande prête',
+            `Commande N°${num} prête à récupérer !`,
+            { orderId: newO.id, stage: 'ready' });
+        }
+      }
+      // 4. Livreur en route
+      if (oldO.status !== 'en_livraison' && newO.status === 'en_livraison') {
+        sendPushTo(phone, '🚗 Livreur en route',
+          `Commande N°${num} — votre livreur est en route !`,
+          { orderId: newO.id, stage: 'delivering' });
+      }
+      // 5. Terminée
+      if (oldO.status !== 'terminee' && newO.status === 'terminee') {
+        const msg = newO.type === 'livraison'
+          ? `Commande N°${num} livrée — bon appétit !`
+          : `Commande N°${num} récupérée — bon appétit !`;
+        sendPushTo(phone, '🏁 Bon appétit', msg,
+          { orderId: newO.id, stage: 'completed' });
+      }
+    } catch (e) {
+      console.error('Erreur notif commande:', e.message);
+    }
+  }
+}
+
 // ═══ Statique ═══
 const STATIC_FILES = {
   '/':              { file: 'caisse.html',    type: 'text/html; charset=utf-8' },
@@ -129,6 +283,13 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
+
+  // ─── Rate limiting sur /api/* ───
+  if (pathname.startsWith('/api/')) {
+    if (!rateLimitOk(req, pathname)) {
+      return jsonRes(res, 429, { error: 'trop de requêtes, ralentissez' });
+    }
+  }
 
   // ─── Statique ───
   if (req.method === 'GET' && STATIC_FILES[pathname]) {
@@ -349,19 +510,38 @@ const server = http.createServer(async (req, res) => {
     try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
 
     const phone = normalizePhone(body.phone || '');
-    if (!phone) return jsonRes(res, 400, { error: 'phone requis' });
+    if (!phone || phone.length < 6 || phone.length > 20) {
+      return jsonRes(res, 400, { error: 'téléphone invalide' });
+    }
     if (!Array.isArray(body.items) || body.items.length === 0) {
       return jsonRes(res, 400, { error: 'panier vide' });
+    }
+    if (body.items.length > MAX_ITEMS_PER_ORDER) {
+      return jsonRes(res, 400, { error: `trop d'articles (max ${MAX_ITEMS_PER_ORDER})` });
     }
     const validTypes = ['emporter', 'livraison', 'sur_place'];
     if (!validTypes.includes(body.type)) {
       return jsonRes(res, 400, { error: 'type invalide' });
     }
+    // Validation slot (format HH:MM)
+    if (body.slot && !/^[0-2]\d:[0-5]\d$/.test(body.slot)) {
+      return jsonRes(res, 400, { error: 'format heure invalide' });
+    }
+    // Validation note
+    if (body.note && typeof body.note === 'string' && body.note.length > MAX_NOTE_LENGTH) {
+      body.note = body.note.slice(0, MAX_NOTE_LENGTH);
+    }
 
-    // Numéro de commande
+    // Limite nombre de commandes en attente
+    const pendingCount = (sharedState.orders || []).filter(o => o.status === 'en_cours' || o.awaitingConfirmation).length;
+    if (pendingCount >= MAX_PENDING_ORDERS) {
+      return jsonRes(res, 503, { error: 'trop de commandes en attente, réessayez dans quelques minutes' });
+    }
+
+    // Numéro de commande (atomique grâce au single-thread Node)
     if (typeof sharedState.counter !== 'number') sharedState.counter = 1;
     const orderNumber = sharedState.counter++;
-    const orderId = 'pwa_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    const orderId = 'pwa_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
 
     // Calculer total côté serveur (sécurité : ne pas faire confiance au client)
     const menu = sharedState.menu || {};
@@ -374,7 +554,10 @@ const server = http.createServer(async (req, res) => {
     for (const i of body.items) {
       const product = allProducts[i.id];
       if (!product) continue;
-      const qty = Math.max(1, parseInt(i.qty) || 1);
+      // Validation qty stricte
+      let qty = parseInt(i.qty);
+      if (!Number.isFinite(qty) || qty < 1) qty = 1;
+      if (qty > MAX_QTY_PER_ITEM) qty = MAX_QTY_PER_ITEM;
       const itemTotal = product.price * qty;
       total += itemTotal;
       items.push({
@@ -386,6 +569,10 @@ const server = http.createServer(async (req, res) => {
     }
     if (items.length === 0) {
       return jsonRes(res, 400, { error: 'aucun produit valide' });
+    }
+    // Garde-fou total
+    if (total > 100000) {
+      return jsonRes(res, 400, { error: 'montant trop élevé' });
     }
 
     // Mettre à jour la fiche client
@@ -495,10 +682,23 @@ const server = http.createServer(async (req, res) => {
         confirmedAt: o.confirmedAt || null,
         kdsStartedAt: o.kdsStartedAt || null,
         readyAt: o.readyAt || null,
-        deliveryStartedAt: o.deliveryStartedAt || null,
+        takenAt: o.takenAt || null,
         closedAt: o.closedAt || null,
         refusedReason: o.refusedReason || null,
-        awaitingConfirmation: !!o.awaitingConfirmation
+        awaitingConfirmation: !!o.awaitingConfirmation,
+        // Adresse de livraison (pour la carte)
+        deliveryAddress: (o.customer && o.customer.address) || null,
+        // Position du livreur (uniquement quand commande en livraison)
+        livreurPosition: (o.status === 'en_livraison' && sharedState.livreurPosition) ? {
+          lat: sharedState.livreurPosition.lat,
+          lon: sharedState.livreurPosition.lon,
+          ts: sharedState.livreurPosition.ts,
+          livreurName: sharedState.livreurPosition.livreurName
+        } : null,
+        // Position du restaurant (pour la carte) - configurable
+        restoPosition: (sharedState.config && sharedState.config.restoPosition)
+          ? sharedState.config.restoPosition
+          : { lat: 48.7244, lon: 4.5840, name: 'Le 832 Vitry-le-François' }
       };
     });
     // Trier par date desc
@@ -622,7 +822,11 @@ wss.on('connection', (ws, req) => {
       return;
     }
     if (msg.type === 'state' && msg.data) {
+      const oldOrders = sharedState.orders || [];
       sharedState = msg.data;
+      // Détection des changements et envoi des notifications PWA
+      try { detectOrderChangesAndNotify(oldOrders, sharedState.orders || []); }
+      catch (e) { console.error('Erreur notif PWA:', e.message); }
       persistSoon();
       broadcast(ws, { type: 'state', data: sharedState });
     }
