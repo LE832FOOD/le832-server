@@ -1,3 +1,4 @@
+
 #!/usr/bin/env node
 /**
  * Flamme / Le 832 — Serveur de synchronisation + carte fidélité PWA
@@ -36,8 +37,8 @@ const STATE_FILE = path.join(__dirname, 'flamme_state.json');
 const SUBS_FILE = path.join(__dirname, 'flamme_subscriptions.json');
 
 const VAPID = {
-  publicKey:  process.env.VAPID_PUBLIC  || 'BJr4xIN3n05AHBGoadYFLb666sMan7qZ27kDt1iKb5_aKsuokCH3JPNKdDVMn1ReF-YBZjK6-GrsUbxphm7coNw',
-  privateKey: process.env.VAPID_PRIVATE || 'tZu-C9HaZ62J1iVIJjSOkPlh4Au9sOThoqBo_u7wLPU',
+  publicKey:  process.env.VAPID_PUBLIC  || 'REPLACE_WITH_YOUR_VAPID_PUBLIC_KEY',
+  privateKey: process.env.VAPID_PRIVATE || 'REPLACE_WITH_YOUR_VAPID_PRIVATE_KEY',
   subject:    process.env.VAPID_SUBJECT || 'mailto:contact@le832.fr'
 };
 const ADMIN_CODE = process.env.ADMIN_CODE || '9999';
@@ -437,6 +438,55 @@ const server = http.createServer(async (req, res) => {
       number: orderNumber,
       total: total
     });
+  }
+
+  // ─── /api/my-orders : commandes en cours d'un client pour le suivi PWA ───
+  if (req.method === 'GET' && pathname === '/api/my-orders') {
+    const phone = normalizePhone(url.searchParams.get('phone') || '');
+    if (!phone) return jsonRes(res, 400, { error: 'phone requis' });
+    const all = sharedState.orders || [];
+    // Filtrer : commandes du client qui ne sont pas encore "terminée" depuis trop longtemps
+    const now = Date.now();
+    const TWO_HOURS = 2 * 60 * 60 * 1000;
+    const myOrders = all.filter(o => {
+      if (!o.customer || normalizePhone(o.customer.phone) !== phone) return false;
+      // Garder les commandes en cours
+      if (o.status === 'en_cours' || o.status === 'en_livraison' || o.awaitingConfirmation) return true;
+      // Garder les commandes terminées récemment (< 2h)
+      if (o.status === 'terminee' && o.closedAt && (now - o.closedAt) < TWO_HOURS) return true;
+      return false;
+    });
+    // Mapper pour ne renvoyer que les champs publics
+    const result = myOrders.map(o => {
+      // Calculer l'étape actuelle
+      let stage = 'received'; // étape par défaut
+      if (o.awaitingConfirmation) stage = 'received';
+      else if (o.status === 'en_cours' && o.kdsStartedAt) stage = 'preparing';
+      else if (o.status === 'en_cours' && !o.kdsStartedAt) stage = 'confirmed';
+      else if (o.status === 'en_livraison') stage = 'delivering';
+      else if (o.status === 'terminee') stage = 'completed';
+      return {
+        id: o.id,
+        number: o.number,
+        type: o.type,
+        slot: o.slot || null,
+        items: (o.items || []).map(i => ({ name: i.name, qty: i.qty, price: i.price })),
+        total: o.total || 0,
+        status: o.status,
+        stage: stage,
+        createdAt: o.createdAt,
+        confirmedAt: o.confirmedAt || null,
+        kdsStartedAt: o.kdsStartedAt || null,
+        readyAt: o.readyAt || null,
+        deliveryStartedAt: o.deliveryStartedAt || null,
+        closedAt: o.closedAt || null,
+        refusedReason: o.refusedReason || null,
+        awaitingConfirmation: !!o.awaitingConfirmation
+      };
+    });
+    // Trier par date desc
+    result.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    return jsonRes(res, 200, { orders: result });
   }
 
   // ─── /api/order-status : permet à un client de voir l'état de sa commande ───
