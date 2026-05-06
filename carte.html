@@ -180,6 +180,52 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 .footer-credit { text-align:center; padding:24px 0; font-size:11px; color:var(--muted); }
 .spinner { width:24px; height:24px; border:2px solid var(--line); border-top-color:var(--amber); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto; }
 @keyframes spin { to { transform:rotate(360deg); } }
+/* ═══ BOUTIQUE : commande mobile ═══ */
+.order-mode-tabs { display:flex; gap:6px; margin:12px 0 16px; background:var(--surface); padding:4px; border-radius:12px; }
+.order-mode-tab { flex:1; background:transparent; border:none; color:var(--cream-dim); padding:10px 8px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+.order-mode-tab.active { background:var(--amber); color:#14110d; font-weight:800; }
+.closed-banner { background:rgba(214,79,79,0.1); border:1px solid rgba(214,79,79,0.3); border-radius:10px; padding:14px; text-align:center; margin-bottom:16px; }
+.closed-banner-title { color:var(--red); font-weight:800; font-size:14px; margin-bottom:4px; }
+.closed-banner-text { color:var(--cream-dim); font-size:12px; }
+.category-bar { display:flex; gap:6px; overflow-x:auto; padding:4px 16px 12px; margin:0 -16px 12px; scrollbar-width:none; }
+.category-bar::-webkit-scrollbar { display:none; }
+.category-chip { background:var(--surface); border:1px solid var(--line); color:var(--cream-dim); padding:8px 14px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; flex-shrink:0; font-family:inherit; }
+.category-chip.active { background:var(--amber); color:#14110d; border-color:var(--amber); font-weight:800; }
+.products-grid { display:grid; grid-template-columns:1fr; gap:8px; }
+.product-card { background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:12px; display:flex; align-items:center; gap:12px; cursor:pointer; }
+.product-card:active { transform:scale(0.98); }
+.product-photo { width:70px; height:70px; border-radius:10px; object-fit:cover; flex-shrink:0; background:var(--surface-2); }
+.product-photo-placeholder { width:70px; height:70px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0; }
+.product-info { flex:1; min-width:0; }
+.product-name { font-size:14px; font-weight:700; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.product-desc { font-size:11px; color:var(--cream-dim); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin-bottom:4px; }
+.product-price { font-size:14px; font-weight:800; color:var(--amber); }
+.product-add-btn { background:var(--green); color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:22px; font-weight:700; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 2px 8px rgba(122,154,77,0.3); font-family:inherit; }
+.cart-fab { position:fixed; bottom:calc(82px + var(--safe-bottom)); left:16px; right:16px; max-width:448px; margin:0 auto; background:linear-gradient(180deg,var(--amber-bright),var(--amber)); color:#14110d; border:none; padding:14px 18px; border-radius:14px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(212,160,86,0.4); display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:90; font-family:inherit; transform:translateY(100px); opacity:0; transition:transform 0.3s,opacity 0.2s; }
+.cart-fab.show { transform:translateY(0); opacity:1; }
+.cart-fab-count { background:rgba(20,17,13,0.2); padding:4px 10px; border-radius:12px; font-size:12px; font-weight:800; }
+.cart-items { margin-bottom:16px; }
+.cart-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft); }
+.cart-item:last-child { border-bottom:none; }
+.cart-item-info { flex:1; min-width:0; }
+.cart-item-name { font-size:13px; font-weight:600; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cart-item-price { font-size:11px; color:var(--cream-dim); }
+.cart-item-controls { display:flex; align-items:center; gap:8px; }
+.qty-btn { width:28px; height:28px; border-radius:50%; background:var(--surface); border:1px solid var(--line); color:var(--cream); font-size:16px; cursor:pointer; font-weight:600; font-family:inherit; }
+.qty-num { font-weight:700; min-width:22px; text-align:center; font-size:14px; }
+.cart-totals { border-top:1px solid var(--line); padding-top:14px; margin-bottom:16px; }
+.total-line { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
+.total-line.grand { font-size:18px; font-weight:800; color:var(--amber); border-top:1px solid var(--line); margin-top:6px; padding-top:10px; }
+.order-form-row { margin-bottom:12px; }
+.order-form-label { font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:700; }
+.order-form-input { width:100%; padding:12px 14px; background:var(--surface); border:1px solid var(--line); border-radius:10px; color:var(--cream); font-size:14px; font-family:inherit; }
+.slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.slot-chip { padding:10px 6px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--cream-dim); font-size:13px; font-weight:600; cursor:pointer; text-align:center; font-family:inherit; }
+.slot-chip.active { background:var(--amber); color:#14110d; border-color:var(--amber); font-weight:800; }
+.order-confirm { text-align:center; padding:30px 20px; }
+.order-confirm-icon { width:80px; height:80px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:40px; color:white; box-shadow:0 8px 24px rgba(122,154,77,0.4); }
+.order-confirm-num { font-size:32px; font-weight:900; color:var(--amber); margin:8px 0; }
+.order-confirm-txt { font-size:14px; color:var(--cream-dim); line-height:1.6; margin-bottom:20px; }
 /* ═══ TRACKING : suivi de commande ═══ */
 .tracking-card { background:linear-gradient(135deg,#1f1a14,#2a231b); border-radius:16px; padding:18px 16px; margin-bottom:14px; border:1px solid var(--line); position:relative; overflow:hidden; }
 .tracking-card.refused { border-color:rgba(214,79,79,0.5); }
@@ -258,6 +304,26 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
     <div class="footer-credit">Le 832 — Vitry-le-François</div>
   </section>
 
+  <section id="page-order" class="page">
+    <header class="page-header" style="position:relative;background:transparent;border:none">
+      <h1 class="page-title">🛒 Commander</h1>
+      <div class="page-sub">Choisissez vos plats</div>
+    </header>
+    <div class="order-mode-tabs">
+      <button class="order-mode-tab active" data-mode="emporter" onclick="setOrderMode('emporter')">🛍 À emporter</button>
+      <button class="order-mode-tab" data-mode="livraison" onclick="setOrderMode('livraison')">🚗 Livraison</button>
+      <button class="order-mode-tab" data-mode="sur_place" onclick="setOrderMode('sur_place')">🪑 Sur place</button>
+    </div>
+    <div id="orderClosedBanner" class="closed-banner" style="display:none">
+      <div class="closed-banner-title">⏰ Service fermé</div>
+      <div class="closed-banner-text" id="orderClosedText">La commande en ligne est fermée actuellement.</div>
+    </div>
+    <div class="category-bar" id="categoryBar"></div>
+    <div id="productsGrid" class="products-grid">
+      <div class="empty-state"><div class="spinner"></div><div style="margin-top:12px;font-size:12px;color:var(--muted)">Chargement du menu…</div></div>
+    </div>
+  </section>
+
   <section id="page-tracking" class="page">
     <header class="page-header" style="position:relative;background:transparent;border:none">
       <h1 class="page-title">📦 Suivi de commande</h1>
@@ -318,12 +384,18 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
       <button class="nav-item active" data-page="home" onclick="switchPage('home')"><span class="nav-item-icon">🏠</span><span class="nav-item-label">Accueil</span></button>
+      <button class="nav-item" data-page="order" onclick="switchPage('order')"><span class="nav-item-icon">🛒</span><span class="nav-item-label">Commander</span><span class="nav-item-badge" id="cartBadge" style="display:none">0</span></button>
       <button class="nav-item" data-page="tracking" onclick="switchPage('tracking')"><span class="nav-item-icon">📦</span><span class="nav-item-label">Suivi</span><span class="nav-item-badge" id="trackingBadge" style="display:none">0</span></button>
       <button class="nav-item" data-page="points" onclick="switchPage('points')"><span class="nav-item-icon">⭐</span><span class="nav-item-label">Mes points</span></button>
       <button class="nav-item" data-page="account" onclick="switchPage('account')"><span class="nav-item-icon">👤</span><span class="nav-item-label">Compte</span></button>
     </div>
   </nav>
 </div>
+
+<button class="cart-fab" id="cartFab" onclick="openCartModal()">
+  <span>🛒 Voir mon panier</span>
+  <span class="cart-fab-count"><span id="cartFabCount">0</span> · <span id="cartFabTotal">0,00 €</span></span>
+</button>
 
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBg(event)">
   <div class="modal-sheet" id="modalSheet" onclick="event.stopPropagation()">
@@ -373,6 +445,308 @@ function escapeHtml(s) { const d = document.createElement('div'); d.textContent 
 function escapeJs(s) { return (s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n'); }
 function getLevel(points) { return LEVELS.find(l => points >= l.minPoints && points <= l.maxPoints) || LEVELS[0]; }
 function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+
+// ═══ BOUTIQUE : commande mobile ═══
+// Charge le panier depuis localStorage au démarrage
+try {
+  const saved = JSON.parse(localStorage.getItem('le832_cart') || '[]');
+  if (Array.isArray(saved)) cart = saved;
+} catch (e) {}
+
+async function loadMenu() {
+  try {
+    const res = await fetch(`${API_BASE}/api/menu`);
+    if (res.ok) {
+      const data = await res.json();
+      currentMenu = data.menu || {};
+      openHours = data.openHours;
+      renderCategories();
+      renderProducts();
+      checkOpenStatus();
+      updateCartUI();
+    } else {
+      $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Menu indisponible</div><div class="empty-state-text">Le restaurant n'a pas encore configuré la commande en ligne.</div></div>`;
+    }
+  } catch (e) {
+    $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-title">Connexion impossible</div></div>`;
+  }
+}
+
+function renderCategories() {
+  if (!currentMenu) return;
+  const cats = Object.keys(currentMenu);
+  if (cats.length === 0) { $('categoryBar').innerHTML = ''; return; }
+  if (!currentCategory || !cats.includes(currentCategory)) currentCategory = cats[0];
+  $('categoryBar').innerHTML = cats.map(c =>
+    `<button class="category-chip ${c === currentCategory ? 'active' : ''}" data-cat="${escapeHtml(c)}">${escapeHtml(c)}</button>`
+  ).join('');
+  // Listeners (plus sûr que onclick avec apostrophes dans les noms)
+  document.querySelectorAll('#categoryBar .category-chip').forEach(btn => {
+    btn.addEventListener('click', () => setCategory(btn.dataset.cat));
+  });
+}
+
+function setCategory(cat) { currentCategory = cat; renderCategories(); renderProducts(); }
+
+function renderProducts() {
+  if (!currentMenu || !currentCategory) return;
+  const products = currentMenu[currentCategory] || [];
+  if (products.length === 0) {
+    $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🍽️</div><div class="empty-state-title">Catégorie vide</div></div>`;
+    return;
+  }
+  // Construction sans onclick avec interpolation (évite bugs apostrophes)
+  $('productsGrid').innerHTML = products.map((p, idx) => {
+    const photoHtml = p.photo
+      ? `<img class="product-photo" src="${p.photo}" alt="" />`
+      : `<div class="product-photo-placeholder">${getEmojiFor(p)}</div>`;
+    return `<div class="product-card" data-pidx="${idx}">
+      ${photoHtml}
+      <div class="product-info">
+        <div class="product-name">${escapeHtml(p.name)}</div>
+        ${p.description ? `<div class="product-desc">${escapeHtml(p.description)}</div>` : ''}
+        <div class="product-price">${fmt(p.price)}</div>
+      </div>
+      <button class="product-add-btn" data-pidx="${idx}">+</button>
+    </div>`;
+  }).join('');
+  // Listeners (plus sûr que onclick)
+  document.querySelectorAll('#productsGrid .product-card, #productsGrid .product-add-btn').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.dataset.pidx);
+      const p = products[idx];
+      if (p) addToCart(p.id, p.name, p.price, p.photo, currentCategory);
+    });
+  });
+}
+
+function getEmojiFor(p) {
+  const n = (p.name || '').toLowerCase();
+  if (n.includes('pizza')) return '🍕';
+  if (n.includes('burger') || n.includes('doublé') || n.includes('double')) return '🍔';
+  if (n.includes('frite')) return '🍟';
+  if (n.includes('coca') || n.includes('boisson') || n.includes('eau')) return '🥤';
+  if (n.includes('salade')) return '🥗';
+  if (n.includes('dessert') || n.includes('glace') || n.includes('tiramisu') || n.includes('brownie')) return '🍰';
+  if (n.includes('café') || n.includes('thé') || n.includes('expresso')) return '☕';
+  if (n.includes('panini')) return '🥖';
+  if (n.includes('sandwich')) return '🥪';
+  if (n.includes('tacos')) return '🌮';
+  if (n.includes('bowl')) return '🍱';
+  if (n.includes('poulet') || n.includes('chicken')) return '🍗';
+  return '🍽';
+}
+
+function addToCart(id, name, price, photo, category) {
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.qty++;
+  else cart.push({ id, name, price, qty: 1, photo, category });
+  saveCart();
+  updateCartUI();
+  toast(`✓ ${name} ajouté`);
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if (!item) return;
+  item.qty += delta;
+  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  saveCart();
+  updateCartUI();
+  if ($('modalOverlay').classList.contains('show')) renderCartModal();
+}
+
+function saveCart() { try { localStorage.setItem('le832_cart', JSON.stringify(cart)); } catch (e) {} }
+
+function updateCartUI() {
+  const count = cart.reduce((s, i) => s + i.qty, 0);
+  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
+  if ($('cartFabCount')) $('cartFabCount').textContent = count;
+  if ($('cartFabTotal')) $('cartFabTotal').textContent = fmt(total);
+  if ($('cartBadge')) {
+    $('cartBadge').textContent = count;
+    $('cartBadge').style.display = count > 0 ? 'flex' : 'none';
+  }
+  if ($('cartFab')) $('cartFab').classList.toggle('show', count > 0);
+}
+
+function setOrderMode(mode) {
+  currentOrderMode = mode;
+  document.querySelectorAll('.order-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+}
+
+function checkOpenStatus() {
+  if (!openHours) { $('orderClosedBanner').style.display = 'none'; return; }
+  const now = new Date();
+  const day = now.getDay();
+  const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
+  const hours = openHours[dayKey];
+  if (!hours || hours.length === 0) {
+    $('orderClosedBanner').style.display = 'block';
+    $('orderClosedText').textContent = "Le restaurant est fermé aujourd'hui.";
+    return;
+  }
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  let open = false;
+  for (const slot of hours) {
+    const [s, e] = slot.split('-');
+    const [sh, sm] = s.split(':').map(Number);
+    const [eh, em] = e.split(':').map(Number);
+    if (nowMin >= (sh * 60 + sm) && nowMin <= (eh * 60 + em)) { open = true; break; }
+  }
+  if (!open) {
+    $('orderClosedBanner').style.display = 'block';
+    $('orderClosedText').textContent = `Service fermé. Horaires d'aujourd'hui : ${hours.join(' / ')}`;
+  } else {
+    $('orderClosedBanner').style.display = 'none';
+  }
+}
+
+function openCartModal() {
+  if (cart.length === 0) { toast('Votre panier est vide'); return; }
+  renderCartModal();
+  $('modalOverlay').classList.add('show');
+}
+
+function renderCartModal() {
+  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
+  const slots = generateSlots();
+  const modeLabels = { emporter: '🛍 À emporter', livraison: '🚗 Livraison', sur_place: '🪑 Sur place' };
+  const userInfo = currentInfo || {};
+  $('modalContent').innerHTML = `
+    <div class="modal-title">Votre commande</div>
+    <div class="modal-sub">${modeLabels[currentOrderMode]}</div>
+    <div class="cart-items" id="cartItemsContainer">
+      ${cart.map((i, idx) => `<div class="cart-item">
+        <div class="cart-item-info"><div class="cart-item-name">${escapeHtml(i.name)}</div><div class="cart-item-price">${fmt(i.price)}</div></div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" data-cid="${idx}" data-act="dec">−</button>
+          <span class="qty-num">${i.qty}</span>
+          <button class="qty-btn" data-cid="${idx}" data-act="inc">+</button>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div class="cart-totals"><div class="total-line grand"><span>TOTAL</span><span>${fmt(total)}</span></div></div>
+    ${currentOrderMode === 'livraison' ? `<div class="order-form-row"><div class="order-form-label">Adresse de livraison</div><input type="text" id="orderAddress" class="order-form-input" placeholder="12 rue exemple" value="${escapeHtml(userInfo.address || '')}"></div>` : ''}
+    ${currentOrderMode === 'sur_place' ? `<div class="order-form-row"><div class="order-form-label">Numéro de table</div><input type="text" id="orderTable" class="order-form-input" placeholder="Ex : 4"></div>` : ''}
+    <div class="order-form-row">
+      <div class="order-form-label">Heure souhaitée</div>
+      ${slots.length > 0 ? `<div class="slot-grid" id="slotGrid">${slots.map(s => `<button class="slot-chip" data-slot="${s}">${s}</button>`).join('')}</div>` : '<div style="font-size:12px;color:var(--cream-dim)">Aucun créneau disponible.</div>'}
+    </div>
+    <div class="order-form-row"><div class="order-form-label">Note (optionnel)</div><input type="text" id="orderNote" class="order-form-input" placeholder="Ex : sans oignons..."></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn-secondary" style="flex:1" id="cartCancelBtn">Modifier</button>
+      <button class="btn-primary" id="btnSendOrder" style="flex:2">Envoyer</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:14px;line-height:1.5;text-align:center">💡 Vous paierez sur place ou à la livraison. Vous recevrez un SMS de confirmation.</div>
+  `;
+  // Listeners qty
+  document.querySelectorAll('#cartItemsContainer .qty-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.cid);
+      const it = cart[idx];
+      if (!it) return;
+      changeQty(it.id, btn.dataset.act === 'inc' ? 1 : -1);
+    });
+  });
+  // Listeners slots
+  document.querySelectorAll('#slotGrid .slot-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedSlot = btn.dataset.slot;
+      document.querySelectorAll('#slotGrid .slot-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+  // Boutons modale
+  $('cartCancelBtn').addEventListener('click', closeModal);
+  $('btnSendOrder').addEventListener('click', sendOrder);
+}
+
+function generateSlots() {
+  if (!openHours) return [];
+  const now = new Date();
+  const day = now.getDay();
+  const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
+  const hours = openHours[dayKey];
+  if (!hours || hours.length === 0) return [];
+  const startMin = now.getHours() * 60 + now.getMinutes() + 30;
+  let endMin = 0;
+  for (const slot of hours) {
+    const [, e] = slot.split('-');
+    const [eh, em] = e.split(':').map(Number);
+    endMin = Math.max(endMin, eh * 60 + em);
+  }
+  const slots = [];
+  let cur = Math.ceil(startMin / 15) * 15;
+  while (cur <= endMin) {
+    const h = Math.floor(cur / 60);
+    const m = cur % 60;
+    slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
+    cur += 15;
+  }
+  return slots.slice(0, 24);
+}
+
+async function sendOrder() {
+  if (cart.length === 0) return;
+  if (!selectedSlot) { toast('Choisissez une heure'); return; }
+  let address = '', table = '';
+  if (currentOrderMode === 'livraison') {
+    address = $('orderAddress').value.trim();
+    if (!address) { toast('Adresse requise'); return; }
+  }
+  if (currentOrderMode === 'sur_place') {
+    table = $('orderTable').value.trim();
+    if (!table) { toast('Numéro de table requis'); return; }
+  }
+  const note = ($('orderNote').value || '').trim();
+  const btn = $('btnSendOrder');
+  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+  try {
+    const userInfo = currentInfo || {};
+    const payload = {
+      phone: currentPhone,
+      customer: {
+        firstName: $('profileFirstName').value.trim() || userInfo.firstName || '',
+        lastName: $('profileLastName').value.trim() || userInfo.lastName || '',
+        address: address || userInfo.address || ''
+      },
+      type: currentOrderMode,
+      table: table,
+      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      slot: selectedSlot,
+      note: note,
+      total: cart.reduce((s, i) => s + i.qty * i.price, 0)
+    };
+    const res = await fetch(`${API_BASE}/api/order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.ok) {
+      toast('Erreur : ' + (data.error || 'inconnue'));
+      if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
+      return;
+    }
+    cart = [];
+    saveCart();
+    updateCartUI();
+    $('modalContent').innerHTML = `<div class="order-confirm">
+      <div class="order-confirm-icon">✓</div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Commande envoyée</div>
+      <div class="order-confirm-num">N° ${data.number}</div>
+      <div class="order-confirm-txt">Votre commande a bien été reçue !<br><br>Le restaurant va la confirmer.<br>Vous recevrez un <strong style="color:var(--amber)">SMS</strong> dès que c'est validé.<br><br><strong>${selectedSlot}</strong></div>
+      <button class="btn-primary" id="orderConfirmBackBtn">Voir le suivi</button>
+    </div>`;
+    $('orderConfirmBackBtn').addEventListener('click', () => { closeModal(); switchPage('tracking'); });
+    setTimeout(() => { refreshUserInfo(); loadMyOrders(); }, 1500);
+  } catch (e) {
+    toast('Erreur de connexion');
+    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
+  }
+}
 
 // ═══ SUIVI DE COMMANDE ═══
 const STAGES = [
@@ -552,7 +926,7 @@ async function showApp() {
   const qrData = encodeURIComponent('FLAMME:' + currentPhone);
   $('cardQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${qrData}`;
   await refreshUserInfo();
-  // loadMenu désactivé (plus de commande mobile)
+  loadMenu();
   renderStoredPromos();
   refreshNotifButton();
   // Charger les commandes en cours pour afficher le badge
@@ -672,259 +1046,9 @@ function switchPage(page) {
   else stopTrackingPolling();
 }
 
-async function loadMenu() {
-  try {
-    const res = await fetch(`${API_BASE}/api/menu`);
-    if (res.ok) {
-      const data = await res.json();
-      currentMenu = data.menu;
-      openHours = data.openHours;
-      renderCategories();
-      renderProducts();
-      checkOpenStatus();
-    } else {
-      $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Menu indisponible</div><div class="empty-state-text">Le restaurant n'a pas configuré la commande en ligne.</div></div>`;
-    }
-  } catch (e) {
-    $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">📡</div><div class="empty-state-title">Connexion impossible</div></div>`;
-  }
-}
-
-function renderCategories() {
-  if (!currentMenu) return;
-  const cats = Object.keys(currentMenu);
-  if (cats.length === 0) return;
-  if (!currentCategory || !cats.includes(currentCategory)) currentCategory = cats[0];
-  $('categoryBar').innerHTML = cats.map(c => `<button class="category-chip ${c === currentCategory ? 'active' : ''}" onclick="setCategory('${escapeJs(c)}')">${escapeHtml(c)}</button>`).join('');
-}
-
-function setCategory(cat) { currentCategory = cat; renderCategories(); renderProducts(); }
-
-function renderProducts() {
-  if (!currentMenu || !currentCategory) return;
-  const products = currentMenu[currentCategory] || [];
-  if (products.length === 0) {
-    $('productsGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">🍽️</div><div class="empty-state-title">Catégorie vide</div></div>`;
-    return;
-  }
-  $('productsGrid').innerHTML = products.map(p => {
-    const photoHtml = p.photo
-      ? `<img class="product-photo" src="${p.photo}" alt="" onerror="this.outerHTML='<div class=\\'product-photo-placeholder\\'>${getEmojiFor(p)}</div>'" />`
-      : `<div class="product-photo-placeholder">${getEmojiFor(p)}</div>`;
-    return `<div class="product-card" onclick="addToCart('${escapeJs(p.id)}','${escapeJs(p.name)}',${p.price},'${escapeJs(p.photo || '')}','${escapeJs(currentCategory)}')">
-      ${photoHtml}
-      <div class="product-info">
-        <div class="product-name">${escapeHtml(p.name)}</div>
-        ${p.description ? `<div class="product-desc">${escapeHtml(p.description)}</div>` : ''}
-        <div class="product-price">${fmt(p.price)}</div>
-      </div>
-      <button class="product-add-btn" onclick="event.stopPropagation();addToCart('${escapeJs(p.id)}','${escapeJs(p.name)}',${p.price},'${escapeJs(p.photo || '')}','${escapeJs(currentCategory)}')">+</button>
-    </div>`;
-  }).join('');
-}
-
-function getEmojiFor(p) {
-  const n = (p.name || '').toLowerCase();
-  if (n.includes('pizza')) return '🍕';
-  if (n.includes('burger')) return '🍔';
-  if (n.includes('frite')) return '🍟';
-  if (n.includes('boisson') || n.includes('coca')) return '🥤';
-  if (n.includes('salade')) return '🥗';
-  if (n.includes('dessert') || n.includes('glace')) return '🍰';
-  return '🍽';
-}
-
-function addToCart(id, name, price, photo, category) {
-  const existing = cart.find(i => i.id === id);
-  if (existing) existing.qty++;
-  else cart.push({ id, name, price, qty: 1, photo, category });
-  saveCart();
-  updateCartUI();
-  toast(`✓ ${name} ajouté`);
-}
-
-function changeQty(id, delta) {
-  const item = cart.find(i => i.id === id);
-  if (!item) return;
-  item.qty += delta;
-  if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
-  saveCart();
-  updateCartUI();
-  if ($('modalOverlay').classList.contains('show')) renderCartModal();
-}
-
-function saveCart() { try { localStorage.setItem('le832_cart', JSON.stringify(cart)); } catch (e) {} }
-
-function updateCartUI() {
-  const count = cart.reduce((s, i) => s + i.qty, 0);
-  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-  $('cartFabCount').textContent = count;
-  $('cartFabTotal').textContent = fmt(total);
-  $('cartBadge').textContent = count;
-  $('cartBadge').style.display = count > 0 ? 'flex' : 'none';
-  $('cartFab').classList.toggle('show', count > 0);
-}
-
-function setOrderMode(mode) {
-  currentOrderMode = mode;
-  document.querySelectorAll('.order-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
-}
-
-function checkOpenStatus() {
-  if (!openHours) { $('orderClosedBanner').style.display = 'none'; return; }
-  const now = new Date();
-  const day = now.getDay();
-  const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
-  const hours = openHours[dayKey];
-  if (!hours || hours.length === 0) {
-    $('orderClosedBanner').style.display = 'block';
-    $('orderClosedText').textContent = "Le restaurant est fermé aujourd'hui.";
-    return;
-  }
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-  let open = false;
-  for (const slot of hours) {
-    const [s, e] = slot.split('-');
-    const [sh, sm] = s.split(':').map(Number);
-    const [eh, em] = e.split(':').map(Number);
-    if (nowMin >= (sh * 60 + sm) && nowMin <= (eh * 60 + em)) { open = true; break; }
-  }
-  if (!open) {
-    $('orderClosedBanner').style.display = 'block';
-    $('orderClosedText').textContent = `Service fermé. Horaires : ${hours.join(' / ')}`;
-  } else {
-    $('orderClosedBanner').style.display = 'none';
-  }
-}
-
-function openCartModal() { return; /* désactivé */
-  if (cart.length === 0) { toast('Votre panier est vide'); return; }
-  renderCartModal();
-  $('modalOverlay').classList.add('show');
-}
 
 function closeModal() { $('modalOverlay').classList.remove('show'); }
 function closeModalIfBg(e) { if (e.target === $('modalOverlay')) closeModal(); }
-
-function renderCartModal() {
-  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-  const slots = generateSlots();
-  const modeLabels = { emporter: '🛍 À emporter', livraison: '🚗 Livraison', sur_place: '🪑 Sur place' };
-  $('modalContent').innerHTML = `
-    <div class="modal-title">Votre commande</div>
-    <div class="modal-sub">${modeLabels[currentOrderMode]}</div>
-    <div class="cart-items">
-      ${cart.map(i => `<div class="cart-item">
-        <div class="cart-item-info"><div class="cart-item-name">${escapeHtml(i.name)}</div><div class="cart-item-price">${fmt(i.price)}</div></div>
-        <div class="cart-item-controls"><button class="qty-btn" onclick="changeQty('${escapeJs(i.id)}',-1)">−</button><span class="qty-num">${i.qty}</span><button class="qty-btn" onclick="changeQty('${escapeJs(i.id)}',1)">+</button></div>
-      </div>`).join('')}
-    </div>
-    <div class="cart-totals"><div class="total-line grand"><span>TOTAL</span><span>${fmt(total)}</span></div></div>
-    ${currentOrderMode === 'livraison' ? `<div class="order-form-row"><div class="order-form-label">Adresse de livraison</div><input type="text" id="orderAddress" class="order-form-input" placeholder="12 rue exemple" value="${escapeHtml(currentInfo.address || '')}"></div>` : ''}
-    ${currentOrderMode === 'sur_place' ? `<div class="order-form-row"><div class="order-form-label">Numéro de table</div><input type="text" id="orderTable" class="order-form-input" placeholder="Ex : 4"></div>` : ''}
-    <div class="order-form-row">
-      <div class="order-form-label">Heure souhaitée</div>
-      ${slots.length > 0 ? `<div class="slot-grid">${slots.map(s => `<button class="slot-chip" data-slot="${s}" onclick="selectSlot(this)">${s}</button>`).join('')}</div>` : '<div style="font-size:12px;color:var(--cream-dim)">Aucun créneau disponible.</div>'}
-    </div>
-    <div class="order-form-row"><div class="order-form-label">Note (optionnel)</div><input type="text" id="orderNote" class="order-form-input" placeholder="Ex : sans oignons..."></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn-secondary" style="flex:1" onclick="closeModal()">Modifier</button>
-      <button class="btn-primary" id="btnSendOrder" style="flex:2" onclick="sendOrder()">Envoyer</button>
-    </div>
-    <div style="font-size:10px;color:var(--muted);margin-top:14px;line-height:1.5;text-align:center">💡 Vous paierez sur place ou à la livraison. Vous recevrez un SMS de confirmation.</div>
-  `;
-}
-
-function selectSlot(btn) {
-  selectedSlot = btn.dataset.slot;
-  document.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function generateSlots() {
-  if (!openHours) return [];
-  const now = new Date();
-  const day = now.getDay();
-  const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
-  const hours = openHours[dayKey];
-  if (!hours || hours.length === 0) return [];
-  const startMin = now.getHours() * 60 + now.getMinutes() + 30;
-  let endMin = 0;
-  for (const slot of hours) {
-    const [, e] = slot.split('-');
-    const [eh, em] = e.split(':').map(Number);
-    endMin = Math.max(endMin, eh * 60 + em);
-  }
-  const slots = [];
-  let cur = Math.ceil(startMin / 15) * 15;
-  while (cur <= endMin) {
-    const h = Math.floor(cur / 60);
-    const m = cur % 60;
-    slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
-    cur += 15;
-  }
-  return slots.slice(0, 24);
-}
-
-async function sendOrder() {
-  if (cart.length === 0) return;
-  if (!selectedSlot) { toast('Choisissez une heure'); return; }
-  let address = '', table = '';
-  if (currentOrderMode === 'livraison') {
-    address = $('orderAddress').value.trim();
-    if (!address) { toast('Adresse requise'); return; }
-  }
-  if (currentOrderMode === 'sur_place') {
-    table = $('orderTable').value.trim();
-    if (!table) { toast('Table requise'); return; }
-  }
-  const note = ($('orderNote').value || '').trim();
-  const btn = $('btnSendOrder');
-  if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
-  try {
-    const extra = JSON.parse(localStorage.getItem('le832_profile_extra') || '{}');
-    const payload = {
-      phone: currentPhone,
-      customer: {
-        firstName: $('profileFirstName').value.trim() || currentInfo.firstName || '',
-        lastName: $('profileLastName').value.trim() || currentInfo.lastName || '',
-        email: extra.email || '',
-        address: address || currentInfo.address || ''
-      },
-      type: currentOrderMode,
-      table: table,
-      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
-      slot: selectedSlot,
-      note: note,
-      total: cart.reduce((s, i) => s + i.qty * i.price, 0)
-    };
-    const res = await fetch(`${API_BASE}/api/order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    if (!res.ok || !data.ok) {
-      toast('Erreur : ' + (data.error || 'inconnue'));
-      if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
-      return;
-    }
-    cart = [];
-    saveCart();
-    updateCartUI();
-    $('modalContent').innerHTML = `<div class="order-confirm">
-      <div class="order-confirm-icon">✓</div>
-      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Commande envoyée</div>
-      <div class="order-confirm-num">N° ${data.number}</div>
-      <div class="order-confirm-txt">Votre commande a bien été reçue !<br><br>Le restaurant va la confirmer.<br>Vous recevrez un <strong style="color:var(--amber)">SMS</strong> dès que c'est validé.<br><br><strong>${selectedSlot}</strong></div>
-      <button class="btn-primary" onclick="closeModal();switchPage('home')">Retour à l'accueil</button>
-    </div>`;
-    setTimeout(() => refreshUserInfo(), 1500);
-  } catch (e) {
-    toast('Erreur de connexion');
-    if (btn) { btn.disabled = false; btn.textContent = 'Envoyer'; }
-  }
-}
 
 async function refreshNotifButton() {
   const block = $('notifBlock'), btn = $('notifBtn'), sub = $('notifSub');
