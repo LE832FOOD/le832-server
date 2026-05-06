@@ -176,10 +176,24 @@ const server = http.createServer(async (req, res) => {
       phone: c.phone,
       firstName: c.firstName || '',
       lastName: c.lastName || '',
+      email: c.email || '',
+      birthday: c.birthday || '',
+      address: c.address || '',
       points: c.points || 0,
       orderCount: c.orderCount || 0,
+      totalSpent: c.totalSpent || 0,
+      favoriteItem: c.favoriteItem || '',
       rewardThreshold: loyalty.rewardThreshold || 100,
-      rewardValue: loyalty.rewardValue || 5
+      rewardValue: loyalty.rewardValue || 5,
+      recentOrders: ((sharedState.orders || []).filter(o => o.customer && normalizePhone(o.customer.phone) === phone).slice(0, 10).map(o => ({
+        id: o.id,
+        number: o.number,
+        createdAt: o.createdAt,
+        total: o.total,
+        type: o.type,
+        status: o.status,
+        itemCount: (o.items || []).reduce((s, i) => s + (i.qty || 1), 0)
+      })))
     });
   }
 
@@ -271,6 +285,240 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && pathname === '/api/subscribers-count') {
     const total = Object.values(subscriptions).reduce((s, a) => s + a.length, 0);
     return jsonRes(res, 200, { total, uniquePhones: Object.keys(subscriptions).length });
+  }
+
+  // ─── /api/customer-update : mise à jour des infos client depuis la PWA ───
+  if (req.method === 'POST' && pathname === '/api/customer-update') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    const phone = normalizePhone(body.phone || '');
+    if (!phone) return jsonRes(res, 400, { error: 'phone manquant' });
+    if (!sharedState.customers) sharedState.customers = {};
+    const existing = sharedState.customers[phone] || { phone, points: 0, orderCount: 0, createdAt: Date.now() };
+    sharedState.customers[phone] = {
+      ...existing,
+      firstName: body.firstName || existing.firstName || '',
+      lastName: body.lastName || existing.lastName || '',
+      email: body.email || existing.email || '',
+      birthday: body.birthday || existing.birthday || '',
+      address: body.address || existing.address || '',
+      updatedAt: Date.now()
+    };
+    persistSoon();
+    // Broadcast aux caisses connectées
+    broadcast(null, { type: 'state', data: sharedState });
+    return jsonRes(res, 200, { ok: true });
+  }
+
+  // ─── /api/menu : menu pour la PWA ───
+  if (req.method === 'GET' && pathname === '/api/menu') {
+    const menu = sharedState.menu || {};
+    // Filtrer pour ne garder que les produits visibles + champs publics
+    const filtered = {};
+    for (const cat in menu) {
+      const items = (menu[cat] || []).filter(p => !p.hidden && !p.outOfStock);
+      if (items.length > 0) {
+        filtered[cat] = items.map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description || '',
+          price: p.price,
+          photo: p.photo || null,
+          stock: p.stock
+        }));
+      }
+    }
+    const config = sharedState.config || {};
+    return jsonRes(res, 200, {
+      menu: filtered,
+      openHours: config.openHours || {
+        mon: ['11:30-14:30','18:00-22:30'],
+        tue: ['11:30-14:30','18:00-22:30'],
+        wed: ['11:30-14:30','18:00-22:30'],
+        thu: ['11:30-14:30','18:00-22:30'],
+        fri: ['11:30-14:30','18:00-23:00'],
+        sat: ['11:30-14:30','18:00-23:00'],
+        sun: []
+      }
+    });
+  }
+
+  // ─── /api/order : nouvelle commande depuis la PWA ───
+  if (req.method === 'POST' && pathname === '/api/order') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+
+    const phone = normalizePhone(body.phone || '');
+    if (!phone) return jsonRes(res, 400, { error: 'phone requis' });
+    if (!Array.isArray(body.items) || body.items.length === 0) {
+      return jsonRes(res, 400, { error: 'panier vide' });
+    }
+    const validTypes = ['emporter', 'livraison', 'sur_place'];
+    if (!validTypes.includes(body.type)) {
+      return jsonRes(res, 400, { error: 'type invalide' });
+    }
+
+    // Numéro de commande
+    if (typeof sharedState.counter !== 'number') sharedState.counter = 1;
+    const orderNumber = sharedState.counter++;
+    const orderId = 'pwa_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+
+    // Calculer total côté serveur (sécurité : ne pas faire confiance au client)
+    const menu = sharedState.menu || {};
+    const allProducts = {};
+    for (const cat in menu) {
+      for (const p of (menu[cat] || [])) allProducts[p.id] = p;
+    }
+    let total = 0;
+    const items = [];
+    for (const i of body.items) {
+      const product = allProducts[i.id];
+      if (!product) continue;
+      const qty = Math.max(1, parseInt(i.qty) || 1);
+      const itemTotal = product.price * qty;
+      total += itemTotal;
+      items.push({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        qty: qty
+      });
+    }
+    if (items.length === 0) {
+      return jsonRes(res, 400, { error: 'aucun produit valide' });
+    }
+
+    // Mettre à jour la fiche client
+    if (!sharedState.customers) sharedState.customers = {};
+    const cust = sharedState.customers[phone] || { phone, points: 0, orderCount: 0, createdAt: Date.now() };
+    if (body.customer) {
+      cust.firstName = body.customer.firstName || cust.firstName || '';
+      cust.lastName = body.customer.lastName || cust.lastName || '';
+      cust.email = body.customer.email || cust.email || '';
+      if (body.customer.address) cust.address = body.customer.address;
+    }
+    cust.phone = phone;
+    sharedState.customers[phone] = cust;
+
+    // Créer la commande
+    const order = {
+      id: orderId,
+      number: orderNumber,
+      type: body.type,
+      status: 'en_cours',
+      awaitingConfirmation: true, // ← spécifique aux commandes PWA
+      items: items,
+      customer: {
+        phone: phone,
+        firstName: cust.firstName,
+        lastName: cust.lastName,
+        address: body.customer && body.customer.address ? body.customer.address : (cust.address || '')
+      },
+      table: body.table || null,
+      slot: body.slot || null,
+      note: body.note || '',
+      total: total,
+      payment: { method: 'en_attente', paid: false },
+      source: 'pwa', // ← provenance app mobile
+      createdAt: Date.now(),
+      closedAt: null
+    };
+
+    if (!Array.isArray(sharedState.orders)) sharedState.orders = [];
+    sharedState.orders.unshift(order);
+    persistSoon();
+
+    // Broadcast aux caisses connectées (sons + affichage immédiat)
+    broadcast(null, { type: 'state', data: sharedState });
+
+    return jsonRes(res, 200, {
+      ok: true,
+      orderId: orderId,
+      number: orderNumber,
+      total: total
+    });
+  }
+
+  // ─── /api/order-status : permet à un client de voir l'état de sa commande ───
+  if (req.method === 'GET' && pathname === '/api/order-status') {
+    const orderId = url.searchParams.get('id');
+    if (!orderId) return jsonRes(res, 400, { error: 'id requis' });
+    const order = (sharedState.orders || []).find(o => o.id === orderId);
+    if (!order) return jsonRes(res, 404, { error: 'commande introuvable' });
+    return jsonRes(res, 200, {
+      number: order.number,
+      status: order.status,
+      awaitingConfirmation: !!order.awaitingConfirmation,
+      type: order.type,
+      slot: order.slot,
+      total: order.total,
+      refusedReason: order.refusedReason || null
+    });
+  }
+
+  // ─── /api/order-confirm : la caisse confirme une commande PWA ───
+  if (req.method === 'POST' && pathname === '/api/order-confirm') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    if (body.adminCode !== ADMIN_CODE) return jsonRes(res, 401, { error: 'code admin invalide' });
+    const orderId = body.orderId;
+    if (!orderId) return jsonRes(res, 400, { error: 'orderId requis' });
+    const order = (sharedState.orders || []).find(o => o.id === orderId);
+    if (!order) return jsonRes(res, 404, { error: 'commande introuvable' });
+
+    order.awaitingConfirmation = false;
+    order.confirmedAt = Date.now();
+    persistSoon();
+    broadcast(null, { type: 'state', data: sharedState });
+
+    // Push notif au client si abonné
+    if (webPush && order.customer && order.customer.phone) {
+      const subs = subscriptions[order.customer.phone] || [];
+      const payload = JSON.stringify({
+        title: 'Le 832',
+        body: `✅ Commande #${order.number} confirmée ! ${order.slot ? 'Prête à ' + order.slot : 'En préparation'}`,
+        tag: 'order-confirm-' + orderId,
+        url: '/carte.html'
+      });
+      for (const sub of subs) {
+        webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload).catch(() => {});
+      }
+    }
+    return jsonRes(res, 200, { ok: true });
+  }
+
+  // ─── /api/order-refuse : la caisse refuse une commande PWA ───
+  if (req.method === 'POST' && pathname === '/api/order-refuse') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    if (body.adminCode !== ADMIN_CODE) return jsonRes(res, 401, { error: 'code admin invalide' });
+    const orderId = body.orderId;
+    const reason = (body.reason || 'Indisponible').toString().slice(0, 200);
+    if (!orderId) return jsonRes(res, 400, { error: 'orderId requis' });
+    const order = (sharedState.orders || []).find(o => o.id === orderId);
+    if (!order) return jsonRes(res, 404, { error: 'commande introuvable' });
+
+    order.status = 'annulee';
+    order.awaitingConfirmation = false;
+    order.refusedReason = reason;
+    order.refusedAt = Date.now();
+    order.closedAt = Date.now();
+    persistSoon();
+    broadcast(null, { type: 'state', data: sharedState });
+
+    if (webPush && order.customer && order.customer.phone) {
+      const subs = subscriptions[order.customer.phone] || [];
+      const payload = JSON.stringify({
+        title: 'Le 832',
+        body: `❌ Commande #${order.number} non honorée : ${reason}`,
+        tag: 'order-refuse-' + orderId,
+        url: '/carte.html'
+      });
+      for (const sub of subs) {
+        webPush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload).catch(() => {});
+      }
+    }
+    return jsonRes(res, 200, { ok: true });
   }
 
   res.writeHead(404, { 'Content-Type': 'text/plain' });
