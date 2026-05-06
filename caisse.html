@@ -15675,15 +15675,41 @@ function showOrderDetail(id) {
     `;
   }).join('');
 
+  // Bloc spécial pour les commandes PWA (mobile client) en attente de confirmation
+  let pwaConfirmBlock = '';
+  if (o.source === 'pwa' && o.awaitingConfirmation) {
+    const slotTxt = o.slot ? ` · Heure souhaitée : <strong style="color:var(--amber)">${o.slot}</strong>` : '';
+    const noteTxt = o.note ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line-soft);font-style:italic;color:var(--cream-dim)">📝 ${o.note}</div>` : '';
+    pwaConfirmBlock = `
+      <div style="background:linear-gradient(135deg, rgba(212,160,86,0.12), rgba(212,160,86,0.02));border:1px solid var(--amber);border-radius:10px;padding:12px 14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="font-size:18px">📱</span>
+          <span style="color:var(--amber);font-weight:800;font-size:11px;letter-spacing:0.15em;text-transform:uppercase">Commande mobile · à confirmer</span>
+        </div>
+        <div style="font-size:12px;color:var(--cream-dim);line-height:1.5">
+          Le client attend votre confirmation${slotTxt}.
+          ${noteTxt}
+        </div>
+      </div>`;
+  }
+
   let actions = '';
   const smsBtn = (o.customer && o.customer.phone)
     ? `<button class="btn btn-sms" onclick="showSmsModal('${o.id}')">📱 SMS</button>`
     : '';
-  // Bouton diviser : disponible sur en_cours et terminee, mais pas sur déjà-divisée
   const splitBtn = (o.status !== 'splittee' && !o.splitFrom)
     ? `<button class="btn" onclick="showSplitModal('${o.id}')" style="border-color:var(--amber);color:var(--amber)">⊟ Diviser</button>`
     : '';
-  if (o.status === 'en_cours') {
+
+  // Cas spécial : commande PWA en attente de confirmation
+  if (o.source === 'pwa' && o.awaitingConfirmation) {
+    actions = `
+      <div class="modal-actions-grid">
+        <button class="btn btn-cancel" onclick="refusePwaOrder('${o.id}')" style="grid-column:1/2">❌ Refuser</button>
+        <button class="btn btn-primary" onclick="confirmPwaOrder('${o.id}')" style="grid-column:2/3;background:linear-gradient(180deg,#95b85e,#7a9a4d)">✓ Confirmer</button>
+        ${smsBtn ? `<button class="btn" onclick="showSmsModal('${o.id}')" style="grid-column:1/-1">📱 SMS personnalisé</button>` : ''}
+      </div>`;
+  } else if (o.status === 'en_cours') {
     actions = `
       <div class="modal-actions-grid">
         <button class="btn" onclick="editOrder('${o.id}')">Modifier</button>
@@ -15707,8 +15733,10 @@ function showOrderDetail(id) {
   openModal(`
     <div class="modal-title">Commande N°${o.number}</div>
     <div class="modal-sub">${typeLabel(o.type)} · ${dateStr(o.createdAt)}</div>
+    ${pwaConfirmBlock}
     ${o.splitFrom ? `<div style="background:rgba(212,160,86,0.15);color:var(--amber);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12px;text-align:center">↳ Issue de la division du ticket N°${(state.orders.find(x=>x.id===o.splitFrom)||{}).number||'?'}</div>` : ''}
     ${o.status === 'splittee' ? `<div style="background:rgba(212,160,86,0.15);color:var(--amber);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12px;text-align:center">⊟ Ce ticket a été divisé en ${(o.splitInto||[]).length} fiches</div>` : ''}
+    ${o.refusedReason ? `<div style="background:rgba(214,79,79,0.15);color:var(--red);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12px;text-align:center">❌ Refusée : ${o.refusedReason}</div>` : ''}
     ${custBlock}
     <div class="order-detail-section">
       <div class="order-detail-items">${itemsHtml}</div>
@@ -15721,10 +15749,89 @@ function showOrderDetail(id) {
         : `<div class="order-detail-row"><span class="label">🎁 Cadeau</span><span class="value" style="color:var(--green)">${o.pizzaPromo.message}</span></div>`
       ) : ''}
       <div class="order-detail-row"><span class="label">Paiement</span><span class="value">${payLabel(o.payment.method)}${o.payment.paid ? '' : ' (à régler)'}</span></div>
-      <div class="order-detail-row"><span class="label">Source</span><span class="value">${o.source === 'borne' ? 'Borne client' + (o.locale && o.locale !== 'fr' ? ' (' + o.locale.toUpperCase() + ')' : '') : 'Caisse · ' + (o.serverName || '—')}</span></div>
+      <div class="order-detail-row"><span class="label">Source</span><span class="value">${
+        o.source === 'pwa' ? '📱 App mobile client'
+        : o.source === 'borne' ? 'Borne client' + (o.locale && o.locale !== 'fr' ? ' (' + o.locale.toUpperCase() + ')' : '')
+        : 'Caisse · ' + (o.serverName || '—')
+      }</span></div>
     </div>
     ${actions}
   `, true);
+}
+
+// ═══ Confirmation / refus des commandes PWA mobile ═══
+function confirmPwaOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  if (!confirm(`Confirmer la commande N°${o.number} ?\n\nUn SMS sera envoyé au client : "${o.customer.firstName}" - confirmation pour ${o.slot || 'sa commande'}.`)) return;
+
+  o.awaitingConfirmation = false;
+  o.confirmedAt = nowMs();
+  saveState();
+  closeModal();
+  refreshAll();
+  toast('✓ Commande confirmée');
+
+  // Ouvrir l'app SMS avec message pré-rempli
+  if (o.customer && o.customer.phone) {
+    const restoName = (state.config && state.config.restoName) || 'Le 832';
+    const slot = o.slot || 'bientôt';
+    const typeMsg = o.type === 'livraison' ? 'sera livrée' : 'sera prête';
+    const message = `Bonjour ${o.customer.firstName || ''}, votre commande N°${o.number} chez ${restoName} ${typeMsg} à ${slot}. À tout de suite !`;
+    const phoneClean = o.customer.phone.replace(/[^\d+]/g, '');
+    const smsUrl = `sms:${phoneClean}?body=${encodeURIComponent(message)}`;
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = smsUrl;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+    }, 400);
+  }
+}
+
+function refusePwaOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  const reasons = [
+    'Restaurant fermé',
+    'Plus de stock disponible',
+    'Trop de commandes en cours',
+    'Adresse hors zone de livraison',
+    'Heure non disponible',
+    'Autre'
+  ];
+  const choice = prompt(`Refuser la commande N°${o.number} ?\n\nRaison du refus :\n${reasons.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nTapez un numéro (1-${reasons.length}) ou votre propre raison :`);
+  if (!choice) return;
+  let reason = choice;
+  const num = parseInt(choice);
+  if (num >= 1 && num <= reasons.length) reason = reasons[num - 1];
+
+  o.status = 'annulee';
+  o.refusedReason = reason;
+  o.refusedAt = nowMs();
+  o.awaitingConfirmation = false;
+  saveState();
+  closeModal();
+  refreshAll();
+  toast('Commande refusée');
+
+  // SMS au client
+  if (o.customer && o.customer.phone) {
+    const restoName = (state.config && state.config.restoName) || 'Le 832';
+    const message = `Bonjour ${o.customer.firstName || ''}, désolé, ${restoName} ne peut pas honorer votre commande N°${o.number} : ${reason}. Merci de votre compréhension.`;
+    const phoneClean = o.customer.phone.replace(/[^\d+]/g, '');
+    const smsUrl = `sms:${phoneClean}?body=${encodeURIComponent(message)}`;
+    setTimeout(() => {
+      const a = document.createElement('a');
+      a.href = smsUrl;
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => a.remove(), 100);
+    }, 400);
+  }
 }
 
 function editOrder(id) {
@@ -23823,7 +23930,7 @@ function initCaisseBorneSoundsSnapshot() {
   _caisseBorneSeenIds = new Set();
   if (state.orders) {
     state.orders.forEach(o => {
-      if (o.source === 'borne' || o.source === 'borne_qr') {
+      if (o.source === 'borne' || o.source === 'borne_qr' || o.source === 'pwa') {
         _caisseBorneSeenIds.add(o.id);
       }
     });
@@ -23831,15 +23938,13 @@ function initCaisseBorneSoundsSnapshot() {
 }
 
 // À appeler quand l'état change (refreshAll + handler WebSocket)
-// Détecte les nouvelles commandes borne par rapport au snapshot, joue le son et met à jour le snapshot
+// Détecte les nouvelles commandes borne/PWA par rapport au snapshot, joue le son
 function _caisseDetectNewBorneOrders() {
-  // Si on n'est pas dans la vue caisse, on ne sonne pas (le caissier n'est pas là)
   const caisseView = document.getElementById('view-caisse');
   if (!caisseView || !caisseView.classList.contains('active')) {
-    // On garde quand même le snapshot à jour pour ne pas sonner après quand on revient
     if (_caisseBorneSeenIds && state.orders) {
       state.orders.forEach(o => {
-        if (o.source === 'borne' || o.source === 'borne_qr') {
+        if (o.source === 'borne' || o.source === 'borne_qr' || o.source === 'pwa') {
           _caisseBorneSeenIds.add(o.id);
         }
       });
@@ -23852,25 +23957,39 @@ function _caisseDetectNewBorneOrders() {
   }
   if (!state.orders) return;
 
-  let newCount = 0;
+  let newBorneCount = 0;
+  let newPwaCount = 0;
   state.orders.forEach(o => {
-    if ((o.source === 'borne' || o.source === 'borne_qr') && !_caisseBorneSeenIds.has(o.id)) {
-      _caisseBorneSeenIds.add(o.id);
-      newCount++;
+    if (!_caisseBorneSeenIds.has(o.id)) {
+      if (o.source === 'borne' || o.source === 'borne_qr') {
+        _caisseBorneSeenIds.add(o.id);
+        newBorneCount++;
+      } else if (o.source === 'pwa') {
+        _caisseBorneSeenIds.add(o.id);
+        newPwaCount++;
+      }
     }
   });
 
-  if (newCount > 0) {
-    // Anti-spam : minimum 1.5s entre 2 sons
+  const totalNew = newBorneCount + newPwaCount;
+  if (totalNew > 0) {
     const now = Date.now();
     if (now - _caisseLastBorneSoundAt >= 1500) {
       _caisseLastBorneSoundAt = now;
       playSound('borneOrder');
-      // Petit toast en plus (si on n'est pas déjà sur l'onglet "en cours")
       if (currentTab !== 'encours') {
-        const msg = newCount === 1
-          ? '🛎 Nouvelle commande depuis la borne'
-          : `🛎 ${newCount} nouvelles commandes depuis la borne`;
+        let msg;
+        if (newPwaCount > 0 && newBorneCount === 0) {
+          msg = newPwaCount === 1
+            ? '📱 Nouvelle commande mobile (à confirmer)'
+            : `📱 ${newPwaCount} nouvelles commandes mobile`;
+        } else if (newBorneCount > 0 && newPwaCount === 0) {
+          msg = newBorneCount === 1
+            ? '🛎 Nouvelle commande depuis la borne'
+            : `🛎 ${newBorneCount} nouvelles commandes depuis la borne`;
+        } else {
+          msg = `🛎 ${totalNew} nouvelles commandes`;
+        }
         toast(msg);
       }
     }
