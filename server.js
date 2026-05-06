@@ -457,13 +457,31 @@ const server = http.createServer(async (req, res) => {
     });
     // Mapper pour ne renvoyer que les champs publics
     const result = myOrders.map(o => {
-      // Calculer l'étape actuelle
-      let stage = 'received'; // étape par défaut
-      if (o.awaitingConfirmation) stage = 'received';
-      else if (o.status === 'en_cours' && o.kdsStartedAt) stage = 'preparing';
-      else if (o.status === 'en_cours' && !o.kdsStartedAt) stage = 'confirmed';
-      else if (o.status === 'en_livraison') stage = 'delivering';
-      else if (o.status === 'terminee') stage = 'completed';
+      // Calculer l'étape actuelle selon le type
+      // Champs réels utilisés par la caisse :
+      //  - awaitingConfirmation : en attente confirmation (commande PWA)
+      //  - confirmedAt : timestamp confirmation
+      //  - kdsStatus = 'prete' + kdsReadyAt : cuisine a marqué prête
+      //  - status = 'en_livraison' + takenAt : livreur a pris la commande
+      //  - status = 'terminee' + closedAt : commande terminée
+      let stage = 'received';
+      if (o.awaitingConfirmation) {
+        stage = 'received';
+      } else if (o.status === 'terminee') {
+        stage = 'completed';
+      } else if (o.type === 'livraison') {
+        // Pour les livraisons : reçue → confirmée → préparation → en livraison → livrée
+        if (o.status === 'en_livraison') stage = 'delivering';
+        else if (o.kdsStatus === 'prete') stage = 'preparing'; // prête mais pas encore livreur, on garde "préparation"
+        else if (o.kdsStatus || o.confirmedAt) stage = 'preparing';
+        else stage = 'confirmed';
+      } else {
+        // Pour à emporter / sur place : reçue → confirmée → préparation → prête → récupérée
+        if (o.kdsStatus === 'servie') stage = 'completed';
+        else if (o.kdsStatus === 'prete') stage = 'ready';
+        else if (o.kdsStatus || o.confirmedAt) stage = 'preparing';
+        else stage = 'confirmed';
+      }
       return {
         id: o.id,
         number: o.number,
