@@ -8,12 +8,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Flamme" />
-<meta name="application-name" content="Flamme" />
+<meta name="apple-mobile-web-app-title" content="LE 832 FOOD" />
+<meta name="application-name" content="LE 832 FOOD" />
 <meta name="format-detection" content="telephone=no" />
 <meta name="msapplication-TileColor" content="#14110d" />
-<meta name="description" content="Flamme — Système de caisse et borne pour restauration" />
-<title>Flamme — Caisse & Borne</title>
+<meta name="description" content="LE 832 FOOD — Caisse & Borne" />
+<title>LE 832 FOOD — Caisse &amp; Borne</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://unpkg.com">
@@ -585,12 +585,15 @@
     display: grid;
     grid-template-columns: 1fr 420px;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .nouvelle-menu {
     padding: 18px 28px;
     overflow-y: auto;
     border-right: 1px solid var(--line-soft);
+    min-height: 0;
   }
 
   .order-type-bar {
@@ -687,6 +690,42 @@
   }
   .cat-btn.active::after { left: 0; right: 0; }
 
+  /* Catégories fusionnées : 2 pastilles colorées dans le bouton */
+  .cat-btn-dots {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .cat-btn-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* Sous-catégorie : badge + accent bordure (subtil, pas tape-à-l'œil) */
+  .product[data-sub] .product-sub-badge { display: inline-block; }
+  .product[data-sub="Sandwich"]  { border-top: 3px solid #d4a373; }
+  .product[data-sub="Sandwich"]  .product-sub-badge { background: rgba(212,163,115,0.22); color: #e8c89e; }
+  .product[data-sub="Burger"]    { border-top: 3px solid #c1574a; }
+  .product[data-sub="Burger"]    .product-sub-badge { background: rgba(193,87,74,0.25); color: #e8a59a; }
+  .product[data-sub="Tacos"]     { border-top: 3px solid #e8a33d; }
+  .product[data-sub="Tacos"]     .product-sub-badge { background: rgba(232,163,61,0.22); color: #f5c884; }
+  .product[data-sub="Bowl"]      { border-top: 3px solid #6f9c5a; }
+  .product[data-sub="Bowl"]      .product-sub-badge { background: rgba(111,156,90,0.25); color: #a8d18b; }
+  .product[data-sub="Salade"]    { border-top: 3px solid #8bb96b; }
+  .product[data-sub="Salade"]    .product-sub-badge { background: rgba(139,185,107,0.22); color: #c0e09b; }
+  .product[data-sub="Gratin"]    { border-top: 3px solid #d4a36a; }
+  .product[data-sub="Gratin"]    .product-sub-badge { background: rgba(212,163,106,0.22); color: #e8c89e; }
+  .product[data-sub="Poulet"]    { border-top: 3px solid #c1873a; }
+  .product[data-sub="Poulet"]    .product-sub-badge { background: rgba(193,135,58,0.22); color: #e8b87a; }
+  .product[data-sub="Brochette"] { border-top: 3px solid #a04e3a; }
+  .product[data-sub="Brochette"] .product-sub-badge { background: rgba(160,78,58,0.25); color: #d49a85; }
+  .product[data-sub="Box"]       { border-top: 3px solid #7e9bbf; }
+  .product[data-sub="Box"]       .product-sub-badge { background: rgba(126,155,191,0.22); color: #b0c8e4; }
+  .product[data-sub="Fingers"]   { border-top: 3px solid #d4a373; }
+  .product[data-sub="Fingers"]   .product-sub-badge { background: rgba(212,163,115,0.22); color: #e8c89e; }
+
   .products {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
@@ -696,8 +735,8 @@
   .product {
     background: var(--surface);
     border: 1px solid var(--line-soft);
-    border-radius: 10px;
-    padding: 16px 14px;
+    border-radius: 14px;
+    padding: 14px 14px 12px;
     cursor: pointer;
     transition: transform 0.18s var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1)),
                 border-color 0.18s,
@@ -707,7 +746,7 @@
     color: var(--cream);
     position: relative;
     overflow: hidden;
-    min-height: 110px;
+    min-height: 130px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -726,7 +765,7 @@
     border-color: var(--amber);
     transform: translateY(-3px);
     background: var(--surface-2);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
   }
   .product:hover::before { opacity: 1; }
   .product:active {
@@ -735,33 +774,114 @@
     transition-duration: 80ms;
   }
 
+  /* Badge sous-catégorie en haut à droite */
+  .product-sub-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 999px;
+    color: var(--cream);
+    backdrop-filter: blur(4px);
+    z-index: 1;
+  }
+
+  .product-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    /* Réserve la place pour le badge sous-catégorie en haut à droite */
+    padding-right: 4px;
+    min-width: 0;
+  }
+
+  .product[data-sub] .product-text {
+    /* Quand un badge est présent, on réserve plus de place sur la première ligne */
+    padding-right: 0;
+  }
+  .product[data-sub] .product-name {
+    /* La 1ère ligne du nom doit éviter le badge (60px) */
+    padding-right: 60px;
+    /* Sur la 2e ligne le texte récupère toute la largeur — astuce CSS */
+  }
+
   .product-name {
     font-family: 'Fraunces', serif;
     font-weight: 500;
-    font-size: 16px;
-    line-height: 1.25;
+    font-size: 16.5px;
+    line-height: 1.2;
     margin-bottom: 6px;
+    color: var(--cream);
+    letter-spacing: -0.01em;
   }
 
   .product-desc {
-    font-size: 10.5px;
+    font-size: 11px;
     color: var(--muted);
-    line-height: 1.4;
+    line-height: 1.45;
     margin-bottom: 10px;
     flex: 1;
+    /* Limite à 2 lignes avec ellipsis */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Encart prix en bas, séparé visuellement */
+  .product-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    margin-top: auto;
   }
 
   .product-price {
     font-family: 'Fraunces', serif;
-    font-size: 17px;
+    font-size: 19px;
     color: var(--amber);
-    font-weight: 500;
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
   }
   .product-price::after {
     content: ' €';
-    font-size: 11px;
+    font-size: 12px;
     color: var(--muted);
+    font-weight: 400;
+  }
+
+  .product-price-original {
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: line-through;
+    margin-right: 6px;
+    font-weight: 400;
+  }
+
+  .product-add-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(212,160,86,0.14);
+    color: var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.18s;
+    flex-shrink: 0;
+  }
+  .product:hover .product-add-icon {
+    background: var(--amber);
+    color: var(--surface);
+    transform: scale(1.1);
   }
 
   /* ===== TICKET PANEL ===== */
@@ -772,12 +892,15 @@
     overflow: hidden;
     border-left: 1px solid var(--line-soft);
     box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+    height: 100%;
+    min-height: 0;
   }
 
   .ticket-header {
     padding: 20px 22px 16px;
     border-bottom: 1px dashed var(--line);
     background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+    flex-shrink: 0;
   }
 
   .ticket-title {
@@ -802,6 +925,7 @@
     border-bottom: 1px dashed var(--line);
     display: none;
     flex-direction: column;
+    flex-shrink: 0;
   }
   .customer-form.show { display: flex; }
 
@@ -961,12 +1085,24 @@
   }
   .form-input::placeholder { color: var(--muted); }
 
+  /* Cache les flèches haut/bas des inputs number (Chrome/Safari) */
+  .form-input[type="number"]::-webkit-outer-spin-button,
+  .form-input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .form-input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
   .table-input-wrap {
     padding: 12px 22px 14px;
     border-bottom: 1px dashed var(--line);
     display: none;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
   }
   .table-input-wrap.show { display: flex; }
   .table-label {
@@ -1008,10 +1144,22 @@
   }
 
   .ticket-items {
-    flex: 1;
+    flex: 1 1 auto;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 6px 0;
+    min-height: 80px;
+    /* Scrollbar fine et discrète */
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
   }
+  .ticket-items::-webkit-scrollbar { width: 6px; }
+  .ticket-items::-webkit-scrollbar-track { background: transparent; }
+  .ticket-items::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 3px;
+  }
+  .ticket-items::-webkit-scrollbar-thumb:hover { background: var(--cream-dim); }
 
   .ticket-empty {
     padding: 60px 24px;
@@ -1155,13 +1303,18 @@
   .item-name {
     font-family: 'Fraunces', serif;
     font-size: 14px;
-    white-space: nowrap;
+    line-height: 1.25;
+    /* Autorise 2 lignes pour les noms longs comme "1/2 Poulet + 1 accomp + 1 boisson" */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
+    word-break: break-word;
   }
   .item-price {
     font-size: 10.5px;
     color: var(--muted);
+    margin-top: 2px;
   }
   .item-total {
     font-family: 'Fraunces', serif;
@@ -1174,6 +1327,8 @@
   .ticket-footer {
     padding: 16px 22px 20px;
     border-top: 1px dashed var(--line);
+    flex-shrink: 0;
+    background: var(--surface);
   }
 
   .totals { margin-bottom: 14px; }
@@ -1505,6 +1660,37 @@
     position: relative;
     overflow: hidden;
   }
+
+  /* Visuel ticket annulé */
+  .order-card.order-card-cancelled {
+    opacity: 0.55;
+    background: rgba(193, 87, 74, 0.04);
+    border-color: rgba(193, 87, 74, 0.25);
+  }
+  .order-card.order-card-cancelled .order-total,
+  .order-card.order-card-cancelled .order-num,
+  .order-card.order-card-cancelled .order-items-preview {
+    text-decoration: line-through;
+    text-decoration-color: rgba(193, 87, 74, 0.6);
+  }
+  .order-cancelled-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(193, 87, 74, 0.25);
+    color: #e69a8a;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(193, 87, 74, 0.4);
+    z-index: 3;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  /* Sur les cards annulées on cache le total qui passe sous le badge */
+  .order-card.order-card-cancelled .order-card-foot .order-total { opacity: 0; }
   .order-card::before {
     content: '';
     position: absolute;
@@ -2065,7 +2251,7 @@
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 5000;
     padding: 20px;
     animation: fadeIn 0.25s var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
   }
@@ -2435,6 +2621,7 @@
     flex: 1;
     overflow: hidden;
     display: flex;
+    min-height: 0;
   }
 
   .borne-step {
@@ -2444,6 +2631,7 @@
     display: none;
     flex-direction: column;
     align-items: center;
+    min-height: 0;
   }
   .borne-step.active { display: flex; }
 
@@ -3491,6 +3679,209 @@
   }
   .clients-sort {
     cursor: pointer;
+  }
+
+  /* ═══ ONGLET FICHE / FACTURES ═══ */
+  .fiches-tab {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    background: var(--surface);
+  }
+  .fiches-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    background: rgba(126, 155, 191, 0.10);
+    border: 1px solid rgba(126, 155, 191, 0.25);
+    border-radius: 10px;
+    margin-bottom: 22px;
+    font-size: 13px;
+    color: var(--cream-dim);
+    line-height: 1.45;
+  }
+  .fiches-info-banner strong { color: var(--cream); }
+  .fiches-info-icon { font-size: 16px; flex-shrink: 0; }
+  .fiche-form-card {
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 28px;
+  }
+  .fiche-form-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--cream);
+    margin-bottom: 16px;
+  }
+  .fiche-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .fiche-form-fullrow {
+    grid-column: 1 / -1;
+    background: rgba(212,160,86,0.06);
+    border: 1px solid rgba(212,160,86,0.18);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 6px;
+  }
+  .fiche-field-label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    display: block;
+    font-weight: 500;
+  }
+  .fiche-total-input {
+    font-family: 'Fraunces', serif;
+    font-size: 24px !important;
+    color: var(--amber) !important;
+    font-weight: 600;
+    text-align: left;
+    padding: 8px 12px !important;
+  }
+  .fiche-per-meal {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 6px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .fiche-form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    color: var(--muted);
+  }
+  .btn-ghost:hover {
+    border-color: var(--cream-dim);
+    color: var(--cream);
+  }
+
+  .fiche-list-section {
+    margin-top: 8px;
+  }
+  .fiche-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .fiche-list-title {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    color: var(--cream);
+  }
+  .fiche-list-stats {
+    font-size: 12px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .fiche-list-stats strong {
+    color: var(--amber);
+    font-weight: 600;
+  }
+  .fiche-search {
+    margin-bottom: 14px;
+  }
+  .fiches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+  }
+  .fiche-card {
+    background: var(--surface-2);
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.18s;
+    position: relative;
+  }
+  .fiche-card:hover {
+    border-color: var(--amber);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+  }
+  .fiche-card-name {
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--cream);
+    margin-bottom: 2px;
+  }
+  .fiche-card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .fiche-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+  .fiche-card-info {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .fiche-card-total {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    color: var(--amber);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .fiche-card-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .fiche-card-action {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--line-soft);
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+  .fiche-card-action:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+  }
+  .fiche-card-action.danger:hover {
+    border-color: #c1574a;
+    color: #d48a7a;
+  }
+  .fiche-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 13px;
+  }
+  @media (max-width: 700px) {
+    .fiche-form-grid { grid-template-columns: 1fr; }
   }
 
   /* === Carte client compte mensuel === */
@@ -5587,6 +5978,7 @@
     max-width: 800px;
     margin: 0 auto;
     width: 100%;
+    min-height: 0;
   }
 
   .cart-screen-header {
@@ -7683,118 +8075,159 @@
     font-weight: 600;
     margin-bottom: 8px;
   }
+  /* ╔═══════════════════════════════════════════════════════════════════╗
+     ║  FORMULAIRE DE CHOIX — Option A (cartes en grille)                ║
+     ║  Variantes : .pdm-mode-borne (avec emoji) / .pdm-mode-caisse (sans)║
+     ╚═══════════════════════════════════════════════════════════════════╝ */
   .pdm-opts {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
   }
+
   .pdm-opt {
-    background: var(--surface-3);
-    border: 2px solid var(--line);
+    background: #1f1f1d;
+    border: 2px solid rgba(255,255,255,0.08);
     color: var(--cream);
-    padding: 12px 12px 12px 10px;
-    border-radius: 10px;
+    padding: 14px 10px;
+    border-radius: 12px;
     font-family: inherit;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.18s var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
     display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    min-height: 52px;
-    text-align: left;
-    line-height: 1.25;
-  }
-  .pdm-opt-emoji {
-    font-size: 26px;
-    line-height: 1;
-    flex-shrink: 0;
-    width: 36px;
-    height: 36px;
-    text-align: center;
-    display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: rgba(0,0,0,0.18);
-    border-radius: 8px;
-    filter:
-      drop-shadow(0 2px 4px rgba(0,0,0,0.3))
-      drop-shadow(0 0 6px rgba(212,160,86,0.15));
-    transition: all 0.2s var(--ease-spring, cubic-bezier(0.32, 0.72, 0, 1));
+    gap: 6px;
+    font-size: 13px;
+    min-height: 88px;
+    text-align: center;
+    line-height: 1.3;
+    position: relative;
+    overflow: hidden;
   }
-  .pdm-opt:hover .pdm-opt-emoji {
-    transform: scale(1.12);
-    filter:
-      drop-shadow(0 4px 8px rgba(0,0,0,0.4))
-      drop-shadow(0 0 10px rgba(212,160,86,0.3));
-  }
-  .pdm-opt.selected .pdm-opt-emoji {
-    background: rgba(20,17,13,0.18);
+
+  /* Emoji centré au-dessus du nom (en mode borne) */
+  .pdm-opt-emoji {
+    font-size: 30px;
+    line-height: 1;
+    margin-bottom: 2px;
+    transition: transform 0.2s var(--ease-spring, cubic-bezier(0.32, 0.72, 0, 1));
     filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
   }
+  /* Cache l'emoji en mode caisse (compact, pro) */
+  .pdm-mode-caisse .pdm-opt-emoji { display: none; }
+  /* En mode caisse : cartes plus petites en hauteur */
+  .pdm-mode-caisse .pdm-opt { min-height: 64px; padding: 12px 10px; }
+  .pdm-mode-caisse .pdm-opts { gap: 8px; }
+
   .pdm-opt-text {
-    flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
-  }
-  .pdm-opt:hover {
-    border-color: var(--cream-dim);
-    transform: translateY(-1px);
-  }
-  .pdm-opt:active {
-    transform: scale(0.97);
-  }
-  .pdm-opt.selected {
-    background: var(--amber);
-    border-color: var(--amber);
-    color: #14110d;
-    box-shadow: 0 2px 8px rgba(212, 160, 86, 0.35);
+    width: 100%;
   }
   .pdm-opt-name {
     font-weight: 600;
-    font-size: 13px;
+    font-size: 13.5px;
+    color: inherit;
+    word-break: break-word;
   }
   .pdm-opt-price {
     font-size: 11px;
-    opacity: 0.85;
+    opacity: 0.7;
     font-variant-numeric: tabular-nums;
     font-weight: 500;
+    color: var(--amber);
   }
-  .pdm-opt.selected .pdm-opt-price {
-    opacity: 0.7;
+
+  /* États interactifs */
+  .pdm-opt:hover {
+    border-color: var(--amber);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(212,160,86,0.12);
   }
-  /* Variante "À retirer" : style barré quand sélectionné */
+  .pdm-opt:hover .pdm-opt-emoji {
+    transform: scale(1.12);
+  }
+  .pdm-opt:active {
+    transform: scale(0.97);
+    transition-duration: 80ms;
+  }
+
+  /* État sélectionné (ambre) */
+  .pdm-opt.selected {
+    background: linear-gradient(180deg, var(--amber-bright, #e8b568) 0%, var(--amber) 100%);
+    border-color: var(--amber);
+    color: #14110d;
+    box-shadow: 0 4px 14px rgba(212,160,86,0.4);
+  }
+  .pdm-opt.selected .pdm-opt-price { opacity: 0.6; color: #14110d; }
+  .pdm-opt.selected .pdm-opt-emoji {
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+
+  /* Petit checkmark visible quand sélectionné */
+  .pdm-opt.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 18px;
+    height: 18px;
+    background: rgba(20,17,13,0.18);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: #14110d;
+  }
+
+  /* Variante "À retirer" : style rouge barré */
   .pdm-opt-remove {
-    border-color: var(--line);
-  }
-  .pdm-opt-remove .pdm-opt-name {
-    text-decoration: none;
+    border-color: rgba(255,255,255,0.08);
   }
   .pdm-opt-remove.selected {
-    background: var(--red);
-    border-color: var(--red);
+    background: linear-gradient(180deg, #d96b5a 0%, #b8553a 100%);
+    border-color: #b8553a;
     color: var(--cream);
-    box-shadow: 0 2px 8px rgba(184, 85, 58, 0.35);
+    box-shadow: 0 4px 14px rgba(184,85,58,0.4);
   }
   .pdm-opt-remove.selected .pdm-opt-name {
     text-decoration: line-through;
     text-decoration-thickness: 2px;
   }
-  /* Variante boisson sélectionnée : vert */
-  .pdm-opt[data-section="standaloneDrink"].selected {
-    background: var(--green);
-    border-color: var(--green);
+  .pdm-opt-remove.selected::after {
+    content: '✕';
+    background: rgba(20,17,13,0.25);
     color: var(--cream);
-    box-shadow: 0 2px 8px rgba(122, 154, 77, 0.35);
   }
+
+  /* Variante boisson sélectionnée : vert */
+  .pdm-opt[data-section="standaloneDrink"].selected,
+  .pdm-opt[data-section="drink"].selected {
+    background: linear-gradient(180deg, #95b85e 0%, #7a9a4d 100%);
+    border-color: #7a9a4d;
+    color: var(--cream);
+    box-shadow: 0 4px 14px rgba(122,154,77,0.4);
+  }
+  .pdm-opt[data-section="standaloneDrink"].selected::after,
+  .pdm-opt[data-section="drink"].selected::after {
+    background: rgba(20,17,13,0.25);
+    color: var(--cream);
+  }
+  .pdm-opt[data-section="standaloneDrink"].selected .pdm-opt-price,
+  .pdm-opt[data-section="drink"].selected .pdm-opt-price { color: rgba(255,255,255,0.85); }
+
   /* Variante taille sélectionnée : bleu */
   .pdm-opt[data-section="bread"].selected[data-is-size="true"] {
-    background: #6b9bd1;
+    background: linear-gradient(180deg, #8bb3d9 0%, #6b9bd1 100%);
     border-color: #6b9bd1;
     color: #14110d;
-    box-shadow: 0 2px 8px rgba(107, 155, 209, 0.4);
+    box-shadow: 0 4px 14px rgba(107,155,209,0.4);
   }
 
   /* Toggle Seul / En menu */
@@ -8501,12 +8934,14 @@
     display: grid;
     grid-template-columns: 400px 1fr;
     overflow: hidden;
+    min-height: 0;
   }
   .liv-list {
     background: var(--surface);
     border-right: 1px solid var(--line);
     overflow-y: auto;
     padding: 14px;
+    min-height: 0;
   }
 
   /* === Empty state === */
@@ -9433,6 +9868,7 @@
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0;
   }
   .track-map {
     flex: 1;
@@ -11072,19 +11508,161 @@
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
+
+  /* ╔═══════════════════════════════════════════════════════════════════╗
+     ║  CLAVIER VIRTUEL TACTILE (AZERTY) pour caisse                     ║
+     ╚═══════════════════════════════════════════════════════════════════╝ */
+  #vKbBackdrop {
+    /* Désactivé volontairement : laisse les clics passer vers le contenu */
+    display: none !important;
+  }
+
+  #virtualKeyboard {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--surface-2, #232323);
+    border-top: 1px solid var(--line, rgba(255,255,255,0.1));
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.4);
+    padding: 14px 16px 18px;
+    z-index: 9999;
+    transform: translateY(100%);
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+  #virtualKeyboard.show { transform: translateY(0); }
+
+  .vkb-target-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 4px 10px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--line-soft, rgba(255,255,255,0.06));
+  }
+  .vkb-target-label {
+    font-size: 11px;
+    color: var(--muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    flex: 1;
+  }
+  .vkb-target-preview {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    color: var(--cream, #f0ead6);
+    font-weight: 500;
+    flex: 2;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .vkb-close-btn {
+    background: transparent;
+    border: 1px solid var(--line-soft, rgba(255,255,255,0.1));
+    color: var(--muted, #888);
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.15s;
+  }
+  .vkb-close-btn:hover { border-color: var(--amber, #d4a056); color: var(--amber, #d4a056); }
+  .vkb-close-btn:active { transform: scale(0.94); }
+
+  .vkb-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 6px;
+  }
+  .vkb-row:last-child { margin-bottom: 0; }
+
+  .vkb-key {
+    flex: 1;
+    min-height: 48px;
+    background: var(--surface, #1f1f1d);
+    border: 1px solid var(--line-soft, rgba(255,255,255,0.08));
+    border-radius: 8px;
+    color: var(--cream, #f0ead6);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 17px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.08s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    padding: 0 6px;
+  }
+  .vkb-key:hover {
+    background: var(--surface-3, #2a2a28);
+    border-color: var(--line, rgba(255,255,255,0.15));
+  }
+  .vkb-key:active, .vkb-key.pressed {
+    background: var(--amber, #d4a056);
+    color: #1a1a1a;
+    transform: scale(0.96);
+    border-color: var(--amber, #d4a056);
+  }
+  .vkb-key.wide-1-5 { flex: 1.5; }
+  .vkb-key.wide-2 { flex: 2; }
+  .vkb-key.wide-space { flex: 6; }
+  .vkb-key.special {
+    background: var(--surface-3, #2a2a28);
+    color: var(--muted, #aaa);
+    font-size: 13px;
+  }
+  .vkb-key.special:hover {
+    background: var(--surface-2);
+    color: var(--cream);
+  }
+  .vkb-key.action {
+    background: var(--amber, #d4a056);
+    color: #1a1a1a;
+    border-color: var(--amber, #d4a056);
+    font-weight: 600;
+    font-size: 14px;
+  }
+  .vkb-key.action:hover { filter: brightness(1.08); }
+  .vkb-key.shift-active {
+    background: rgba(212, 160, 86, 0.25);
+    border-color: var(--amber, #d4a056);
+    color: var(--amber, #d4a056);
+  }
+  .vkb-key.delete {
+    background: rgba(193, 87, 74, 0.18);
+    border-color: rgba(193, 87, 74, 0.35);
+    color: #d48a7a;
+  }
+  .vkb-key.delete:hover {
+    background: rgba(193, 87, 74, 0.3);
+    color: #e69a8a;
+  }
+
+  /* Mode pavé numérique */
+  #virtualKeyboard.numpad-mode .vkb-row { max-width: 360px; margin-left: auto; margin-right: auto; }
+  #virtualKeyboard.numpad-mode .vkb-key { min-height: 60px; font-size: 22px; }
+
+  /* Le clavier flotte au-dessus du contenu sans décaler la page.
+     Le scrollIntoView garantit que le champ reste visible. */
 </style>
 </head>
 <body>
 
 <!-- ========== SPLASH SCREEN initial ========== -->
 <div id="initialSplash">
-  <div class="splash-brand">Flamme</div>
+  <div class="splash-brand">LE 832 FOOD</div>
   <div class="splash-spinner"></div>
 </div>
 
 <!-- ========== LANDING ========== -->
 <div id="view-landing" class="view active">
-  <div class="landing-brand">Flamme</div>
+  <div class="landing-brand">LE 832 FOOD</div>
   <div class="landing-tag">Restauration rapide · Caisse & Borne</div>
   <div class="landing-modes">
     <button class="mode-card" onclick="showView('caisse')">
@@ -11118,7 +11696,7 @@
 
 <!-- ========== LOGIN ========== -->
 <div id="view-login" class="view">
-  <div class="login-title">Flamme</div>
+  <div class="login-title">LE 832 FOOD</div>
   <div class="login-sub">Identification du personnel</div>
   <div class="login-servers" id="loginServers"></div>
   <button class="login-back" onclick="showView('landing')">← Retour</button>
@@ -11138,7 +11716,7 @@
   <div class="mobile-drawer-bg" id="mobileDrawerBg" onclick="closeMobileMenu()"></div>
   <div class="mobile-drawer" id="mobileDrawer">
     <div class="mobile-drawer-head">
-      <div class="mobile-drawer-brand">Flamme</div>
+      <div class="mobile-drawer-brand">LE 832 FOOD</div>
       <button class="mobile-drawer-close" onclick="closeMobileMenu()" aria-label="Fermer">✕</button>
     </div>
     <div class="mobile-drawer-user" id="mobileDrawerUser">
@@ -11156,7 +11734,7 @@
   </div>
 
   <aside class="sidebar">
-    <div class="sidebar-brand">Flamme</div>
+    <div class="sidebar-brand">LE 832 FOOD</div>
     <div class="sidebar-tag">Mode Caisse</div>
     <div class="sidebar-user" id="sidebarUser" style="display:none">
       <div class="user-avatar" id="userAvatar">—</div>
@@ -11173,6 +11751,7 @@
       <button class="nav-btn" data-tab="salle">Plan de salle</button>
       <button class="nav-btn" data-tab="reservations">Réservations</button>
       <button class="nav-btn" data-tab="clients">Clients</button>
+      <button class="nav-btn" data-tab="fiches">📋 Fiche</button>
       <button class="nav-btn" data-tab="compta" id="navCompta" style="display:none">Comptabilité</button>
       <button class="nav-btn" data-tab="parametres" id="navParametres" style="display:none">Paramètres</button>
     </nav>
@@ -11408,6 +11987,64 @@
       </div>
     </section>
 
+    <!-- TAB: FICHE / FACTURES -->
+    <section id="tab-fiches" class="tab-content">
+      <div class="fiches-tab">
+        <div class="list-header">
+          <div class="list-title">Fiches / Factures</div>
+          <div class="list-count" id="fichesCount">0 fiche</div>
+        </div>
+
+        <div class="fiches-info-banner">
+          <span class="fiches-info-icon">ℹ️</span>
+          <span>Les fiches sont indépendantes des commandes : elles n'apparaissent <strong>pas</strong> dans le chiffre d'affaires de la caisse.</span>
+        </div>
+
+        <!-- Formulaire création rapide -->
+        <div class="fiche-form-card">
+          <div class="fiche-form-title">Nouvelle fiche</div>
+          <div class="fiche-form-grid">
+            <div>
+              <label class="fiche-field-label">Nom du client</label>
+              <input type="text" class="form-input" id="ficheClientName" placeholder="Ex: Mr Dupont" />
+            </div>
+            <div>
+              <label class="fiche-field-label">Téléphone (optionnel)</label>
+              <input type="tel" class="form-input" id="ficheClientPhone" placeholder="06..." />
+            </div>
+            <div>
+              <label class="fiche-field-label">Nombre de repas</label>
+              <input type="number" class="form-input" id="ficheMealCount" min="1" value="1" oninput="ficheUpdateTotal()" />
+            </div>
+            <div>
+              <label class="fiche-field-label">Description (optionnel)</label>
+              <input type="text" class="form-input" id="ficheDescription" placeholder="Ex: Menus du midi, livraison entreprise..." />
+            </div>
+            <div class="fiche-form-fullrow">
+              <label class="fiche-field-label">Total à facturer (€)</label>
+              <input type="number" class="form-input fiche-total-input" id="ficheTotal" min="0" step="0.01" placeholder="0,00" />
+              <div class="fiche-per-meal" id="ficheUnitPriceHint">— € / repas</div>
+            </div>
+          </div>
+          <div class="fiche-form-actions">
+            <button class="btn btn-ghost" onclick="ficheReset()">Effacer</button>
+            <button class="btn btn-primary" onclick="ficheSave()">💾 Enregistrer</button>
+            <button class="btn" onclick="ficheSaveAndPrint()">🖨 Enregistrer & Imprimer</button>
+          </div>
+        </div>
+
+        <!-- Liste des fiches enregistrées -->
+        <div class="fiche-list-section">
+          <div class="fiche-list-header">
+            <div class="fiche-list-title">Fiches enregistrées</div>
+            <div class="fiche-list-stats" id="fichesStats">—</div>
+          </div>
+          <input type="text" class="form-input fiche-search" id="fichesSearch" placeholder="Rechercher par nom ou téléphone…" oninput="renderFichesList()" />
+          <div class="fiches-grid" id="fichesList"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- TAB: COMPTA -->
     <section id="tab-compta" class="tab-content">
       <div class="compta-tab">
@@ -11509,6 +12146,22 @@
             <button class="btn btn-primary" onclick="uploadRestaurantLogo()">↑ Téléverser un logo</button>
             <button class="btn" id="removeRestaurantLogoBtn" onclick="removeRestaurantLogo()">Retirer le logo</button>
             <button class="btn btn-primary" onclick="saveRestaurantName()">Enregistrer le nom</button>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-title">Clavier virtuel tactile</div>
+          <div class="settings-desc">Affiche automatiquement un clavier AZERTY à l'écran lors de la saisie. Utile sur écran tactile sans clavier physique. Désactivez-le si vous utilisez la caisse avec un clavier.</div>
+          <div class="settings-row" style="border:none;padding-top:6px">
+            <div class="settings-label">Activer le clavier tactile<small>Apparaît automatiquement au clic sur un champ</small></div>
+            <label class="toggle-switch" style="display:inline-flex;align-items:center;gap:10px;cursor:pointer">
+              <input type="checkbox" id="vkbToggleInput" data-no-vkb onchange="vkbSetEnabled(this.checked); toast(this.checked ? '✓ Clavier tactile activé' : 'Clavier tactile désactivé')" style="width:48px;height:26px;cursor:pointer">
+              <span style="font-size:13px;color:var(--cream-dim)" id="vkbToggleLabel">—</span>
+            </label>
+          </div>
+          <div class="settings-row" style="border:none;padding-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <button class="btn" onclick="vkbShow(document.getElementById('restaurantNameInput'))">▶ Tester le clavier</button>
+            <button class="btn" onclick="vkbHide()">Fermer le clavier</button>
           </div>
         </div>
 
@@ -11705,8 +12358,8 @@
         </div>
 
         <div class="settings-section">
-          <div class="settings-title">Notifications push (carte fidélité PWA)</div>
-          <div class="settings-desc">Envoyez des promotions directement aux clients qui ont installé votre carte de fidélité PWA. <a href="#" onclick="event.preventDefault();showPushSetupHelp()" style="color:var(--amber);text-decoration:underline">Comment ça marche ?</a></div>
+          <div class="settings-title">Notifications push (LE 832 FOOD)</div>
+          <div class="settings-desc">Envoyez des promotions directement aux clients qui ont installé l'application LE 832 FOOD. <a href="#" onclick="event.preventDefault();showPushSetupHelp()" style="color:var(--amber);text-decoration:underline">Comment ça marche ?</a></div>
           <div class="settings-row">
             <div class="settings-label">URL de la carte PWA<small>Ex : https://le832.fr/carte.html (laissez vide si vous utilisez juste FLAMME:téléphone)</small></div>
             <input type="url" class="settings-input" id="pwaCardUrlInput" placeholder="https://le832.fr/carte.html" />
@@ -11812,7 +12465,7 @@
 
   <!-- Header de la borne (caché sur l'accueil et la confirmation) -->
   <header class="borne-header" id="borneHeader" style="display:none">
-    <div class="borne-brand">Flamme</div>
+    <div class="borne-brand">LE 832 FOOD</div>
     <div class="borne-steps" id="borneStepsBar">
       <span class="bs-step" data-step="menu"><span class="bs-num"><span>1</span></span><span class="bs-lbl">Menu</span></span>
       <span class="bs-sep"></span>
@@ -12085,7 +12738,7 @@
 <!-- ========== KDS (KITCHEN DISPLAY SYSTEM) ========== -->
 <div id="view-kds" class="view">
   <header class="kds-header">
-    <div class="kds-brand">Flamme <span class="kds-brand-tag">Cuisine</span></div>
+    <div class="kds-brand">LE 832 FOOD <span class="kds-brand-tag">Cuisine</span></div>
     <div class="kds-stats">
       <div class="kds-stat"><span class="kds-stat-num" id="kdsCountNew">0</span><span class="kds-stat-lbl">Nouvelles</span></div>
       <div class="kds-stat"><span class="kds-stat-num" id="kdsCountReady">0</span><span class="kds-stat-lbl">Prêtes</span></div>
@@ -12111,7 +12764,7 @@
 <!-- ========== VIEW LIVREUR ========== -->
 <div id="view-livreur" class="view">
   <header class="liv-header">
-    <div class="liv-brand">Flamme <span class="liv-brand-tag">Livreur</span></div>
+    <div class="liv-brand">LE 832 FOOD <span class="liv-brand-tag">Livreur</span></div>
     <div class="liv-name" id="livreurName">—</div>
     <div class="liv-actions">
       <div class="liv-status" id="livGpsStatus">📍 GPS désactivé</div>
@@ -12145,7 +12798,7 @@
 <!-- ========== VIEW TRACKING (suivi par le client) ========== -->
 <div id="view-tracking" class="view">
   <header class="track-header">
-    <div class="track-brand" id="trackBrand">Flamme</div>
+    <div class="track-brand" id="trackBrand">LE 832 FOOD</div>
     <div class="track-status" id="trackStatus">—</div>
   </header>
   <main class="track-main">
@@ -12496,7 +13149,7 @@ function showQrCodesModal() {
   const tc = tablesCount();
   // URL de base = l'URL actuelle sans paramètres
   const baseUrl = window.location.origin + window.location.pathname;
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
 
   let qrCards = '';
   for (let i = 1; i <= tc; i++) {
@@ -12533,7 +13186,7 @@ function showQrCodesModal() {
 function printQrCodes() {
   const tc = tablesCount();
   const baseUrl = window.location.origin + window.location.pathname;
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
 
   let html = '<!DOCTYPE html><html><head><title>QR codes — ' + restName + '</title>';
   html += '<style>';
@@ -12752,64 +13405,148 @@ const PIZZA_EXTRAS = [
   { label: 'Supplément poulet', price: 2.00 },
   { label: 'Supplément merguez', price: 2.00 }
 ];
+// ──────────────────────────────────────────────────────────────────
+// CONFIGURATIONS PAR CATÉGORIE (selon spécifications LE 832 FOOD)
+// ──────────────────────────────────────────────────────────────────
+
+// 🍕 PIZZAS — Taille / Base / Suppléments / Sans / Note
 const PIZZA_CONFIG = {
   bread: [
     { label: 'Junior 29cm', price: 0 },
     { label: 'Sénior 33cm', price: 2.00 },
     { label: 'Méga 40cm', price: 8.00 }
   ],
+  base: [
+    { label: 'Sauce tomate', price: 0 },
+    { label: 'Crème fraîche', price: 0 }
+  ],
   extras: PIZZA_EXTRAS,
   removable: PIZZA_INGREDIENTS_REMOVABLE_DEFAULT,
-  drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
+// 🥪 SANDWICHS — Pain / Sauce / Suppléments / Sans / Boisson / Note
 const SANDWICH_CONFIG = {
   bread: RESTAURANT_BREADS,
   sauces: RESTAURANT_SAUCES,
-  extras: RESTAURANT_EXTRAS.concat([{ label: 'Sans boisson (-1€)', price: -1 }]),
+  extras: RESTAURANT_EXTRAS,
   removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
+// 🥙 PANINIS — Menu (oui/non) / Viande / Sauce / Suppléments / Boisson / Note
 const PANINI_CONFIG = {
-  bread: PANINI_VIANDES,
+  menu: [
+    { label: 'Sans menu', price: 0 },
+    { label: 'Menu (frites + boisson)', price: 3.00 }
+  ],
+  meat: PANINI_VIANDES,
   sauces: RESTAURANT_SAUCES,
+  extras: RESTAURANT_EXTRAS,
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
+// 🌯 ZAP'WICHS — Viande / Sauce / Suppléments / Boisson / Note
+const ZAPWICH_CONFIG = {
+  meat: PANINI_VIANDES,
+  sauces: RESTAURANT_SAUCES,
+  extras: RESTAURANT_EXTRAS,
+  drinks: RESTAURANT_DRINKS,
+  comment: true
+};
+
+// 🍔 BURGERS — Sauce / Suppléments / Sans / Note
+// (les menus burgers ont déjà une boisson, donc pas de champ "drinks")
 const BURGER_CONFIG = {
   sauces: RESTAURANT_SAUCES,
-  extras: RESTAURANT_EXTRAS.concat([{ label: 'Sans boisson (-1€)', price: -1 }]),
+  extras: RESTAURANT_EXTRAS,
   removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
-  drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
+// 🌮 TACOS / 🥗 BOWLS — Viandes (selon nombre) / Sauce fromagère / Sauce / Suppléments / Boisson / Note
+const TACOS_EXTRAS = [
+  { label: 'Cheddar', price: 1.00 },
+  { label: 'Boursin', price: 1.00 },
+  { label: 'Chèvre', price: 1.00 },
+  { label: 'Mozzarella', price: 1.00 },
+  { label: 'Œuf', price: 1.00 },
+  { label: 'Dinde', price: 1.50 },
+  { label: 'Escalope', price: 1.50 },
+  { label: 'Bacon', price: 1.50 },
+  { label: 'Poulet', price: 1.50 },
+  { label: 'Gratiné cheddar', price: 2.00 },
+  { label: 'Gratiné lardons', price: 2.00 },
+  { label: 'Gratiné raclette', price: 2.00 },
+  { label: 'Gratiné chèvre miel', price: 2.00 },
+  { label: '+ Boisson + Frites', price: 1.50 }
+];
 const TACOS_CONFIG_1V = {
-  bread: TACOS_VIANDES,
+  meatCount: 1,
+  meats: TACOS_VIANDES,           // viande unique au choix
+  cheeseSauce: true,              // option "avec/sans sauce fromagère"
   sauces: RESTAURANT_SAUCES,
-  extras: [
-    { label: 'Cheddar', price: 1.00 },
-    { label: 'Boursin', price: 1.00 },
-    { label: 'Chèvre', price: 1.00 },
-    { label: 'Mozzarella', price: 1.00 },
-    { label: 'Œuf', price: 1.00 },
-    { label: 'Dinde', price: 1.50 },
-    { label: 'Escalope', price: 1.50 },
-    { label: 'Bacon', price: 1.50 },
-    { label: 'Poulet', price: 1.50 },
-    { label: 'Gratiné cheddar', price: 2.00 },
-    { label: 'Gratiné lardons', price: 2.00 },
-    { label: 'Gratiné raclette', price: 2.00 },
-    { label: 'Gratiné chèvre miel', price: 2.00 },
-    { label: '+ Boisson + Frites', price: 1.50 }
-  ],
+  extras: TACOS_EXTRAS,
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
-const TACOS_CONFIG_MULTI = Object.assign({}, TACOS_CONFIG_1V, {
-  // Pour 2/3 viandes, on utilise sauces côté code multi pour les viandes (mais ça mélange) → on garde 1V et le serveur écrit en commentaire
-  bread: TACOS_VIANDES
-});
+const TACOS_CONFIG_2V = Object.assign({}, TACOS_CONFIG_1V, { meatCount: 2 });
+const TACOS_CONFIG_3V = Object.assign({}, TACOS_CONFIG_1V, { meatCount: 3 });
+
+// (Bowls partagent la config Tacos sauf si on veut des prix différents)
+const BOWL_CONFIG_1V = TACOS_CONFIG_1V;
+const BOWL_CONFIG_2V = TACOS_CONFIG_2V;
+const BOWL_CONFIG_3V = TACOS_CONFIG_3V;
+
+// 🥗 SALADES — Sans / Suppléments / Boisson / Note
+const SALADE_CONFIG = {
+  removable: ['Salade', 'Tomate', 'Olives', 'Œuf', 'Vinaigrette', 'Boursin', 'Tenders', 'Bacon', 'Poulet', 'Pommes de terre', 'Thon'],
+  extras: RESTAURANT_EXTRAS,
+  drinks: RESTAURANT_DRINKS,
+  comment: true
+};
+
+// 🧀 GRATINS — Sans / Suppléments / Boisson / Note
+const GRATIN_CONFIG = {
+  removable: ['Lardons', 'Reblochon', 'Pommes de terre', 'Crème fraîche', 'Saumon', 'Kebab', 'Poulet', 'Jambon', 'Poivrons', 'Artichauts', 'Oignons', 'Olives'],
+  extras: RESTAURANT_EXTRAS,
+  drinks: RESTAURANT_DRINKS,
+  comment: true
+};
+
+// 👦 MENU ENFANT — Choix du plat (Cheeseburger / Nuggets / Panini) → si Panini, choix viande / Sauce / Sans / Note
+const MENU_ENFANT_CONFIG = {
+  kidsMenu: [
+    { label: 'Cheeseburger', price: 0 },
+    { label: '5 Nuggets', price: 0 },
+    { label: 'Panini', price: 0 }
+  ],
+  // Si "Panini" sélectionné, ce champ devient pertinent
+  meatIfPanini: PANINI_VIANDES,
+  sauces: RESTAURANT_SAUCES,
+  removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
+  comment: true
+};
+
+// === Liste des accompagnements (utilisée pour Poulet Braisé et Brochettes) ===
+// Le prix est inclus dans le prix du produit (ex: "1/2 Poulet + 2 accompagnements"),
+// donc accompagnements à 0€ ici (juste un choix pour la cuisine)
+const ACCOMPAGNEMENTS = [
+  { label: 'Frites', price: 0 },
+  { label: 'Peri-peri frites', price: 0 },
+  { label: 'Potatoes', price: 0 },
+  { label: 'Épi de maïs', price: 0 },
+  { label: 'Riz nature', price: 0 },
+  { label: 'Riz épicé', price: 0 },
+  { label: 'Purée de patate douce', price: 0 },
+  { label: 'Salade mixte', price: 0 },
+  { label: 'Frites de patate douce', price: 0 },
+  { label: 'Banane plantain', price: 0 }
+];
+
+// === Brochettes : marinade (radio "bread") + accompagnements (selon le produit) ===
 const BROCHETTE_CONFIG = {
   bread: [
     { label: 'BBQ sucrée', price: 0 },
@@ -12817,14 +13554,21 @@ const BROCHETTE_CONFIG = {
     { label: 'Medium hot', price: 0 },
     { label: 'Extra hot explosif', price: 0 }
   ],
+  accompagnements: ACCOMPAGNEMENTS,
+  // accompCount sera défini par produit (ex: 1 ou 2 accompagnements à choisir)
   extras: [{ label: 'Pain Naan', price: 1.00 }],
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
+// === Poulet Braisé : choix d'accompagnements (selon produit) + boisson ===
 const POULET_CONFIG = {
+  accompagnements: ACCOMPAGNEMENTS,
+  // accompCount sera défini par produit
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
+
 const SIMPLE_COMMENT_CONFIG = {
   drinks: RESTAURANT_DRINKS,
   comment: true
@@ -12915,71 +13659,59 @@ const RESTAURANT_MENU = {
     }
   })),
 
-  'Sandwichs': [
-    { id: 1300, name: 'Chicken Curry (menu)', desc: 'Poulet curry, fromage', price: 8.50, config: SANDWICH_CONFIG },
-    { id: 1301, name: 'Tandoori (menu)', desc: 'Tandoori, fromage', price: 8.50, config: SANDWICH_CONFIG },
-    { id: 1302, name: 'Big Bang (menu)', desc: 'Steak 45g, bacon, œuf, pommes de terre, cheddar', price: 9.50, config: SANDWICH_CONFIG },
-    { id: 1303, name: 'Buffalo (menu)', desc: '3 steaks 45g, bacon, cheddar', price: 9.50, config: SANDWICH_CONFIG },
-    { id: 1304, name: 'Le Savoyard (menu)', desc: 'Escalope, raclette, pommes de terre', price: 9.50, config: SANDWICH_CONFIG },
-    { id: 1305, name: 'Le Radical (menu)', desc: 'Cordon bleu, 2 steaks 45g, Boursin, cheddar, œuf', price: 9.50, config: SANDWICH_CONFIG },
-    { id: 1306, name: 'Mix Chicken (menu)', desc: 'Poulet curry, tandoori, cheddar', price: 8.50, config: SANDWICH_CONFIG },
-    { id: 1307, name: 'Cordon Bleu (menu)', desc: 'Cordon bleu', price: 8.50, config: SANDWICH_CONFIG }
+  'Sandwichs & Burgers': [
+    { id: 1300, name: 'Chicken Curry (menu)', desc: 'Poulet curry, fromage', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1301, name: 'Tandoori (menu)', desc: 'Tandoori, fromage', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1302, name: 'Big Bang (menu)', desc: 'Steak 45g, bacon, œuf, pommes de terre, cheddar', price: 9.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1303, name: 'Buffalo (menu)', desc: '3 steaks 45g, bacon, cheddar', price: 9.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1304, name: 'Le Savoyard (menu)', desc: 'Escalope, raclette, pommes de terre', price: 9.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1305, name: 'Le Radical (menu)', desc: 'Cordon bleu, 2 steaks 45g, Boursin, cheddar, œuf', price: 9.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1306, name: 'Mix Chicken (menu)', desc: 'Poulet curry, tandoori, cheddar', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1307, name: 'Cordon Bleu (menu)', desc: 'Cordon bleu', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
+    { id: 1500, name: 'Doublé 1 (menu)', desc: '1 Burger Potatoes + 1 Cheese + frites + boisson 33cl', price: 12.50, config: BURGER_CONFIG, subCategory: 'Burger' },
+    { id: 1501, name: 'Doublé 2 (menu)', desc: '1 Triple Cheese + 1 Double Cheese + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, subCategory: 'Burger' },
+    { id: 1502, name: 'Doublé 3 (menu)', desc: '1 Cheese + 8 Nuggets + frites + boisson 33cl', price: 9.50, config: BURGER_CONFIG, subCategory: 'Burger' },
+    { id: 1503, name: 'Doublé 4 (menu)', desc: '1 Double Cheese + 8 Nuggets + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, subCategory: 'Burger' }
   ],
 
-  'Paninis & Zap\'wichs': [
+  'Paninis': [
     { id: 1400, name: 'Panini', desc: 'Au choix de viande', price: 5.00, config: PANINI_CONFIG },
-    { id: 1401, name: 'Panini menu (frites + boisson)', desc: 'Au choix de viande', price: 8.00, config: PANINI_CONFIG },
-    { id: 1402, name: 'Menu Zap\'wichs', desc: 'Au choix de viande, frites + boisson', price: 8.90, config: PANINI_CONFIG }
+    { id: 1401, name: 'Panini menu (frites + boisson)', desc: 'Au choix de viande', price: 8.00, config: PANINI_CONFIG }
   ],
 
-  'Burgers Doublés': [
-    { id: 1500, name: 'Doublé 1 (menu)', desc: '1 Burger Potatoes + 1 Cheese + frites + boisson 33cl', price: 12.50, config: BURGER_CONFIG },
-    { id: 1501, name: 'Doublé 2 (menu)', desc: '1 Triple Cheese + 1 Double Cheese + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG },
-    { id: 1502, name: 'Doublé 3 (menu)', desc: '1 Cheese + 8 Nuggets + frites + boisson 33cl', price: 9.50, config: BURGER_CONFIG },
-    { id: 1503, name: 'Doublé 4 (menu)', desc: '1 Double Cheese + 8 Nuggets + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG }
+  'Zap\'wichs': [
+    { id: 1402, name: 'Menu Zap\'wichs', desc: 'Au choix de viande, frites + boisson', price: 8.90, config: ZAPWICH_CONFIG }
   ],
 
-  'Tacos': [
-    { id: 1600, name: 'Tacos 1 viande', desc: 'Choix de la viande, sauce, frites', price: 7.50, config: TACOS_CONFIG_1V },
-    { id: 1601, name: 'Tacos 2 viandes', desc: '2 viandes au choix, sauce, frites', price: 9.50, config: TACOS_CONFIG_MULTI },
-    { id: 1602, name: 'Tacos 3 viandes', desc: '3 viandes au choix, sauce, frites', price: 10.50, config: TACOS_CONFIG_MULTI }
+  'Tacos & Bowls': [
+    { id: 1600, name: 'Tacos 1 viande', desc: 'Choix de la viande, sauce, frites', price: 7.50, config: TACOS_CONFIG_1V, subCategory: 'Tacos' },
+    { id: 1601, name: 'Tacos 2 viandes', desc: '2 viandes au choix, sauce, frites', price: 9.50, config: TACOS_CONFIG_2V, subCategory: 'Tacos' },
+    { id: 1602, name: 'Tacos 3 viandes', desc: '3 viandes au choix, sauce, frites', price: 10.50, config: TACOS_CONFIG_3V, subCategory: 'Tacos' },
+    { id: 1700, name: 'Bowl 1 viande', desc: 'Choix de la viande, sauce, frites', price: 8.50, config: BOWL_CONFIG_1V, subCategory: 'Bowl' },
+    { id: 1701, name: 'Bowl 2 viandes', desc: '2 viandes au choix, sauce, frites', price: 9.50, config: BOWL_CONFIG_2V, subCategory: 'Bowl' },
+    { id: 1702, name: 'Bowl 3 viandes', desc: '3 viandes au choix, sauce, frites', price: 10.50, config: BOWL_CONFIG_3V, subCategory: 'Bowl' }
   ],
 
-  'Bowls': [
-    { id: 1700, name: 'Bowl 1 viande', desc: 'Choix de la viande, sauce, frites', price: 8.50, config: TACOS_CONFIG_1V },
-    { id: 1701, name: 'Bowl 2 viandes', desc: '2 viandes au choix, sauce, frites', price: 9.50, config: TACOS_CONFIG_MULTI },
-    { id: 1702, name: 'Bowl 3 viandes', desc: '3 viandes au choix, sauce, frites', price: 10.50, config: TACOS_CONFIG_MULTI }
+  'Salades & Gratins': [
+    { id: 1800, name: 'Salade César', desc: 'Salade, tomates, tenders, olives, Boursin', price: 8.00, config: SALADE_CONFIG, subCategory: 'Salade' },
+    { id: 1801, name: 'Salade Niçoise', desc: 'Salade, tomates, thon, œuf, vinaigrette', price: 8.00, config: SALADE_CONFIG, subCategory: 'Salade' },
+    { id: 1802, name: 'Salade Gourmande', desc: 'Salade, tomates, poulet, pommes de terre, olives, vinaigrette', price: 8.00, config: SALADE_CONFIG, subCategory: 'Salade' },
+    { id: 1803, name: 'Salade Bacon', desc: 'Salade, tomates, bacon, Boursin, pommes de terre, vinaigrette', price: 8.00, config: SALADE_CONFIG, subCategory: 'Salade' },
+    { id: 1900, name: 'Gratin Marin', desc: 'Crème fraîche, saumon, pommes de terre, fromage gratiné', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' },
+    { id: 1901, name: 'Gratin Chef', desc: 'Crème fraîche, kebab, pommes de terre, fromage gratiné', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' },
+    { id: 1902, name: 'Gratin Poulet', desc: 'Crème fraîche, poulet, pommes de terre, fromage gratiné', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' },
+    { id: 1903, name: 'Gratin Dauphinois', desc: 'Crème fraîche, jambon, pommes de terre, fromage gratiné', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' },
+    { id: 1904, name: 'Gratin Tartiflette', desc: 'Crème fraîche, lardons, reblochon, pommes de terre, fromage gratiné', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' },
+    { id: 1905, name: 'Gratin Végétarien', desc: 'Crème fraîche, poivrons, artichauts, oignons, olives', price: 9.00, config: GRATIN_CONFIG, subCategory: 'Gratin' }
   ],
 
-  'Salades': [
-    { id: 1800, name: 'Salade César', desc: 'Salade, tomates, tenders, olives, Boursin', price: 8.00, noCustomization: true },
-    { id: 1801, name: 'Salade Niçoise', desc: 'Salade, tomates, thon, œuf, vinaigrette', price: 8.00, noCustomization: true },
-    { id: 1802, name: 'Salade Gourmande', desc: 'Salade, tomates, poulet, pommes de terre, olives, vinaigrette', price: 8.00, noCustomization: true },
-    { id: 1803, name: 'Salade Bacon', desc: 'Salade, tomates, bacon, Boursin, pommes de terre, vinaigrette', price: 8.00, noCustomization: true }
-  ],
-
-  'Gratins Maison': [
-    { id: 1900, name: 'Gratin Marin', desc: 'Crème fraîche, saumon, pommes de terre, fromage gratiné', price: 9.00, noCustomization: true },
-    { id: 1901, name: 'Gratin Chef', desc: 'Crème fraîche, kebab, pommes de terre, fromage gratiné', price: 9.00, noCustomization: true },
-    { id: 1902, name: 'Gratin Poulet', desc: 'Crème fraîche, poulet, pommes de terre, fromage gratiné', price: 9.00, noCustomization: true },
-    { id: 1903, name: 'Gratin Dauphinois', desc: 'Crème fraîche, jambon, pommes de terre, fromage gratiné', price: 9.00, noCustomization: true },
-    { id: 1904, name: 'Gratin Tartiflette', desc: 'Crème fraîche, lardons, reblochon, pommes de terre, fromage gratiné', price: 9.00, noCustomization: true },
-    { id: 1905, name: 'Gratin Végétarien', desc: 'Crème fraîche, poivrons, artichauts, oignons, olives', price: 9.00, noCustomization: true }
-  ],
-
-  'Poulet Braisé': [
-    { id: 2000, name: '1/4 Poulet seul', desc: '', price: 4.50, config: POULET_CONFIG },
-    { id: 2001, name: '1/4 Poulet + 2 petits accompagnements', desc: '', price: 8.90, config: POULET_CONFIG },
-    { id: 2002, name: '1/4 Poulet + 1 petit accompagnement + 1 boisson', desc: '', price: 8.90, config: POULET_CONFIG },
-    { id: 2010, name: '1/2 Poulet seul', desc: '', price: 7.50, config: POULET_CONFIG },
-    { id: 2011, name: '1/2 Poulet + 2 petits accompagnements', desc: '', price: 11.50, config: POULET_CONFIG },
-    { id: 2012, name: '1/2 Poulet + 1 petit accompagnement + 1 boisson', desc: '', price: 11.50, config: POULET_CONFIG },
-    { id: 2020, name: 'Poulet entier', desc: '', price: 12.50, config: POULET_CONFIG }
-  ],
-
-  'Brochettes': [
-    { id: 2100, name: 'Brochette + 2 petits accompagnements', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG },
-    { id: 2101, name: 'Brochette + 1 petit accompagnement + 1 boisson', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG }
+  'Poulet & Brochettes': [
+    { id: 2010, name: '1/2 Poulet seul', desc: '', price: 7.50, config: POULET_CONFIG, subCategory: 'Poulet' },
+    { id: 2011, name: '1/2 Poulet + 2 accompagnements', desc: '', price: 11.50, config: POULET_CONFIG, accompCount: 2, subCategory: 'Poulet' },
+    { id: 2012, name: '1/2 Poulet + 1 accompagnement + 1 boisson', desc: '', price: 11.50, config: POULET_CONFIG, accompCount: 1, subCategory: 'Poulet' },
+    { id: 2020, name: 'Poulet entier', desc: '', price: 12.50, config: POULET_CONFIG, subCategory: 'Poulet' },
+    { id: 2100, name: 'Brochette + 2 accompagnements', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG, accompCount: 2, subCategory: 'Brochette' },
+    { id: 2101, name: 'Brochette + 1 accompagnement + 1 boisson', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG, accompCount: 1, subCategory: 'Brochette' }
   ],
 
   'Plats à Partager': [
@@ -12988,48 +13720,19 @@ const RESTAURANT_MENU = {
     { id: 2202, name: 'Menu Plateau (2-4 pers.)', desc: '2 demi-poulets + 1 grand ou 2 petits accompagnements + 2 boissons', price: 21.90, noCustomization: true }
   ],
 
-  'Box': [
-    { id: 2300, name: 'Box Wings', desc: '25 chicken wings + 4 frites + 1 bouteille 1.25L', price: 23.00, noCustomization: true },
-    { id: 2301, name: 'Box Tenders', desc: '12 chicken tenders + 4 frites + 1 bouteille 1.25L', price: 20.00, noCustomization: true }
-  ],
-
-  'Fingers': [
-    { id: 2400, name: 'Tenders x5', desc: '', price: 7.00, noCustomization: true },
-    { id: 2401, name: 'Nuggets x8', desc: '', price: 7.00, noCustomization: true },
-    { id: 2402, name: 'Bouchées Camembert x8', desc: '', price: 7.00, noCustomization: true },
-    { id: 2403, name: 'Chicken Wings x8', desc: '', price: 8.00, noCustomization: true },
-    { id: 2404, name: 'Jalapeños x8', desc: '', price: 6.50, noCustomization: true },
-    { id: 2405, name: 'Frites', desc: '', price: 2.00, noCustomization: true },
-    { id: 2406, name: 'Frites cheddar', desc: '', price: 2.50, noCustomization: true },
-    { id: 2407, name: 'Sauce fromagère', desc: '', price: 2.50, noCustomization: true },
-    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, noCustomization: true },
-    { id: 2409, name: 'Sauce fromagère bacon', desc: '', price: 3.50, noCustomization: true }
-  ],
-
-  'Petits Accompagnements (2,80€)': [
-    { id: 2500, name: 'Frites', desc: '', price: 2.80, noCustomization: true },
-    { id: 2501, name: 'Peri-peri frites', desc: '', price: 2.80, noCustomization: true },
-    { id: 2502, name: 'Potatoes', desc: '', price: 2.80, noCustomization: true },
-    { id: 2503, name: 'Épi de maïs', desc: '', price: 2.80, noCustomization: true },
-    { id: 2504, name: 'Riz nature', desc: '', price: 2.80, noCustomization: true },
-    { id: 2505, name: 'Riz épicé', desc: '', price: 2.80, noCustomization: true },
-    { id: 2506, name: 'Purée de patate douce', desc: '', price: 2.80, noCustomization: true },
-    { id: 2507, name: 'Salade mixte', desc: '', price: 2.80, noCustomization: true },
-    { id: 2508, name: 'Frites de patate douce', desc: '', price: 2.80, noCustomization: true },
-    { id: 2509, name: 'Banane plantain', desc: '', price: 2.80, noCustomization: true }
-  ],
-
-  'Grands Accompagnements (3,80€)': [
-    { id: 2600, name: 'Frites', desc: '', price: 3.80, noCustomization: true },
-    { id: 2601, name: 'Peri-peri frites', desc: '', price: 3.80, noCustomization: true },
-    { id: 2602, name: 'Potatoes', desc: '', price: 3.80, noCustomization: true },
-    { id: 2603, name: 'Épi de maïs', desc: '', price: 3.80, noCustomization: true },
-    { id: 2604, name: 'Riz nature', desc: '', price: 3.80, noCustomization: true },
-    { id: 2605, name: 'Riz épicé', desc: '', price: 3.80, noCustomization: true },
-    { id: 2606, name: 'Purée de patate douce', desc: '', price: 3.80, noCustomization: true },
-    { id: 2607, name: 'Salade mixte', desc: '', price: 3.80, noCustomization: true },
-    { id: 2608, name: 'Frites de patate douce', desc: '', price: 3.80, noCustomization: true },
-    { id: 2609, name: 'Banane plantain', desc: '', price: 3.80, noCustomization: true }
+  'Box & Fingers': [
+    { id: 2300, name: 'Box Wings', desc: '25 chicken wings + 4 frites + 1 bouteille 1.25L', price: 23.00, noCustomization: true, subCategory: 'Box' },
+    { id: 2301, name: 'Box Tenders', desc: '12 chicken tenders + 4 frites + 1 bouteille 1.25L', price: 20.00, noCustomization: true, subCategory: 'Box' },
+    { id: 2400, name: 'Tenders x5', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2401, name: 'Nuggets x8', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2402, name: 'Bouchées Camembert x8', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2403, name: 'Chicken Wings x8', desc: '', price: 8.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2404, name: 'Jalapeños x8', desc: '', price: 6.50, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2405, name: 'Frites', desc: '', price: 2.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2406, name: 'Frites cheddar', desc: '', price: 2.50, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2407, name: 'Sauce fromagère', desc: '', price: 2.50, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2409, name: 'Sauce fromagère bacon', desc: '', price: 3.50, noCustomization: true, subCategory: 'Fingers' }
   ],
 
   'Desserts & Glaces': [
@@ -13041,7 +13744,7 @@ const RESTAURANT_MENU = {
   ],
 
   'Menu Enfant': [
-    { id: 2800, name: 'Menu Enfant', desc: 'Cheeseburger ou 5 nuggets ou panini + petites frites + compote + Kinder', price: 7.00, config: SIMPLE_COMMENT_CONFIG }
+    { id: 2800, name: 'Menu Enfant', desc: 'Cheeseburger ou 5 nuggets ou panini + petites frites + compote + Kinder', price: 7.00, config: MENU_ENFANT_CONFIG }
   ],
 
   'Boissons Chaudes': [
@@ -13461,7 +14164,7 @@ function loadState() {
       if (typeof state.config.tablesCount !== 'number') state.config.tablesCount = 12;
       if (typeof state.config.borneIdleTimeout !== 'number') state.config.borneIdleTimeout = 60;
       if (typeof state.config.borneDoneTimeout !== 'number') state.config.borneDoneTimeout = 10;
-      if (typeof state.config.restaurantName !== 'string') state.config.restaurantName = 'Flamme';
+      if (typeof state.config.restaurantName !== 'string') state.config.restaurantName = 'LE 832 FOOD';
       if (typeof state.config.restaurantLogo !== 'string') state.config.restaurantLogo = '';
       if (!state.config.theme) state.config.theme = { primaryColor: '#d4a056', greenColor: '#7a9a4d' };
       if (!state.config.defaultProductConfig) state.config.defaultProductConfig = JSON.parse(JSON.stringify(BUILTIN_DEFAULT_PRODUCT_CONFIG));
@@ -13475,7 +14178,7 @@ function loadState() {
       state.config.tablesCount = 12;
       state.config.borneIdleTimeout = 60;
       state.config.borneDoneTimeout = 10;
-      state.config.restaurantName = 'Flamme';
+      state.config.restaurantName = 'LE 832 FOOD';
       state.config.restaurantLogo = '';
       state.config.theme = { primaryColor: '#d4a056', greenColor: '#7a9a4d' };
       state.config.defaultProductConfig = JSON.parse(JSON.stringify(BUILTIN_DEFAULT_PRODUCT_CONFIG));
@@ -13718,6 +14421,391 @@ function navTab(tab) {
   if (typeof _hapticTap === 'function') _hapticTap();
   switchTab(tab);
   closeMobileMenu();
+  if (tab === 'fiches') renderFichesList();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ONGLET FICHE : créer / lister / imprimer des fiches-factures
+// ═══════════════════════════════════════════════════════════════
+
+// Helper d'échappement HTML (défini en premier pour être utilisable partout)
+if (typeof window.escapeHtml !== 'function') {
+  window.escapeHtml = function(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  };
+}
+
+// Initialiser le tableau des fiches dans le state
+function ensureFichesArray() {
+  if (!Array.isArray(state.fiches)) state.fiches = [];
+}
+
+// Mise à jour du prix par repas en temps réel
+function ficheUpdateTotal() {
+  const count = parseInt(document.getElementById('ficheMealCount')?.value || 1);
+  const total = parseFloat(document.getElementById('ficheTotal')?.value || 0);
+  const hint = document.getElementById('ficheUnitPriceHint');
+  if (!hint) return;
+  if (count > 0 && total > 0) {
+    const perMeal = (total / count).toFixed(2).replace('.', ',');
+    hint.textContent = `Soit ${perMeal} € par repas (${count} repas)`;
+  } else {
+    hint.textContent = '— € / repas';
+  }
+}
+
+// Réinitialiser le formulaire
+function ficheReset() {
+  ['ficheClientName', 'ficheClientPhone', 'ficheDescription', 'ficheTotal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const mc = document.getElementById('ficheMealCount');
+  if (mc) mc.value = 1;
+  ficheUpdateTotal();
+  document.getElementById('ficheClientName')?.focus();
+}
+
+// Récupère les valeurs du formulaire
+function ficheCollectForm() {
+  return {
+    clientName: (document.getElementById('ficheClientName')?.value || '').trim(),
+    clientPhone: (document.getElementById('ficheClientPhone')?.value || '').trim(),
+    mealCount: parseInt(document.getElementById('ficheMealCount')?.value || 0),
+    description: (document.getElementById('ficheDescription')?.value || '').trim(),
+    total: parseFloat(document.getElementById('ficheTotal')?.value || 0)
+  };
+}
+
+// Validation
+function ficheValidate(data) {
+  if (!data.clientName) { toast('⚠ Veuillez saisir le nom du client'); return false; }
+  if (!data.mealCount || data.mealCount < 1) { toast('⚠ Le nombre de repas doit être au moins 1'); return false; }
+  if (!data.total || data.total <= 0) { toast('⚠ Veuillez saisir le total'); return false; }
+  return true;
+}
+
+// Génère un numéro de fiche
+function ficheNextNumber() {
+  ensureFichesArray();
+  const year = new Date().getFullYear();
+  const yearFiches = state.fiches.filter(f => f.number && f.number.startsWith(`F${year}-`));
+  const maxNum = yearFiches.reduce((m, f) => {
+    const n = parseInt(f.number.split('-')[1]) || 0;
+    return Math.max(m, n);
+  }, 0);
+  return `F${year}-${String(maxNum + 1).padStart(4, '0')}`;
+}
+
+// Sauvegarder
+function ficheSave() {
+  const data = ficheCollectForm();
+  if (!ficheValidate(data)) return null;
+  ensureFichesArray();
+  const fiche = {
+    id: 'fiche_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+    number: ficheNextNumber(),
+    createdAt: Date.now(),
+    ...data
+  };
+  state.fiches.unshift(fiche);
+  saveState();
+  toast(`✓ Fiche ${fiche.number} enregistrée`);
+  ficheReset();
+  renderFichesList();
+  return fiche;
+}
+
+// Sauvegarder + Imprimer
+function ficheSaveAndPrint() {
+  const fiche = ficheSave();
+  if (fiche) ficheePrint(fiche.id);
+}
+
+// Liste des fiches (filtrée par recherche)
+function renderFichesList() {
+  ensureFichesArray();
+  const list = document.getElementById('fichesList');
+  const countEl = document.getElementById('fichesCount');
+  const statsEl = document.getElementById('fichesStats');
+  if (!list) return;
+  const search = (document.getElementById('fichesSearch')?.value || '').toLowerCase().trim();
+  let fiches = state.fiches.slice();
+  if (search) {
+    fiches = fiches.filter(f =>
+      (f.clientName || '').toLowerCase().includes(search) ||
+      (f.clientPhone || '').includes(search) ||
+      (f.number || '').toLowerCase().includes(search)
+    );
+  }
+  if (countEl) countEl.textContent = `${fiches.length} fiche${fiches.length > 1 ? 's' : ''}`;
+
+  // Stats cumulées
+  if (statsEl) {
+    if (fiches.length === 0) {
+      statsEl.innerHTML = '—';
+    } else {
+      const totalSum = fiches.reduce((s, f) => s + (f.total || 0), 0);
+      const totalMeals = fiches.reduce((s, f) => s + (f.mealCount || 0), 0);
+      const totalFmt = totalSum.toFixed(2).replace('.', ',');
+      statsEl.innerHTML = `${totalMeals} repas · <strong>${totalFmt} €</strong> cumulé`;
+    }
+  }
+
+  if (fiches.length === 0) {
+    list.innerHTML = search
+      ? '<div class="fiche-empty">Aucune fiche ne correspond à votre recherche.</div>'
+      : '<div class="fiche-empty">Aucune fiche enregistrée.<br>Remplissez le formulaire ci-dessus pour créer votre première fiche.</div>';
+    return;
+  }
+  list.innerHTML = fiches.map(f => {
+    const date = new Date(f.createdAt);
+    const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    const totalFmt = (f.total || 0).toFixed(2).replace('.', ',');
+    return `
+      <div class="fiche-card">
+        <div class="fiche-card-name">${escapeHtml(f.clientName || '—')}</div>
+        <div class="fiche-card-sub">${f.number} · ${dateStr}${f.clientPhone ? ' · ' + escapeHtml(f.clientPhone) : ''}</div>
+        <div class="fiche-card-row">
+          <div class="fiche-card-info">${f.mealCount} repas${f.description ? '<br>' + escapeHtml(f.description) : ''}</div>
+          <div class="fiche-card-total">${totalFmt} €</div>
+        </div>
+        <div class="fiche-card-actions">
+          <button class="fiche-card-action" onclick="ficheePrint('${f.id}')">🖨 Imprimer</button>
+          <button class="fiche-card-action" onclick="ficheLoad('${f.id}')">✎ Modifier</button>
+          <button class="fiche-card-action danger" onclick="ficheDelete('${f.id}')">✕ Supprimer</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Charger une fiche dans le formulaire pour modification
+function ficheLoad(id) {
+  ensureFichesArray();
+  const f = state.fiches.find(x => x.id === id);
+  if (!f) return;
+  // On supprime l'ancienne (sera recréée à l'enregistrement avec un nouveau numéro)
+  if (!confirm('Charger cette fiche dans le formulaire ?\n(L\'ancienne version sera supprimée à l\'enregistrement)')) return;
+  document.getElementById('ficheClientName').value = f.clientName || '';
+  document.getElementById('ficheClientPhone').value = f.clientPhone || '';
+  document.getElementById('ficheMealCount').value = f.mealCount || 1;
+  document.getElementById('ficheDescription').value = f.description || '';
+  document.getElementById('ficheTotal').value = f.total || '';
+  ficheUpdateTotal();
+  ficheDelete(id, true); // silencieux
+  document.getElementById('ficheClientName')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Fiche chargée — modifiez et enregistrez');
+}
+
+// Supprimer une fiche
+function ficheDelete(id, silent) {
+  ensureFichesArray();
+  if (!silent && !confirm('Supprimer cette fiche définitivement ?')) return;
+  state.fiches = state.fiches.filter(f => f.id !== id);
+  saveState();
+  if (!silent) toast('Fiche supprimée');
+  renderFichesList();
+}
+
+// Imprimer une fiche (ouvre une fenêtre HTML imprimable)
+function ficheePrint(id) {
+  ensureFichesArray();
+  const f = state.fiches.find(x => x.id === id);
+  if (!f) return;
+  const date = new Date(f.createdAt);
+  const dateStr = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const totalTTC = f.total || 0;
+  const TVA_RATE = 0.10; // 10 % restauration
+  const totalHT = totalTTC / (1 + TVA_RATE);
+  const tva = totalTTC - totalHT;
+  const fmt = (n) => n.toFixed(2).replace('.', ',');
+  const perMealTTC = f.mealCount > 0 ? totalTTC / f.mealCount : 0;
+  const perMealHT = f.mealCount > 0 ? totalHT / f.mealCount : 0;
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Fiche ${f.number}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, sans-serif;
+    color: #222;
+    padding: 40px;
+    max-width: 720px;
+    margin: 0 auto;
+    background: #fff;
+  }
+  .header {
+    border-bottom: 2px solid #222;
+    padding-bottom: 18px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .brand { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand-sub { font-size: 12px; color: #888; margin-top: 4px; }
+  .ref { text-align: right; font-size: 13px; color: #555; }
+  .ref strong { color: #222; font-size: 16px; }
+  h2 { font-size: 14px; margin-bottom: 10px; color: #444; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .meals-block {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .meals-row {
+    display: grid;
+    grid-template-columns: 1fr 110px 110px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
+  }
+  .meals-row:last-child { border-bottom: 0; }
+  .meals-header {
+    background: #f5f5f5;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #666;
+    font-weight: 600;
+  }
+  .meals-header > div:nth-child(2),
+  .meals-header > div:nth-child(3) { text-align: right; }
+  .meals-row > div:nth-child(2),
+  .meals-row > div:nth-child(3) { text-align: right; font-variant-numeric: tabular-nums; }
+  .meal-desc { font-size: 14px; }
+  .totals-block {
+    margin-bottom: 24px;
+    padding: 18px 22px;
+    background: #f7f4ed;
+    border-radius: 8px;
+  }
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 4px 0;
+    font-size: 13px;
+    color: #555;
+  }
+  .totals-row span:last-child { font-variant-numeric: tabular-nums; }
+  .totals-row.ttc {
+    margin-top: 10px;
+    padding-top: 14px;
+    border-top: 1px solid #c9bfa8;
+    font-size: 16px;
+  }
+  .totals-row.ttc span:first-child {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #444;
+    font-weight: 600;
+  }
+  .totals-row.ttc span:last-child {
+    font-size: 26px;
+    font-weight: 600;
+    color: #222;
+  }
+  .footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px dashed #ccc;
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    line-height: 1.6;
+  }
+  .actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .actions button {
+    padding: 10px 22px;
+    border: 1px solid #222;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    border-radius: 6px;
+  }
+  .actions button.primary { background: #222; color: #fff; }
+  @media print {
+    body { padding: 20px; }
+    .actions { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="brand">LE 832 FOOD</div>
+      <div class="brand-sub">Restaurant · Vitry-le-François</div>
+    </div>
+    <div class="ref">
+      Fiche n° <strong>${escapeHtml(f.number)}</strong><br>
+      Date : ${dateStr}
+    </div>
+  </div>
+
+  <h2>Détail</h2>
+  <div class="meals-block">
+    <div class="meals-row meals-header">
+      <div>Description</div>
+      <div>Quantité</div>
+      <div>Prix unit. HT</div>
+    </div>
+    <div class="meals-row">
+      <div class="meal-desc">${escapeHtml(f.description || 'Repas')}</div>
+      <div>${f.mealCount}</div>
+      <div>${fmt(perMealHT)} €</div>
+    </div>
+  </div>
+
+  <div class="totals-block">
+    <div class="totals-row">
+      <span>Total HT</span>
+      <span>${fmt(totalHT)} €</span>
+    </div>
+    <div class="totals-row">
+      <span>TVA 10 %</span>
+      <span>${fmt(tva)} €</span>
+    </div>
+    <div class="totals-row ttc">
+      <span>Total TTC</span>
+      <span>${fmt(totalTTC)} €</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    Merci pour votre confiance · LE 832 FOOD<br>
+    TVA non applicable, art. 293 B du CGI — modifier selon votre régime
+  </div>
+
+  <div class="actions">
+    <button class="primary" onclick="window.print()">🖨 Imprimer</button>
+    <button onclick="window.close()">Fermer</button>
+  </div>
+</body>
+</html>`;
+  const w = window.open('', '_blank', 'width=820,height=900');
+  if (!w) { toast('⚠ Bloqueur de popup actif. Autorisez les popups pour imprimer.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+  // Auto-print après 200ms
+  setTimeout(() => { try { w.focus(); w.print(); } catch (e) {} }, 250);
 }
 
 // Drawer mobile : ouvrir / fermer
@@ -13752,7 +14840,8 @@ function buildMobileDrawerNav() {
     { tab: 'terminees', label: 'Terminées', icon: '✓' },
     { tab: 'salle', label: 'Plan de salle', icon: '⊟' },
     { tab: 'reservations', label: 'Réservations', icon: '📅' },
-    { tab: 'clients', label: 'Clients', icon: '👤' }
+    { tab: 'clients', label: 'Clients', icon: '👤' },
+    { tab: 'fiches', label: 'Fiches', icon: '📋' }
   ];
   // Compta + Paramètres : réservés au manager
   if (currentServer && currentServer.role === 'manager') {
@@ -13952,10 +15041,37 @@ function renderCategories() {
   if (!currentCategory || !menu[currentCategory]) {
     currentCategory = cats[0];
   }
+  // Mapping des couleurs par sous-catégorie (synchro avec CSS)
+  const SUB_COLORS = {
+    'Sandwich': '#d4a373',
+    'Burger': '#c1574a',
+    'Tacos': '#e8a33d',
+    'Bowl': '#6f9c5a',
+    'Salade': '#8bb96b',
+    'Gratin': '#d4a36a',
+    'Poulet': '#c1873a',
+    'Brochette': '#a04e3a',
+    'Box': '#7e9bbf',
+    'Fingers': '#d4a373'
+  };
   cats.forEach(cat => {
     const btn = document.createElement('button');
     btn.className = 'cat-btn' + (cat === currentCategory ? ' active' : '');
-    btn.textContent = cat;
+    // Détecter les sous-catégories distinctes dans cette catégorie
+    const items = menu[cat] || [];
+    const subs = [...new Set(items.map(p => p.subCategory).filter(Boolean))];
+    // Si c'est une catégorie fusionnée (2 sous-catégories), ajouter pastilles
+    if (subs.length >= 2) {
+      let dotsHtml = '<span class="cat-btn-dots">';
+      subs.forEach(sub => {
+        const color = SUB_COLORS[sub] || '#888';
+        dotsHtml += `<span class="cat-btn-dot" style="background:${color}" title="${sub}"></span>`;
+      });
+      dotsHtml += '</span>';
+      btn.innerHTML = cat + dotsHtml;
+    } else {
+      btn.textContent = cat;
+    }
     btn.onclick = () => {
       currentCategory = cat;
       renderCategories();
@@ -13983,6 +15099,7 @@ function renderProducts() {
   products.forEach(p => {
     const card = document.createElement('button');
     card.className = 'product';
+    if (p.subCategory) card.setAttribute('data-sub', p.subCategory);
     const finalPrice = applyDiscount(p.price, currentCategory);
     let priceHtml;
     if (discounted) {
@@ -13993,11 +15110,15 @@ function renderProducts() {
     const icon = productIcon(p);
     card.innerHTML = `
       ${discounted ? `<div class="product-discount">−${state.happyHour.percent}%</div>` : ''}
+      ${p.subCategory ? `<span class="product-sub-badge">${p.subCategory}</span>` : ''}
       <div class="product-text">
         <div class="product-name">${p.name}</div>
         ${p.desc ? `<div class="product-desc">${p.desc}</div>` : ''}
       </div>
-      ${priceHtml}
+      <div class="product-price-row">
+        ${priceHtml}
+        <div class="product-add-icon">+</div>
+      </div>
     `;
     card.onclick = () => showCaisseProductDetail(p);
     el.appendChild(card);
@@ -14383,7 +15504,9 @@ function showCaisseProductDetail(p) {
     <div class="pdm-name">${p.name}</div>
     <div class="pdm-desc">${p.desc || ''}</div>
     ${stockInfo}
-    ${sections}
+    <div class="pdm-sections pdm-mode-caisse">
+      ${sections}
+    </div>
     <div class="pdm-footer">
       <div class="pdm-qty">
         <button class="pdm-qty-btn" id="pdmCDec">−</button>
@@ -15573,7 +16696,11 @@ async function fetchAddresses(query, listEl, inputEl) {
         const distLabel = item._dist !== undefined
           ? `<span style="float:right;color:var(--muted);font-size:11px;margin-left:8px">${item._dist.toFixed(1)} km</span>`
           : '';
-        div.innerHTML = `<span style="margin-right:8px;opacity:0.7">📍</span><span style="display:inline-block;max-width:calc(100% - 80px)">${item.display_name}</span>${distLabel}`;
+        // Échapper le display_name (vient d'API tierce, sécurité défensive)
+        const safeName = String(item.display_name || '').replace(/[<>&"']/g, c => ({
+          '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+        div.innerHTML = `<span style="margin-right:8px;opacity:0.7">📍</span><span style="display:inline-block;max-width:calc(100% - 80px)">${safeName}</span>${distLabel}`;
         div.onclick = () => {
           inputEl.value = item.display_name;
           inputEl.dataset.lat = item.lat;
@@ -15635,7 +16762,7 @@ function renderTerminees() {
 
 function buildOrderCard(o) {
   const card = document.createElement('div');
-  card.className = 'order-card list-item-enter';
+  card.className = 'order-card list-item-enter' + (o.cancelled ? ' order-card-cancelled' : '');
   const itemsPreview = o.items.map(i => `${i.qty}× ${i.name}`).join(' · ');
   let typeExtra = '';
   if (o.type === 'sur_place') {
@@ -15652,6 +16779,7 @@ function buildOrderCard(o) {
   }
 
   card.innerHTML = `
+    ${o.cancelled ? '<div class="order-cancelled-badge">⊘ ANNULÉ</div>' : ''}
     <div class="order-card-head">
       <div class="order-num">N°${o.number}</div>
       <div class="order-time">${timeStr(o.createdAt)}</div>
@@ -15794,6 +16922,7 @@ function showOrderDetail(id) {
         <button class="btn" onclick="askCodeToEditPay('${o.id}')">Modifier paiement</button>
         ${splitBtn}
         ${smsBtn}
+        ${o.cancelled ? '' : `<button class="btn btn-cancel" onclick="askCodeToCancelTicket('${o.id}')" style="border-color:#c1574a;color:#d48a7a">⊘ Annuler ce ticket</button>`}
         <button class="btn modal-close" style="grid-column:1 / -1" onclick="closeModal()">Fermer</button>
       </div>`;
   }
@@ -15801,6 +16930,17 @@ function showOrderDetail(id) {
   openModal(`
     <div class="modal-title">Commande N°${o.number}</div>
     <div class="modal-sub">${typeLabel(o.type)} · ${dateStr(o.createdAt)}</div>
+    ${o.cancelled ? `
+      <div style="background:rgba(193,87,74,0.15);border:1px solid rgba(193,87,74,0.4);color:#e69a8a;padding:12px 14px;border-radius:8px;margin-bottom:14px;font-size:13px">
+        <div style="font-weight:600;margin-bottom:4px">⊘ TICKET ANNULÉ</div>
+        <div style="font-size:11px;color:var(--cream-dim);line-height:1.5">
+          ${o.cancelReason ? 'Motif : ' + escapeHtml(o.cancelReason) + '<br>' : ''}
+          ${o.cancelledBy ? 'Par : ' + escapeHtml(o.cancelledBy) + '<br>' : ''}
+          ${o.cancelledAt ? 'Le : ' + new Date(o.cancelledAt).toLocaleString('fr-FR') : ''}
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px;font-style:italic">Ce ticket reste tracé mais n'est plus comptabilisé dans le chiffre d'affaires.</div>
+      </div>
+    ` : ''}
     ${pwaConfirmBlock}
     ${o.splitFrom ? `<div style="background:rgba(212,160,86,0.15);color:var(--amber);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12px;text-align:center">↳ Issue de la division du ticket N°${(state.orders.find(x=>x.id===o.splitFrom)||{}).number||'?'}</div>` : ''}
     ${o.status === 'splittee' ? `<div style="background:rgba(212,160,86,0.15);color:var(--amber);padding:8px 12px;border-radius:6px;margin-bottom:14px;font-size:12px;text-align:center">⊟ Ce ticket a été divisé en ${(o.splitInto||[]).length} fiches</div>` : ''}
@@ -16295,6 +17435,121 @@ function checkCodeAndOpenEdit(orderId) {
   showEditPaymentModal(orderId);
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ANNULATION DE TICKET (ticket erroné)
+// Conforme loi anti-fraude 2018 : trace conservée, sortie du CA
+// ═══════════════════════════════════════════════════════════════
+function askCodeToCancelTicket(orderId) {
+  closeModal();
+  openModal(`
+    <div class="modal-title">Annuler ce ticket</div>
+    <div class="modal-sub">Code de sécurité requis</div>
+    <div class="code-input-wrap">
+      <input class="code-digit" type="password" maxlength="1" data-i="0" inputmode="numeric" />
+      <input class="code-digit" type="password" maxlength="1" data-i="1" inputmode="numeric" />
+      <input class="code-digit" type="password" maxlength="1" data-i="2" inputmode="numeric" />
+      <input class="code-digit" type="password" maxlength="1" data-i="3" inputmode="numeric" />
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:18px;letter-spacing:0.15em">Code par défaut : 1234</div>
+    <div class="modal-actions-grid">
+      <button class="btn" onclick="closeModal()">Retour</button>
+      <button class="btn btn-primary" onclick="checkCodeAndAskCancelReason('${orderId}')">Valider</button>
+    </div>
+  `);
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('.code-digit');
+    if (inputs[0]) inputs[0].focus();
+    inputs.forEach((el, i) => {
+      el.addEventListener('input', () => {
+        if (el.value.length === 1 && i < inputs.length - 1) inputs[i + 1].focus();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !el.value && i > 0) inputs[i - 1].focus();
+        if (e.key === 'Enter') checkCodeAndAskCancelReason(orderId);
+      });
+    });
+  }, 50);
+}
+
+function checkCodeAndAskCancelReason(orderId) {
+  const inputs = document.querySelectorAll('.code-digit');
+  const code = Array.from(inputs).map(i => i.value).join('');
+  if (code !== state.config.securityCode) {
+    inputs.forEach(i => i.value = '');
+    inputs[0].focus();
+    toast('Code incorrect', true);
+    return;
+  }
+  closeModal();
+  showCancelReasonModal(orderId);
+}
+
+function showCancelReasonModal(orderId) {
+  const o = state.orders.find(o => o.id === orderId);
+  if (!o) return;
+  openModal(`
+    <div class="modal-title">Motif d'annulation</div>
+    <div class="modal-sub">Ticket N°${o.number} · ${fmt(o.total)}</div>
+    <div style="background:rgba(193,87,74,0.08);border:1px solid rgba(193,87,74,0.25);border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--cream-dim);line-height:1.5">
+      ⚠ Le ticket sera marqué comme annulé. Il restera visible dans l'historique mais sortira du chiffre d'affaires.<br>
+      <strong style="color:var(--cream)">Cette action est tracée et ne peut pas être effacée.</strong>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;display:block;font-weight:500">Motif rapide (optionnel)</label>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px">
+        <button type="button" class="btn" onclick="document.getElementById('cancelReasonInput').value='Erreur de saisie'" style="font-size:12px">Erreur de saisie</button>
+        <button type="button" class="btn" onclick="document.getElementById('cancelReasonInput').value='Erreur de produit'" style="font-size:12px">Erreur de produit</button>
+        <button type="button" class="btn" onclick="document.getElementById('cancelReasonInput').value='Client annule'" style="font-size:12px">Client annule</button>
+        <button type="button" class="btn" onclick="document.getElementById('cancelReasonInput').value='Doublon'" style="font-size:12px">Doublon</button>
+      </div>
+    </div>
+    <div style="margin-bottom:18px">
+      <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:6px;display:block;font-weight:500">Motif détaillé <span style="color:#d48a7a">(obligatoire)</span></label>
+      <textarea id="cancelReasonInput" class="form-input" rows="3" placeholder="Ex: erreur de saisie, le client a commandé un sandwich au lieu d'un burger" style="width:100%;resize:vertical;font-family:inherit"></textarea>
+    </div>
+    <div class="modal-actions-grid">
+      <button class="btn" onclick="closeModal();showOrderDetail('${orderId}')">Retour</button>
+      <button class="btn btn-cancel" onclick="confirmCancelTicket('${orderId}')" style="background:rgba(193,87,74,0.15);border-color:#c1574a;color:#e69a8a">⊘ Confirmer l'annulation</button>
+    </div>
+  `);
+  setTimeout(() => {
+    const ta = document.getElementById('cancelReasonInput');
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function confirmCancelTicket(orderId) {
+  const reasonEl = document.getElementById('cancelReasonInput');
+  const reason = (reasonEl?.value || '').trim();
+  if (!reason || reason.length < 3) {
+    toast('⚠ Veuillez saisir un motif (au moins 3 caractères)', true);
+    reasonEl?.focus();
+    return;
+  }
+  const o = state.orders.find(o => o.id === orderId);
+  if (!o) return;
+
+  // Trace l'annulation (inaltérable)
+  o.cancelled = true;
+  o.cancelReason = reason;
+  o.cancelledAt = Date.now();
+  o.cancelledBy = (currentServer && currentServer.name) || 'Manager';
+  saveState();
+
+  // Synchronise via WebSocket si connecté
+  try {
+    if (typeof broadcast === 'function') {
+      broadcast({ type: 'order_update', order: o });
+    }
+  } catch(e) {}
+
+  toast(`✓ Ticket N°${o.number} annulé · CA mis à jour`);
+  closeModal();
+  // Rafraîchit la vue active
+  if (typeof renderTerminees === 'function') renderTerminees();
+  if (typeof renderCompta === 'function' && currentTab === 'compta') renderCompta();
+}
+
 function showEditPaymentModal(orderId) {
   const o = state.orders.find(o => o.id === orderId);
   if (!o) return;
@@ -16399,7 +17654,7 @@ document.querySelectorAll('.compta-period .filter-btn').forEach(b => {
 });
 
 function getPeriodOrders() {
-  const all = getTermineesOrders();
+  const all = getTermineesOrders().filter(o => !o.cancelled);
   if (comptaPeriod === 'all') return all;
   const now = Date.now();
   let start;
@@ -16414,7 +17669,7 @@ function getPeriodOrders() {
 // Récupère les commandes de la période PRÉCÉDENTE (pour comparaison %)
 // 'today' → hier, 'week' → 7j d'avant, 'month' → 30j d'avant
 function getPreviousPeriodOrders() {
-  const all = getTermineesOrders();
+  const all = getTermineesOrders().filter(o => !o.cancelled);
   const now = Date.now();
   if (comptaPeriod === 'all') return [];
   if (comptaPeriod === 'today') {
@@ -16899,7 +18154,7 @@ function printClient(items, customer, type, table, order) {
     .grand { font-size: 15px; font-weight: bold; margin-top: 6px; padding-top: 6px; border-top: 1px solid #000; }
     .footer { text-align: center; margin-top: 16px; font-size: 10px; padding-top: 10px; border-top: 1px dashed #000; }
   </style></head><body>
-    <h1>Flamme</h1>
+    <h1>LE 832 FOOD</h1>
     <div class="sub">— Restauration rapide —</div>
     <div class="meta">N°${num}<br>${dt}</div>
     ${custBlock}
@@ -16926,7 +18181,7 @@ function printClient(items, customer, type, table, order) {
     <div class="block" style="text-align:center;margin-top:10px">
       Paiement : ${pay}
     </div>
-    <div class="footer">Merci de votre visite<br>À très bientôt chez Flamme</div>
+    <div class="footer">Merci de votre visite<br>À très bientôt chez LE 832 FOOD</div>
     <script>window.onload = () => window.print();<\/script>
   </body></html>`;
 
@@ -16995,6 +18250,8 @@ function openModal(html, wide) {
 function closeModal() {
   const m = document.getElementById('modal');
   if (m) m.classList.remove('show');
+  // Ferme aussi le clavier virtuel s'il est ouvert dans la modale
+  if (typeof vkbHide === 'function') vkbHide();
 }
 
 (function initModalListeners() {
@@ -17530,7 +18787,7 @@ function renderWelcomeLogo() {
 
 function renderRestaurantSettings() {
   const nameInput = document.getElementById('restaurantNameInput');
-  if (nameInput) nameInput.value = (state.config && state.config.restaurantName) || 'Flamme';
+  if (nameInput) nameInput.value = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
 
   const preview = document.getElementById('restaurantLogoPreview');
   const removeBtn = document.getElementById('removeRestaurantLogoBtn');
@@ -18030,7 +19287,7 @@ function printZClosure(zid) {
   const firstT = new Date(z.firstTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const lastT = new Date(z.lastTime).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const closed = new Date(z.closedAt).toLocaleString('fr-FR');
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
   const payRows = Object.entries(z.byPay).map(([m, d]) =>
     `<tr><td>${payLabel(m)}</td><td style="text-align:right">${d.count}</td><td style="text-align:right">${fmt(d.total)}</td></tr>`
   ).join('');
@@ -18129,7 +19386,7 @@ function updateOnlineStatus() {
 
 // Manifest PWA inline (data URI)
 function setupPWAManifest() {
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
   const logo = (state.config && state.config.restaurantLogo) || '';
   const manifest = {
     name: restName + ' POS',
@@ -18685,11 +19942,11 @@ function showLoyaltyCard(phone) {
   const fullName = ((customer.firstName || '') + ' ' + (customer.lastName || '')).trim() || 'Client fidèle';
   const points = customer.points || 0;
   const qrUrl = getLoyaltyQRUrl(customer.phone, 220);
-  const restoName = (state.config && state.config.restoName) || 'Flamme';
+  const restoName = (state.config && state.config.restoName) || 'LE 832 FOOD';
 
   openModal(`
     <div class="loyalty-card-modal">
-      <div class="loyalty-card-brand">★ Carte fidélité</div>
+      <div class="loyalty-card-brand">★ LE 832 FOOD</div>
       <div class="loyalty-card-title">${restoName}</div>
       <div class="loyalty-card-qr">
         <img src="${qrUrl}" alt="QR fidélité" onerror="this.style.display='none';this.parentNode.innerHTML+='<div style=\\'color:#666;padding:40px 20px;font-size:13px\\'>QR indisponible (besoin Internet)</div>'" />
@@ -19273,7 +20530,9 @@ function showBorneProductDetail(p) {
     <div class="pdm-name">${p.name}</div>
     <div class="pdm-desc">${p.desc || ''}</div>
     ${stockInfo}
-    ${sections}
+    <div class="pdm-sections pdm-mode-borne">
+      ${sections}
+    </div>
     <div class="pdm-footer">
       <div class="pdm-qty">
         <button class="pdm-qty-btn" id="pdmDec">−</button>
@@ -20385,6 +21644,17 @@ function renderSettings() {
   // Toggle son borne en caisse (par défaut activé)
   const soundCb = document.getElementById('caisseSoundsToggle');
   if (soundCb) soundCb.checked = state.config.caisseSoundsEnabled !== false;
+  // Toggle clavier virtuel tactile
+  const vkbCb = document.getElementById('vkbToggleInput');
+  if (vkbCb && typeof vkbIsEnabled === 'function') {
+    vkbCb.checked = vkbIsEnabled();
+    const lbl = document.getElementById('vkbToggleLabel');
+    if (lbl) lbl.textContent = vkbCb.checked ? 'Activé' : 'Désactivé';
+    vkbCb.addEventListener('change', () => {
+      const lbl2 = document.getElementById('vkbToggleLabel');
+      if (lbl2) lbl2.textContent = vkbCb.checked ? 'Activé' : 'Désactivé';
+    });
+  }
   renderPromoCodesList();
   renderMenuEditor();
 }
@@ -20654,7 +21924,7 @@ function generateMonthlyInvoice(phoneKey, scope) {
   const totalHT = total / (1 + TVA_RATE);
   const tva = total - totalHT;
   const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim();
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
   const restAddr = (state.config && state.config.restaurantAddress) || '';
   const restPhone = (state.config && state.config.restaurantPhone) || '';
   const restSiret = (state.config && state.config.restaurantSiret) || '';
@@ -21524,7 +22794,7 @@ function showClientDetail(phone) {
     <div class="modal-actions-grid">
       <button class="btn btn-cancel" onclick="deleteClient('${norm}')">Supprimer</button>
       <button class="btn" onclick="openClientForm('${norm}')">Modifier</button>
-      <button class="btn" onclick="closeModal();showLoyaltyCard('${c.phone.replace(/'/g, '')}')" style="border-color:var(--amber);color:var(--amber)"><span class="btn-icon">★</span><span>Carte fidélité</span></button>
+      <button class="btn" onclick="closeModal();showLoyaltyCard('${c.phone.replace(/'/g, '')}')" style="border-color:var(--amber);color:var(--amber)"><span class="btn-icon">★</span><span>LE 832 FOOD</span></button>
       <button class="btn btn-primary" style="grid-column:1/-1" onclick="closeModal()">Fermer</button>
     </div>
   `, true);
@@ -23851,6 +25121,23 @@ function connectSync(url) {
           // Détecter les nouvelles commandes borne reçues d'un autre appareil
           try { _caisseDetectNewBorneOrders(); } catch (e) {}
         }
+        // Demande SMS depuis le serveur (canal SMS configuré pour une étape)
+        if (msg.type === 'sms_request' && msg.phone && msg.body) {
+          try {
+            // Une seule caisse traite la demande (la première qui reçoit, déduplication par window flag)
+            if (!window._smsRequestSeen) window._smsRequestSeen = new Set();
+            const key = (msg.data && msg.data.orderId ? msg.data.orderId : '') + '|' + (msg.data && msg.data.stage ? msg.data.stage : '') + '|' + msg.phone;
+            if (window._smsRequestSeen.has(key)) return;
+            window._smsRequestSeen.add(key);
+            // Cleanup pour éviter accumulation mémoire
+            if (window._smsRequestSeen.size > 500) window._smsRequestSeen.clear();
+            // Ouvre l'app SMS du Mac avec le message pré-rempli
+            const cleanPhone = String(msg.phone).replace(/[^\d+]/g, '');
+            const url = 'sms:' + cleanPhone + '?body=' + encodeURIComponent(msg.body);
+            // Nouveau onglet pour ne pas perdre l'état caisse
+            window.open(url, '_blank');
+          } catch (e) { console.error('sms_request handler error:', e); }
+        }
       } catch (e) { console.error(e); }
     });
     syncSocket.addEventListener('error', () => updateSyncStatus('Erreur', 'expired'));
@@ -24290,7 +25577,7 @@ function _renderVitrineLogo() {
   if (!el) return;
   const customLogo = (state.config && state.config.restaurantLogo) || '';
   const logo = customLogo || (typeof DEFAULT_RESTAURANT_LOGO !== 'undefined' ? DEFAULT_RESTAURANT_LOGO : '');
-  const name = (state.config && state.config.restaurantName) || (typeof DEFAULT_RESTAURANT_NAME !== 'undefined' ? DEFAULT_RESTAURANT_NAME : 'Flamme');
+  const name = (state.config && state.config.restaurantName) || (typeof DEFAULT_RESTAURANT_NAME !== 'undefined' ? DEFAULT_RESTAURANT_NAME : 'LE 832 FOOD');
   if (logo) {
     el.innerHTML = `
       <img src="${logo}" alt="${name.replace(/"/g, '&quot;')}" />
@@ -24773,7 +26060,7 @@ function livShareTracking(id) {
   const o = state.orders.find(x => x.id === id);
   if (!o || !o.customer || !o.customer.phone) { toast('Pas de numéro client', true); return; }
   const url = location.origin + location.pathname + '?track=' + encodeURIComponent(id);
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
   const msg = `${restName} - Bonjour ${o.customer.firstName || ''}, votre livreur est en route ! Suivez-le en direct : ${url}`;
   const smsLink = `sms:${o.customer.phone}?body=${encodeURIComponent(msg)}`;
   window.location.href = smsLink;
@@ -25048,7 +26335,7 @@ function startTracking() {
     document.getElementById('trackInfo').innerHTML = 'Le lien de suivi n\'est pas valide ou la commande a expiré.';
     return;
   }
-  const restName = (state.config && state.config.restaurantName) || 'Flamme';
+  const restName = (state.config && state.config.restaurantName) || 'LE 832 FOOD';
   document.getElementById('trackBrand').textContent = restName;
   // Init map
   setTimeout(() => initTrackMap(o), 50);
@@ -25351,6 +26638,14 @@ function urgencyLevel(o) {
 }
 
 function renderKDS() {
+  // Catégories à NE PAS afficher en cuisine (boissons et desserts)
+  // → ces items partent directement au comptoir, pas en cuisine
+  const KDS_HIDDEN_CATEGORIES = ['Boissons', 'Boissons Chaudes', 'Boissons Fraîches', 'Desserts & Glaces', 'Desserts', 'Glaces'];
+  const isHiddenForKds = (item) => {
+    const cat = categoryOf(item.id);
+    return cat && KDS_HIDDEN_CATEGORIES.includes(cat);
+  };
+
   // Commandes "vivantes" pour la cuisine : tout sauf servies en cuisine ou annulées
   // Indépendant du statut paiement : une commande encaissée doit rester visible
   // tant que la cuisine ne l'a pas marquée "servie".
@@ -25358,6 +26653,9 @@ function renderKDS() {
     if (o.kdsStatus === 'servie') return false;
     if (o.status === 'annulee') return false;
     if (o.hideFromKds) return false;  // Sous-tickets de division : cachés (l'original gère la cuisine)
+    // Si TOUS les items sont des boissons/desserts → la commande n'a pas besoin de la cuisine
+    const kitchenItems = (o.items || []).filter(i => !isHiddenForKds(i));
+    if (kitchenItems.length === 0) return false;
     return true;
   });
 
@@ -25465,7 +26763,7 @@ function renderKDS() {
       payBadge = '<div class="kds-paybadge unpaid">À régler à la livraison</div>';
     }
 
-    const itemsHtml = o.items.map(i => {
+    const itemsHtml = o.items.filter(i => !isHiddenForKds(i)).map(i => {
       const customLabel = i.customizationLabel || i.optionsLabel || '';
       const customLine = customLabel ? `<div style="color:var(--amber);font-size:12px;font-style:italic;margin-top:4px;line-height:1.4;font-weight:500">${customLabel}</div>` : '';
       const commentLine = i.comment ? `<div style="background:rgba(212,160,86,0.18);color:var(--amber);font-size:12px;padding:5px 8px;border-radius:5px;margin-top:5px;font-weight:700;border-left:3px solid var(--amber)">✏ ${i.comment}</div>` : '';
@@ -25753,7 +27051,7 @@ function smsTemplate(o, type) {
   const total = fmt(o.total);
   let tpl;
   if (type === 'preparing') {
-    tpl = tpls.preparing || 'Bonjour {prenom}, votre commande N°{num} ({total}) est en préparation chez Flamme. À tout de suite !';
+    tpl = tpls.preparing || 'Bonjour {prenom}, votre commande N°{num} ({total}) est en préparation chez LE 832 FOOD. À tout de suite !';
   } else if (type === 'ready') {
     tpl = tpls.ready || 'Bonjour {prenom}, votre commande N°{num} est prête ! Notre livreur arrive bientôt.';
   } else { // 'on_way'
@@ -25911,28 +27209,67 @@ function saveDeliveryZones() {
 function smsTemplatesEditor() {
   const tpls = (state.config && state.config.smsTemplates) || {};
   const autoOnTake = !state.config || state.config.smsAutoOnTake !== false; // true par défaut
+  // Canal de notification par étape : 'push' | 'sms' | 'both' | 'none'
+  const channels = (state.config && state.config.notifChannels) || {};
+  const ch = (stage, def) => channels[stage] || def;
+  const channelOptions = (stage, current) => `
+    <select id="notif-${stage}" class="form-input" style="font-size:12px;padding:6px 10px;width:auto">
+      <option value="push" ${current === 'push' ? 'selected' : ''}>🔔 Push</option>
+      <option value="sms" ${current === 'sms' ? 'selected' : ''}>📱 SMS</option>
+      <option value="both" ${current === 'both' ? 'selected' : ''}>🔔📱 Les deux</option>
+      <option value="none" ${current === 'none' ? 'selected' : ''}>🚫 Aucune</option>
+    </select>`;
   openModal(`
-    <div class="modal-title">Modèles SMS</div>
-    <div class="modal-sub">Personnalisez les messages envoyés aux clients</div>
+    <div class="modal-title">Notifications client</div>
+    <div class="modal-sub">SMS, Push ou les deux selon l'étape</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.5">
       Variables disponibles : <code style="color:var(--amber)">{prenom}</code> · <code style="color:var(--amber)">{num}</code> · <code style="color:var(--amber)">{total}</code>
     </div>
 
-    <!-- Toggle envoi auto SMS au "Prendre commande" -->
+    <!-- ═══ CANAL DE NOTIFICATION PAR ÉTAPE ═══ -->
+    <div style="background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:14px;margin-bottom:18px">
+      <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);font-weight:800;margin-bottom:10px">Canal de notification par étape</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--cream)">✓ Confirmation</span>
+          ${channelOptions('confirmed', ch('confirmed', 'push'))}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--cream)">🍳 Préparation</span>
+          ${channelOptions('preparing', ch('preparing', 'none'))}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--cream)">🛍 Prête (emporter)</span>
+          ${channelOptions('ready', ch('ready', 'push'))}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--cream)">🚗 Livreur en route</span>
+          ${channelOptions('delivering', ch('delivering', 'both'))}
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <span style="font-size:12px;color:var(--cream)">🏁 Livrée / Récupérée</span>
+          ${channelOptions('completed', ch('completed', 'push'))}
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:10px;line-height:1.5">💡 Push = notification instantanée gratuite (PWA). SMS = ouvre l'app SMS sur ce poste.</div>
+    </div>
+
+    <!-- Toggle envoi auto SMS au "Prendre commande" (legacy) -->
     <div style="background:linear-gradient(135deg, rgba(122,154,77,0.10), rgba(122,154,77,0.02));border:1px solid var(--green);border-radius:10px;padding:12px 14px;margin-bottom:18px">
       <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
         <input type="checkbox" id="smsAutoOnTake" ${autoOnTake ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--green);cursor:pointer">
         <div style="flex:1">
-          <div style="font-size:13px;font-weight:700;color:var(--cream)">📱 Envoi auto SMS « En route »</div>
-          <div style="font-size:11px;color:var(--cream-dim);margin-top:2px;line-height:1.4">Quand le livreur appuie sur « Prendre la commande », l'app SMS s'ouvre automatiquement avec le message prérempli.</div>
+          <div style="font-size:13px;font-weight:700;color:var(--cream)">📱 Envoi auto SMS « En route » par le livreur</div>
+          <div style="font-size:11px;color:var(--cream-dim);margin-top:2px;line-height:1.4">Quand le livreur appuie sur « Prendre la commande », l'app SMS s'ouvre automatiquement (en plus du canal configuré ci-dessus).</div>
         </div>
       </label>
     </div>
 
+    <div style="font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);font-weight:800;margin-bottom:10px">Modèles de messages</div>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div>
         <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">En préparation</div>
-        <textarea class="form-textarea" id="smsTplPreparing">${tpls.preparing || 'Bonjour {prenom}, votre commande N°{num} ({total}) est en préparation chez Flamme. À tout de suite !'}</textarea>
+        <textarea class="form-textarea" id="smsTplPreparing">${tpls.preparing || 'Bonjour {prenom}, votre commande N°{num} ({total}) est en préparation chez LE 832 FOOD. À tout de suite !'}</textarea>
       </div>
       <div>
         <div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Prête</div>
@@ -25957,12 +27294,19 @@ function saveSmsTemplates() {
     ready: document.getElementById('smsTplReady').value.trim(),
     on_way: document.getElementById('smsTplOnWay').value.trim()
   };
+  // Canaux notif par étape
+  const stages = ['confirmed', 'preparing', 'ready', 'delivering', 'completed'];
+  state.config.notifChannels = {};
+  stages.forEach(stage => {
+    const sel = document.getElementById('notif-' + stage);
+    if (sel) state.config.notifChannels[stage] = sel.value;
+  });
   // Toggle envoi auto
   const autoEl = document.getElementById('smsAutoOnTake');
   state.config.smsAutoOnTake = autoEl ? autoEl.checked : true;
   saveState();
   closeModal();
-  toast('Modèles SMS enregistrés');
+  toast('Notifications enregistrées');
 }
 
 //
@@ -25974,7 +27318,7 @@ function exportBackup() {
   try {
     const backup = {
       _meta: {
-        app: 'Flamme POS',
+        app: 'LE 832 FOOD POS',
         version: 1,
         exportedAt: new Date().toISOString(),
         ordersCount: (state.orders || []).length,
@@ -26043,11 +27387,11 @@ function validateAndConfirmImport(data) {
   if (!incoming || typeof incoming !== 'object') {
     toast('Pas d\'état trouvé dans le fichier', true); return;
   }
-  // Heuristiques pour vérifier que c'est bien un state Flamme
+  // Heuristiques pour vérifier que c'est bien un state LE 832 FOOD
   const hasOrders = Array.isArray(incoming.orders);
   const hasCounter = typeof incoming.counter === 'number';
   if (!hasOrders && !hasCounter && !incoming.menu && !incoming.customers) {
-    toast('Ce fichier ne semble pas être une sauvegarde Flamme', true); return;
+    toast('Ce fichier ne semble pas être une sauvegarde LE 832 FOOD', true); return;
   }
 
   const meta = data._meta || {};
@@ -26193,6 +27537,319 @@ setTimeout(() => {
   }
 }, 350);
 
+// ═══════════════════════════════════════════════════════════════
+// CLAVIER VIRTUEL TACTILE pour caisse
+// ═══════════════════════════════════════════════════════════════
+(function() {
+  // Préférence clavier (activée par défaut, désactivable dans Paramètres)
+  const KB_PREF_KEY = 'flamme_vkb_enabled';
+  function vkbIsEnabled() {
+    const pref = localStorage.getItem(KB_PREF_KEY);
+    return pref === null ? true : pref === '1';
+  }
+  function vkbSetEnabled(on) {
+    localStorage.setItem(KB_PREF_KEY, on ? '1' : '0');
+  }
+  // Expose pour le menu Paramètres
+  window.vkbIsEnabled = vkbIsEnabled;
+  window.vkbSetEnabled = vkbSetEnabled;
+
+  // Layout AZERTY
+  const AZERTY_LOWER = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['a','z','e','r','t','y','u','i','o','p'],
+    ['q','s','d','f','g','h','j','k','l','m'],
+    ['w','x','c','v','b','n','-','\'',' ',',']
+  ];
+  const AZERTY_UPPER = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['A','Z','E','R','T','Y','U','I','O','P'],
+    ['Q','S','D','F','G','H','J','K','L','M'],
+    ['W','X','C','V','B','N','_','"',' ','.']
+  ];
+  const NUMPAD = [
+    ['1','2','3'],
+    ['4','5','6'],
+    ['7','8','9'],
+    ['.','0','⌫']
+  ];
+
+  let _vkbActiveField = null;
+  let _vkbShift = false;
+  let _vkbCaps = false;
+  let _vkbMode = 'azerty'; // 'azerty' | 'numpad'
+
+  // Construire / afficher / cacher le clavier
+  function vkbBuild() {
+    if (document.getElementById('virtualKeyboard')) return;
+    const kb = document.createElement('div');
+    kb.id = 'virtualKeyboard';
+    kb.setAttribute('role', 'dialog');
+    kb.setAttribute('aria-label', 'Clavier virtuel');
+    // Empêcher la perte de focus quand on tape sur le clavier
+    kb.addEventListener('mousedown', e => e.preventDefault());
+    kb.addEventListener('touchstart', e => { /* keep focus on field */ }, { passive: true });
+    document.body.appendChild(kb);
+  }
+
+  function vkbRender() {
+    const kb = document.getElementById('virtualKeyboard');
+    if (!kb) return;
+    kb.classList.toggle('numpad-mode', _vkbMode === 'numpad');
+    const previewVal = _vkbActiveField ? (_vkbActiveField.value || '') : '';
+    const previewShown = previewVal.length > 30 ? '…' + previewVal.slice(-29) : previewVal;
+    const previewLabel = _vkbActiveField?.placeholder || _vkbActiveField?.getAttribute('aria-label') || 'Saisie';
+
+    let html = `
+      <div class="vkb-target-info">
+        <span class="vkb-target-label">${escapeHtml(previewLabel)}</span>
+        <span class="vkb-target-preview">${escapeHtml(previewShown) || '<span style="opacity:0.4">—</span>'}</span>
+        <button class="vkb-close-btn" type="button" onclick="vkbHide()" aria-label="Fermer">✕</button>
+      </div>
+    `;
+
+    if (_vkbMode === 'numpad') {
+      // Pavé numérique pour téléphone, montant, nb repas
+      html += '<div class="vkb-row">';
+      NUMPAD.forEach(row => {
+        // un row à la fois
+      });
+      html += '</div>';
+      // Réécriture ligne par ligne
+      let numHtml = '';
+      NUMPAD.forEach(row => {
+        numHtml += '<div class="vkb-row">';
+        row.forEach(k => {
+          const cls = k === '⌫' ? 'vkb-key delete' : 'vkb-key';
+          const data = k === '⌫' ? 'BACKSPACE' : k;
+          numHtml += `<button type="button" class="${cls}" data-key="${data}">${k}</button>`;
+        });
+        numHtml += '</div>';
+      });
+      // Bouton "OK" en plus
+      numHtml += '<div class="vkb-row" style="margin-top:8px"><button type="button" class="vkb-key action" data-key="ENTER" style="flex:1">OK</button></div>';
+      html = html.replace(/<div class="vkb-row"><\/div>/, '') + numHtml;
+    } else {
+      // Clavier AZERTY
+      const layout = (_vkbShift || _vkbCaps) ? AZERTY_UPPER : AZERTY_LOWER;
+      // Rangée 1 : chiffres
+      html += '<div class="vkb-row">';
+      layout[0].forEach(k => {
+        html += `<button type="button" class="vkb-key" data-key="${k}">${k}</button>`;
+      });
+      html += `<button type="button" class="vkb-key delete wide-1-5" data-key="BACKSPACE">⌫</button></div>`;
+
+      // Rangée 2 : AZERTYUIOP
+      html += '<div class="vkb-row">';
+      layout[1].forEach(k => {
+        html += `<button type="button" class="vkb-key" data-key="${k}">${k}</button>`;
+      });
+      html += '</div>';
+
+      // Rangée 3 : QSDFGHJKLM + Entrée
+      html += '<div class="vkb-row">';
+      html += `<button type="button" class="vkb-key special wide-1-5 ${(_vkbShift||_vkbCaps)?'shift-active':''}" data-key="SHIFT">⇧</button>`;
+      layout[2].forEach(k => {
+        html += `<button type="button" class="vkb-key" data-key="${k}">${k}</button>`;
+      });
+      html += `<button type="button" class="vkb-key action wide-1-5" data-key="ENTER">↵</button>`;
+      html += '</div>';
+
+      // Rangée 4 : WXCVBN + ponct + espace
+      html += '<div class="vkb-row">';
+      html += `<button type="button" class="vkb-key special" data-key="123">?123</button>`;
+      layout[3].slice(0, 6).forEach(k => {
+        html += `<button type="button" class="vkb-key" data-key="${k}">${k}</button>`;
+      });
+      // Tirets / apostrophe
+      html += `<button type="button" class="vkb-key" data-key="${(_vkbShift||_vkbCaps)?'_':'-'}">${(_vkbShift||_vkbCaps)?'_':'-'}</button>`;
+      html += `<button type="button" class="vkb-key" data-key="${(_vkbShift||_vkbCaps)?'\"':'\''}">${(_vkbShift||_vkbCaps)?'"':'\''}</button>`;
+      html += `<button type="button" class="vkb-key wide-space" data-key=" ">espace</button>`;
+      html += `<button type="button" class="vkb-key" data-key="${(_vkbShift||_vkbCaps)?'.':','}">${(_vkbShift||_vkbCaps)?'.':','}</button>`;
+      html += '</div>';
+    }
+
+    kb.innerHTML = html;
+
+    // Binder les touches (mousedown pour rapidité, et touchstart sur tactile)
+    kb.querySelectorAll('.vkb-key').forEach(btn => {
+      const handler = (ev) => {
+        ev.preventDefault();
+        const k = btn.getAttribute('data-key');
+        vkbHandleKey(k);
+        btn.classList.add('pressed');
+        setTimeout(() => btn.classList.remove('pressed'), 90);
+      };
+      btn.addEventListener('mousedown', handler);
+      btn.addEventListener('touchstart', handler, { passive: false });
+    });
+  }
+
+  function vkbHandleKey(k) {
+    const f = _vkbActiveField;
+    if (!f) return;
+    if (k === 'BACKSPACE') {
+      const start = f.selectionStart, end = f.selectionEnd;
+      if (start === null) {
+        f.value = (f.value || '').slice(0, -1);
+      } else if (start === end && start > 0) {
+        f.value = f.value.slice(0, start - 1) + f.value.slice(end);
+        try { f.setSelectionRange(start - 1, start - 1); } catch(e){}
+      } else if (start !== end) {
+        f.value = f.value.slice(0, start) + f.value.slice(end);
+        try { f.setSelectionRange(start, start); } catch(e){}
+      }
+    } else if (k === 'ENTER') {
+      // Pour les inputs, on déclenche change/blur ; pour textarea, on insère un \n
+      if (f.tagName === 'TEXTAREA') {
+        vkbInsertText('\n');
+      } else {
+        // Cherche le champ suivant ; sinon ferme
+        const focusables = Array.from(document.querySelectorAll('input[type=text], input[type=tel], input[type=email], input[type=number], textarea')).filter(el => !el.disabled && el.offsetParent !== null);
+        const idx = focusables.indexOf(f);
+        if (idx >= 0 && idx < focusables.length - 1) {
+          // passe au suivant
+          const next = focusables[idx + 1];
+          // On ferme + on focus le suivant qui rouvrira le clavier si éligible
+          vkbHide();
+          setTimeout(() => next.focus(), 50);
+        } else {
+          vkbHide();
+        }
+      }
+      vkbDispatchInput(f);
+      return;
+    } else if (k === 'SHIFT') {
+      _vkbShift = !_vkbShift;
+      vkbRender();
+      return;
+    } else if (k === '123') {
+      _vkbMode = (_vkbMode === 'azerty') ? 'numpad' : 'azerty';
+      vkbRender();
+      return;
+    } else if (k === '.' && f.type === 'number') {
+      // Pour les inputs number, on accepte le point comme séparateur décimal
+      vkbInsertText('.');
+    } else {
+      vkbInsertText(k);
+      // Auto-désactive le shift après une lettre
+      if (_vkbShift) { _vkbShift = false; vkbRender(); }
+    }
+    // Refresh preview header
+    const preview = document.querySelector('#virtualKeyboard .vkb-target-preview');
+    if (preview) {
+      const v = f.value || '';
+      preview.textContent = v.length > 30 ? '…' + v.slice(-29) : v;
+    }
+    vkbDispatchInput(f);
+  }
+
+  function vkbInsertText(txt) {
+    const f = _vkbActiveField;
+    if (!f) return;
+    // input type="number" : on ne peut pas utiliser selectionStart fiablement
+    if (f.type === 'number') {
+      f.value = (f.value || '') + txt;
+      return;
+    }
+    const start = f.selectionStart, end = f.selectionEnd;
+    if (start === null) {
+      f.value = (f.value || '') + txt;
+    } else {
+      f.value = f.value.slice(0, start) + txt + f.value.slice(end);
+      try {
+        const pos = start + txt.length;
+        f.setSelectionRange(pos, pos);
+      } catch(e){}
+    }
+  }
+
+  function vkbDispatchInput(f) {
+    try {
+      f.dispatchEvent(new Event('input', { bubbles: true }));
+      f.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch(e){}
+  }
+
+  function vkbShow(field) {
+    if (!vkbIsEnabled()) return;
+    vkbBuild();
+    _vkbActiveField = field;
+    _vkbShift = false;
+    // Choisir le mode selon le type du champ
+    const isNumeric = field.type === 'tel' || field.type === 'number' ||
+                      field.inputMode === 'tel' || field.inputMode === 'numeric' ||
+                      field.inputMode === 'decimal';
+    _vkbMode = isNumeric ? 'numpad' : 'azerty';
+    vkbRender();
+    setTimeout(() => {
+      document.getElementById('virtualKeyboard')?.classList.add('show');
+      // Vérifie si le champ est masqué par le clavier (300px du bas)
+      try {
+        const rect = field.getBoundingClientRect();
+        const kbHeight = document.getElementById('virtualKeyboard')?.offsetHeight || 300;
+        const distFromBottom = window.innerHeight - rect.bottom;
+        if (distFromBottom < kbHeight + 20) {
+          // Le champ est caché par le clavier — on le ramène en vue
+          field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } catch(e){}
+    }, 10);
+  }
+
+  function vkbHide() {
+    document.getElementById('virtualKeyboard')?.classList.remove('show');
+    _vkbActiveField = null;
+  }
+  window.vkbHide = vkbHide;
+  window.vkbShow = vkbShow;
+
+  // Détection : quels champs déclenchent le clavier ?
+  // Critères :
+  //   - input type=text/tel/email/number/search
+  //   - textarea
+  //   - PAS si l'attribut data-no-vkb est présent
+  function vkbShouldHandle(el) {
+    if (!el || !el.tagName) return false;
+    if (el.disabled || el.readOnly) return false;
+    if (el.dataset.noVkb !== undefined) return false;
+    if (el.tagName === 'TEXTAREA') return true;
+    if (el.tagName === 'INPUT') {
+      const t = (el.type || 'text').toLowerCase();
+      return ['text', 'tel', 'email', 'number', 'search', 'url'].includes(t);
+    }
+    return false;
+  }
+
+  // Capture les focus sur les champs concernés
+  document.addEventListener('focusin', (e) => {
+    if (!vkbIsEnabled()) return;
+    const el = e.target;
+    if (vkbShouldHandle(el)) {
+      // Sur mobile/écran < 600px, on laisse le clavier natif
+      if (window.matchMedia && window.matchMedia('(max-width: 600px)').matches) return;
+      vkbShow(el);
+    }
+  });
+
+  // Quand on clique en dehors d'un champ, fermer
+  document.addEventListener('focusout', (e) => {
+    setTimeout(() => {
+      const a = document.activeElement;
+      if (!a || !vkbShouldHandle(a)) {
+        // On vérifie qu'on n'a pas cliqué dans le clavier
+        if (!a || !a.closest('#virtualKeyboard')) {
+          vkbHide();
+        }
+      }
+    }, 100);
+  });
+
+  // Touche ESC pour fermer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && _vkbActiveField) vkbHide();
+  });
+})();
 </script>
 </body>
 </html>
