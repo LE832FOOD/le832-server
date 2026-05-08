@@ -59,6 +59,7 @@ try {
 } catch (e) { console.error('Erreur lecture état :', e.message); }
 
 let subscriptions = {}; // { phoneKey: [{endpoint, keys, addedAt}, ...] }
+let sseClients = new Map(); // { phoneKey: Set<{res, lastSent}> } pour Server-Sent Events
 try {
   if (fs.existsSync(SUBS_FILE)) {
     subscriptions = JSON.parse(fs.readFileSync(SUBS_FILE, 'utf8'));
@@ -81,6 +82,21 @@ function persistSubs() {
 }
 
 const normalizePhone = (p) => (p || '').toString().replace(/[^\d+]/g, '');
+
+// Sanitisation : enlève les balises HTML, scripts complets et caractères dangereux
+function sanitizeString(s, maxLen) {
+  if (typeof s !== 'string') return '';
+  // 1. Enlève le contenu complet des balises <script>...</script>, <style>, <iframe>, <object>, <embed>
+  let out = s.replace(/<(script|style|iframe|object|embed|noscript|template)[^>]*>[\s\S]*?<\/\1\s*>/gi, '');
+  // 2. Enlève les balises HTML restantes mais garde le texte entre
+  out = out.replace(/<[^>]*>/g, '');
+  // 3. Enlève les caractères de contrôle SAUF \n et \t
+  out = out.replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '');
+  // 4. Normalise espaces multiples (mais garde \n)
+  out = out.replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+  if (typeof maxLen === 'number' && out.length > maxLen) out = out.slice(0, maxLen);
+  return out;
+}
 
 // ═══ Rate limiting (anti-DDoS / anti-spam) ═══
 const RATE_LIMITS = {
@@ -129,22 +145,27 @@ const MAX_QTY_PER_ITEM    = 30;       // 30 unités max par produit
 const MAX_PENDING_ORDERS  = 200;      // 200 commandes simultanées max
 const MAX_NOTE_LENGTH     = 500;      // 500 caractères max pour la note
 const ORDER_RETENTION_MS  = 7 * 24 * 60 * 60 * 1000; // 7 jours
+const MAX_TOTAL_ORDERS    = 2000;                     // Hard limit en mémoire
 
 // ═══ Auto-purge des vieilles commandes ═══
 function purgeOldOrders() {
   if (!Array.isArray(sharedState.orders)) return;
   const now = Date.now();
   const before = sharedState.orders.length;
+  // Étape 1 : purge par âge (>7 jours pour les terminées)
   sharedState.orders = sharedState.orders.filter(o => {
-    // Garder si en cours
     if (o.status === 'en_cours' || o.status === 'en_livraison' || o.awaitingConfirmation) return true;
-    // Garder si terminée récemment
     const closedAt = o.closedAt || o.refusedAt || o.createdAt || now;
     return (now - closedAt) < ORDER_RETENTION_MS;
   });
+  // Étape 2 : si toujours trop, garder les plus récentes
+  if (sharedState.orders.length > MAX_TOTAL_ORDERS) {
+    sharedState.orders.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    sharedState.orders = sharedState.orders.slice(0, MAX_TOTAL_ORDERS);
+  }
   const removed = before - sharedState.orders.length;
   if (removed > 0) {
-    console.log(`Auto-purge: ${removed} vieilles commandes supprimées`);
+    console.log(`Auto-purge: ${removed} vieilles commandes supprimées (en mémoire: ${sharedState.orders.length})`);
     persistSoon();
   }
 }
@@ -181,6 +202,16 @@ function detectOrderChangesAndNotify(oldOrders, newOrders) {
   const oldMap = {};
   (oldOrders || []).forEach(o => { if (o && o.id) oldMap[o.id] = o; });
 
+  // Récupérer les canaux configurés depuis sharedState.config.notifChannels
+  // Défauts si non configurés : push partout sauf preparing (none) et delivering (both)
+  const defaults = { confirmed: 'push', preparing: 'none', ready: 'push', delivering: 'both', completed: 'push' };
+  const channels = (sharedState.config && sharedState.config.notifChannels) || {};
+  const ch = (stage) => {
+    const c = channels[stage];
+    if (!c || !['push', 'sms', 'both', 'none'].includes(c)) return defaults[stage] || 'push';
+    return c;
+  };
+
   // Limite de protection : max 100 commandes scannées par sync
   const MAX_SCAN = 100;
   let scanned = 0;
@@ -195,30 +226,58 @@ function detectOrderChangesAndNotify(oldOrders, newOrders) {
       if (!oldO) continue;
       const num = newO.number;
 
+      // Détecter si un changement d'état s'est produit pour cette commande
+      const stateChanged = (
+        oldO.awaitingConfirmation !== newO.awaitingConfirmation ||
+        oldO.status !== newO.status ||
+        oldO.kdsStatus !== newO.kdsStatus
+      );
+
+      // ÉCRAN TEMPS RÉEL : envoyer SSE à chaque changement même si pas de notif push/SMS
+      // (ex: passage en préparation où canal=none → l'écran doit quand même s'actualiser)
+      if (stateChanged) {
+        sendSseTo(phone, 'order_update', {
+          orderId: newO.id,
+          number: num,
+          status: newO.status,
+          awaitingConfirmation: !!newO.awaitingConfirmation,
+          kdsStatus: newO.kdsStatus || null,
+          type: newO.type
+        });
+      }
+
       // 1. Confirmation
       if (oldO.awaitingConfirmation && !newO.awaitingConfirmation && newO.status !== 'annulee') {
-        sendPushTo(phone, '✓ Commande confirmée',
+        sendNotifTo(phone, ch('confirmed'), '✓ Commande confirmée',
           `Commande N°${num} confirmée — votre commande est en préparation.`,
           { orderId: newO.id, stage: 'confirmed' });
       }
       // 2. Refus
       if (oldO.status !== 'annulee' && newO.status === 'annulee') {
         const reason = newO.refusedReason ? ` : ${newO.refusedReason}` : '';
+        // Refus = toujours push (pas configurable car critique)
         sendPushTo(phone, '❌ Commande refusée',
           `Commande N°${num} refusée${reason}`,
           { orderId: newO.id, stage: 'refused' });
       }
+      // 2bis. En préparation (transition kdsStatus → 'preparation')
+      if (oldO.kdsStatus !== 'preparation' && newO.kdsStatus === 'preparation') {
+        sendNotifTo(phone, ch('preparing'), '🍳 En préparation',
+          `Commande N°${num} en préparation`,
+          { orderId: newO.id, stage: 'preparing' });
+      }
       // 3. Cuisine prête
       if (oldO.kdsStatus !== 'prete' && newO.kdsStatus === 'prete') {
         if (newO.type !== 'livraison') {
-          sendPushTo(phone, '🛍 Commande prête',
+          sendNotifTo(phone, ch('ready'), '🛍 Commande prête',
             `Commande N°${num} prête à récupérer !`,
             { orderId: newO.id, stage: 'ready' });
         }
+        // Pour livraison : pas de notif "prête" (la suivante est "livreur en route")
       }
       // 4. Livreur en route
       if (oldO.status !== 'en_livraison' && newO.status === 'en_livraison') {
-        sendPushTo(phone, '🚗 Livreur en route',
+        sendNotifTo(phone, ch('delivering'), '🚗 Livreur en route',
           `Commande N°${num} — votre livreur est en route !`,
           { orderId: newO.id, stage: 'delivering' });
       }
@@ -227,13 +286,59 @@ function detectOrderChangesAndNotify(oldOrders, newOrders) {
         const msg = newO.type === 'livraison'
           ? `Commande N°${num} livrée — bon appétit !`
           : `Commande N°${num} récupérée — bon appétit !`;
-        sendPushTo(phone, '🏁 Bon appétit', msg,
+        sendNotifTo(phone, ch('completed'), '🏁 Bon appétit', msg,
           { orderId: newO.id, stage: 'completed' });
       }
     } catch (e) {
       console.error('Erreur notif commande:', e.message);
     }
   }
+}
+
+// Envoie selon le canal configuré ; pour SMS, on broadcast aux caisses qui ouvriront l'app SMS
+// Toujours envoie aussi un événement SSE à la PWA pour rafraîchir l'écran instantanément
+async function sendNotifTo(phone, channel, title, body, data) {
+  // SSE : toujours envoyé indépendamment du canal pour MAJ écran temps réel
+  sendSseTo(phone, 'order_update', { title, body, ...data });
+
+  if (channel === 'none') return;
+  if (channel === 'push' || channel === 'both') {
+    sendPushTo(phone, title, body, data).catch(() => {});
+  }
+  if (channel === 'sms' || channel === 'both') {
+    // Broadcast un message aux caisses connectées : elles ouvriront sms: locally
+    broadcastSmsRequest(phone, body, data);
+  }
+}
+
+// Envoie un événement SSE (Server-Sent Event) à toutes les sessions PWA d'un client
+// → utilisé pour rafraîchir l'écran de suivi instantanément quand un statut change
+function sendSseTo(phone, eventName, payload) {
+  try {
+    if (!sseClients) return;
+    const phoneNorm = normalizePhone(phone);
+    const set = sseClients.get(phoneNorm);
+    if (!set || set.size === 0) return;
+    const data = 'event: ' + eventName + '\ndata: ' + JSON.stringify(payload || {}) + '\n\n';
+    const dead = [];
+    set.forEach(client => {
+      try { client.res.write(data); client.lastSent = Date.now(); }
+      catch (e) { dead.push(client); }
+    });
+    dead.forEach(c => set.delete(c));
+    if (set.size === 0) sseClients.delete(phoneNorm);
+  } catch (e) { console.error('sendSseTo error:', e.message); }
+}
+
+// Demande à toutes les caisses connectées d'ouvrir un SMS pour ce client
+function broadcastSmsRequest(phone, body, data) {
+  try {
+    if (!wss) return;
+    const msg = JSON.stringify({ type: 'sms_request', phone, body, data });
+    wss.clients.forEach(client => {
+      try { if (client.readyState === 1) client.send(msg); } catch (e) {}
+    });
+  } catch (e) { console.error('broadcastSmsRequest error:', e.message); }
 }
 
 // ═══ Statique ═══
@@ -483,9 +588,11 @@ const server = http.createServer(async (req, res) => {
           id: p.id,
           name: p.name,
           description: p.description || '',
+          desc: p.desc || '',
           price: p.price,
           photo: p.photo || null,
-          stock: p.stock
+          stock: p.stock,
+          config: p.config || null  // Configurations options (taille, sauces, suppléments, boissons...)
         }));
       }
     }
@@ -528,12 +635,20 @@ const server = http.createServer(async (req, res) => {
       return jsonRes(res, 400, { error: 'format heure invalide' });
     }
     // Validation note
-    if (body.note && typeof body.note === 'string' && body.note.length > MAX_NOTE_LENGTH) {
-      body.note = body.note.slice(0, MAX_NOTE_LENGTH);
-    }
+    body.note = sanitizeString(body.note, MAX_NOTE_LENGTH);
 
-    // Limite nombre de commandes en attente
-    const pendingCount = (sharedState.orders || []).filter(o => o.status === 'en_cours' || o.awaitingConfirmation).length;
+    // Limite anti-spam : on ne compte QUE les commandes en attente de traitement actif
+    // (pas celles déjà prêtes ou en livraison qui sont juste en attente de récupération/livraison)
+    const pendingCount = (sharedState.orders || []).filter(o => {
+      // Commande non terminée et non annulée
+      if (o.status === 'terminee' || o.status === 'annulee') return false;
+      // En attente confirmation manager (PWA)
+      if (o.awaitingConfirmation) return true;
+      // En cours de préparation cuisine (kdsStatus pas encore 'prete' ni 'servie')
+      if (o.status === 'en_cours' && o.kdsStatus !== 'prete' && o.kdsStatus !== 'servie') return true;
+      // Déjà en livraison ou prête : ne compte pas (n'occupe plus de bande passante)
+      return false;
+    }).length;
     if (pendingCount >= MAX_PENDING_ORDERS) {
       return jsonRes(res, 503, { error: 'trop de commandes en attente, réessayez dans quelques minutes' });
     }
@@ -558,13 +673,154 @@ const server = http.createServer(async (req, res) => {
       let qty = parseInt(i.qty);
       if (!Number.isFinite(qty) || qty < 1) qty = 1;
       if (qty > MAX_QTY_PER_ITEM) qty = MAX_QTY_PER_ITEM;
-      const itemTotal = product.price * qty;
-      total += itemTotal;
+      // Calcul du prix avec options
+      let itemPrice = product.price;
+      let optionsLabel = '';
+      const incomingOpts = i.options || null;
+      if (incomingOpts && typeof incomingOpts === 'object') {
+        const labelParts = [];
+
+        // Helper pour valider un objet { label, price } reçu en option
+        const validateLabelPrice = (obj, minP, maxP) => {
+          if (!obj || typeof obj !== 'object') return null;
+          const cleanLabel = sanitizeString(obj.label, 80);
+          if (!cleanLabel) return null;
+          const min = (typeof minP === 'number') ? minP : 0;
+          const max = (typeof maxP === 'number') ? maxP : 100;
+          const safePrice = (typeof obj.price === 'number' && Number.isFinite(obj.price) && obj.price >= min && obj.price <= max) ? obj.price : 0;
+          return { label: cleanLabel, price: safePrice };
+        };
+
+        // 1. Taille / pain (bread)
+        const breadObj = validateLabelPrice(incomingOpts.bread, 0, 100);
+        if (breadObj) {
+          itemPrice += breadObj.price;
+          incomingOpts.bread = breadObj;
+          labelParts.push(breadObj.label);
+        }
+        // 2. Base (pizza)
+        const baseObj = validateLabelPrice(incomingOpts.base, 0, 100);
+        if (baseObj) {
+          itemPrice += baseObj.price;
+          incomingOpts.base = baseObj;
+          labelParts.push('Base : ' + baseObj.label);
+        }
+        // 3. Menu (panini)
+        const menuObj = validateLabelPrice(incomingOpts.menu, 0, 50);
+        if (menuObj) {
+          itemPrice += menuObj.price;
+          incomingOpts.menu = menuObj;
+          if (menuObj.label !== 'Sans menu') labelParts.push(menuObj.label);
+        }
+        // 4. Viande unique (panini, zap'wich)
+        const meatObj = validateLabelPrice(incomingOpts.meat, 0, 30);
+        if (meatObj) {
+          itemPrice += meatObj.price;
+          incomingOpts.meat = meatObj;
+          labelParts.push('Viande : ' + meatObj.label);
+        }
+        // 5. Viandes multiples (tacos / bowls 2v / 3v)
+        if (Array.isArray(incomingOpts.meats)) {
+          incomingOpts.meats = incomingOpts.meats.slice(0, 5).map(m => {
+            if (m && typeof m === 'object') {
+              const cleanLabel = sanitizeString(m.label, 80);
+              if (cleanLabel) return { label: cleanLabel };
+            }
+            return null;
+          }).filter(Boolean);
+          if (incomingOpts.meats.length > 0) {
+            labelParts.push('Viandes : ' + incomingOpts.meats.map(m => m.label).join(', '));
+          }
+        }
+        // 5bis. Accompagnements (poulet braisé, brochettes) — pas de prix (inclus)
+        if (Array.isArray(incomingOpts.accompagnements)) {
+          incomingOpts.accompagnements = incomingOpts.accompagnements.slice(0, 5).map(a => {
+            if (a && typeof a === 'object') {
+              const cleanLabel = sanitizeString(a.label, 80);
+              if (cleanLabel) return { label: cleanLabel };
+            }
+            return null;
+          }).filter(Boolean);
+          if (incomingOpts.accompagnements.length > 0) {
+            labelParts.push('Accompagnements : ' + incomingOpts.accompagnements.map(a => a.label).join(', '));
+          }
+        }
+        // 6. Sauce fromagère (oui/non)
+        if (typeof incomingOpts.cheeseSauce === 'boolean') {
+          labelParts.push(incomingOpts.cheeseSauce ? 'Avec sauce fromagère' : 'Sans sauce fromagère');
+        } else {
+          incomingOpts.cheeseSauce = null;
+        }
+        // 7. Menu enfant : choix du plat
+        const kidsObj = validateLabelPrice(incomingOpts.kidsMenu, 0, 30);
+        if (kidsObj) {
+          itemPrice += kidsObj.price;
+          incomingOpts.kidsMenu = kidsObj;
+          labelParts.push('Menu : ' + kidsObj.label);
+        }
+        // 8. Menu enfant : viande si panini choisi
+        const meatPaniniObj = validateLabelPrice(incomingOpts.meatIfPanini, 0, 30);
+        if (meatPaniniObj) {
+          incomingOpts.meatIfPanini = meatPaniniObj;
+          labelParts.push('Panini : ' + meatPaniniObj.label);
+        }
+        // 9. Sauces (multi-choix)
+        if (Array.isArray(incomingOpts.sauces)) {
+          incomingOpts.sauces = incomingOpts.sauces.slice(0, 10).map(s => {
+            const obj = validateLabelPrice(s, -10, 50);
+            if (obj) {
+              if (obj.price > 0) itemPrice += obj.price;
+              labelParts.push(obj.label);
+              return obj;
+            }
+            return null;
+          }).filter(Boolean);
+        }
+        // 10. Suppléments (multi-choix avec prix)
+        if (Array.isArray(incomingOpts.extras)) {
+          incomingOpts.extras = incomingOpts.extras.slice(0, 20).map(e => {
+            const obj = validateLabelPrice(e, -10, 50);
+            if (obj) {
+              if (obj.price !== 0) itemPrice += obj.price;
+              labelParts.push((obj.price >= 0 ? '+' : '') + obj.label);
+              return obj;
+            }
+            return null;
+          }).filter(Boolean);
+        }
+        // 11. À retirer
+        if (Array.isArray(incomingOpts.removed)) {
+          incomingOpts.removed = incomingOpts.removed.slice(0, 20).map(r => sanitizeString(r, 80)).filter(Boolean);
+          incomingOpts.removed.forEach(r => labelParts.push('Sans ' + r));
+        }
+        // 12. Boisson
+        const drinkObj = validateLabelPrice(incomingOpts.drink, 0, 50);
+        if (drinkObj) {
+          itemPrice += drinkObj.price;
+          incomingOpts.drink = drinkObj;
+          labelParts.push('Boisson : ' + drinkObj.label);
+        } else {
+          incomingOpts.drink = null;
+        }
+        // 13. Commentaire
+        if (typeof incomingOpts.comment === 'string') {
+          incomingOpts.comment = sanitizeString(incomingOpts.comment, 200);
+          if (incomingOpts.comment) labelParts.push('Note : ' + incomingOpts.comment);
+        }
+        optionsLabel = labelParts.join(' · ');
+      }
+      // Garde-fou prix anormal
+      if (itemPrice < 0) itemPrice = product.price;
+      if (itemPrice > product.price * 10 + 200) itemPrice = product.price; // anti-arnaque
+      total += itemPrice * qty;
       items.push({
         id: product.id,
         name: product.name,
-        price: product.price,
-        qty: qty
+        price: itemPrice,
+        qty: qty,
+        options: incomingOpts,
+        optionsLabel: optionsLabel,
+        customizationLabel: optionsLabel  // alias pour compatibilité affichage caisse
       });
     }
     if (items.length === 0) {
@@ -579,10 +835,10 @@ const server = http.createServer(async (req, res) => {
     if (!sharedState.customers) sharedState.customers = {};
     const cust = sharedState.customers[phone] || { phone, points: 0, orderCount: 0, createdAt: Date.now() };
     if (body.customer) {
-      cust.firstName = body.customer.firstName || cust.firstName || '';
-      cust.lastName = body.customer.lastName || cust.lastName || '';
-      cust.email = body.customer.email || cust.email || '';
-      if (body.customer.address) cust.address = body.customer.address;
+      cust.firstName = sanitizeString(body.customer.firstName, 80) || cust.firstName || '';
+      cust.lastName = sanitizeString(body.customer.lastName, 80) || cust.lastName || '';
+      cust.email = sanitizeString(body.customer.email, 120) || cust.email || '';
+      if (body.customer.address) cust.address = sanitizeString(body.customer.address, 200);
     }
     cust.phone = phone;
     sharedState.customers[phone] = cust;
@@ -721,6 +977,56 @@ const server = http.createServer(async (req, res) => {
       total: order.total,
       refusedReason: order.refusedReason || null
     });
+  }
+
+  // ─── /api/events : Server-Sent Events pour le suivi temps réel PWA ───
+  // La PWA s'abonne avec ?phone=XXX et reçoit ping immédiatement
+  // chaque fois que ses commandes changent d'état
+  if (req.method === 'GET' && pathname === '/api/events') {
+    const phone = normalizePhone(url.searchParams.get('phone') || '');
+    if (!phone || phone.length < 6) {
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(JSON.stringify({ error: 'phone requis' }));
+    }
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no'); // désactive le buffering nginx/render
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    // Envoyer un commentaire pour ouvrir le flux
+    res.write(': connected\n\n');
+
+    // Référencer ce client SSE
+    if (!sseClients) sseClients = new Map();
+    if (!sseClients.has(phone)) sseClients.set(phone, new Set());
+    const set = sseClients.get(phone);
+    const client = { res, lastSent: Date.now() };
+    set.add(client);
+
+    // Heartbeat pour éviter timeout proxy (toutes les 25s)
+    const heartbeat = setInterval(() => {
+      try { res.write(': heartbeat\n\n'); } catch (e) {}
+    }, 25000);
+
+    // Envoyer l'état initial des commandes du client
+    try {
+      const myOrders = (sharedState.orders || []).filter(o =>
+        o.customer && normalizePhone(o.customer.phone) === phone
+      );
+      const minimal = myOrders.map(o => ({ id: o.id, number: o.number, status: o.status, awaitingConfirmation: !!o.awaitingConfirmation, kdsStatus: o.kdsStatus || null }));
+      res.write('event: snapshot\ndata: ' + JSON.stringify(minimal) + '\n\n');
+    } catch (e) { /* silencieux */ }
+
+    // Cleanup à la déconnexion
+    req.on('close', () => {
+      clearInterval(heartbeat);
+      try { set.delete(client); } catch (e) {}
+      if (set.size === 0) sseClients.delete(phone);
+    });
+    return;
   }
 
   // ─── /api/order-confirm : la caisse confirme une commande PWA ───
