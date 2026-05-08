@@ -122,12 +122,130 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 .cart-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft); }
 .cart-item:last-child { border-bottom:none; }
 .cart-item-info { flex:1; min-width:0; }
-.cart-item-name { font-size:13px; font-weight:600; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cart-item-name { font-size:13px; font-weight:700; margin-bottom:2px; line-height:1.3; }
+.cart-item-opts { font-size:11px; color:var(--cream-dim); margin:4px 0; line-height:1.5; }
+.cart-item-opts > div { margin-bottom:1px; }
 .cart-item-price { font-size:11px; color:var(--cream-dim); }
 .cart-item-controls { display:flex; align-items:center; gap:8px; }
 .qty-btn { width:28px; height:28px; border-radius:50%; background:var(--surface); border:1px solid var(--line); color:var(--cream); font-size:16px; cursor:pointer; font-weight:600; font-family:inherit; }
 .qty-num { font-weight:700; min-width:22px; text-align:center; font-size:14px; }
 .cart-totals { border-top:1px solid var(--line); padding-top:14px; margin-bottom:16px; }
+.opt-section { margin-bottom:18px; }
+.opt-section-title { font-size:11px; letter-spacing:0.12em; color:var(--amber); font-weight:800; text-transform:uppercase; margin-bottom:10px; padding-bottom:4px; border-bottom:1px solid var(--line-soft); }
+.opt-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(110px, 1fr)); gap:8px; }
+.opt-radio, .opt-check {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  padding:14px 8px;
+  background:var(--surface);
+  border:2px solid rgba(255,255,255,0.08);
+  border-radius:12px;
+  cursor:pointer;
+  transition:all 0.18s;
+  position:relative;
+  min-height:88px;
+  text-align:center;
+  overflow:hidden;
+}
+.opt-radio:hover, .opt-check:hover {
+  border-color:var(--amber);
+  transform:translateY(-2px);
+  box-shadow:0 6px 14px rgba(212,160,86,0.12);
+}
+.opt-radio:active, .opt-check:active { transform:scale(0.97); }
+.opt-radio.active, .opt-check.active {
+  background:linear-gradient(180deg,var(--amber-bright),var(--amber));
+  border-color:var(--amber);
+  color:#14110d;
+  box-shadow:0 4px 14px rgba(212,160,86,0.4);
+}
+/* Cache les inputs natifs (radio/checkbox) */
+.opt-radio input, .opt-check input {
+  position:absolute;
+  opacity:0;
+  pointer-events:none;
+  width:0;
+  height:0;
+}
+/* Emoji centré au-dessus */
+.opt-emoji {
+  font-size:28px;
+  line-height:1;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+  transition:transform 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.opt-radio:hover .opt-emoji, .opt-check:hover .opt-emoji {
+  transform:scale(1.12);
+}
+.opt-radio-label {
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--cream);
+  word-break:break-word;
+  line-height:1.25;
+}
+.opt-radio.active .opt-radio-label,
+.opt-check.active .opt-radio-label { color:#14110d; }
+.opt-price {
+  font-size:11px;
+  color:var(--amber);
+  font-weight:700;
+  font-variant-numeric:tabular-nums;
+}
+.opt-radio.active .opt-price,
+.opt-check.active .opt-price { color:rgba(20,17,13,0.6); }
+/* Checkmark visible quand sélectionné */
+.opt-radio.active::after, .opt-check.active::after {
+  content:'✓';
+  position:absolute;
+  top:6px;
+  right:8px;
+  width:18px;
+  height:18px;
+  background:rgba(20,17,13,0.18);
+  border-radius:50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:11px;
+  font-weight:800;
+  color:#14110d;
+}
+/* Variante boisson : vert quand sélectionné */
+.opt-section[data-section="drinks"] .opt-radio.active,
+.opt-section[data-section="drinks"] .opt-check.active {
+  background:linear-gradient(180deg,#95b85e,#7a9a4d);
+  border-color:#7a9a4d;
+  color:#fff;
+  box-shadow:0 4px 14px rgba(122,154,77,0.4);
+}
+.opt-section[data-section="drinks"] .opt-radio.active .opt-radio-label,
+.opt-section[data-section="drinks"] .opt-check.active .opt-radio-label { color:#fff; }
+.opt-section[data-section="drinks"] .opt-radio.active::after,
+.opt-section[data-section="drinks"] .opt-check.active::after {
+  background:rgba(20,17,13,0.25);
+  color:#fff;
+}
+/* Variante "À retirer" : rouge barré quand sélectionné */
+.opt-check.opt-remove.active {
+  background:linear-gradient(180deg,#d96b5a,#b8553a) !important;
+  border-color:#b8553a !important;
+  color:#fff !important;
+  box-shadow:0 4px 14px rgba(184,85,58,0.4) !important;
+}
+.opt-check.opt-remove.active .opt-radio-label {
+  color:#fff !important;
+  text-decoration:line-through;
+  text-decoration-thickness:2px;
+}
+.opt-check.opt-remove.active::after {
+  content:'✕' !important;
+  background:rgba(20,17,13,0.25) !important;
+  color:#fff !important;
+}
 .total-line { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
 .total-line.grand { font-size:18px; font-weight:800; color:var(--amber); border-top:1px solid var(--line); margin-top:6px; padding-top:10px; }
 .order-form-row { margin-bottom:12px; }
@@ -180,52 +298,6 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 .footer-credit { text-align:center; padding:24px 0; font-size:11px; color:var(--muted); }
 .spinner { width:24px; height:24px; border:2px solid var(--line); border-top-color:var(--amber); border-radius:50%; animation:spin 0.8s linear infinite; margin:0 auto; }
 @keyframes spin { to { transform:rotate(360deg); } }
-/* ═══ BOUTIQUE : commande mobile ═══ */
-.order-mode-tabs { display:flex; gap:6px; margin:12px 0 16px; background:var(--surface); padding:4px; border-radius:12px; }
-.order-mode-tab { flex:1; background:transparent; border:none; color:var(--cream-dim); padding:10px 8px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
-.order-mode-tab.active { background:var(--amber); color:#14110d; font-weight:800; }
-.closed-banner { background:rgba(214,79,79,0.1); border:1px solid rgba(214,79,79,0.3); border-radius:10px; padding:14px; text-align:center; margin-bottom:16px; }
-.closed-banner-title { color:var(--red); font-weight:800; font-size:14px; margin-bottom:4px; }
-.closed-banner-text { color:var(--cream-dim); font-size:12px; }
-.category-bar { display:flex; gap:6px; overflow-x:auto; padding:4px 16px 12px; margin:0 -16px 12px; scrollbar-width:none; }
-.category-bar::-webkit-scrollbar { display:none; }
-.category-chip { background:var(--surface); border:1px solid var(--line); color:var(--cream-dim); padding:8px 14px; border-radius:20px; font-size:12px; font-weight:600; white-space:nowrap; cursor:pointer; flex-shrink:0; font-family:inherit; }
-.category-chip.active { background:var(--amber); color:#14110d; border-color:var(--amber); font-weight:800; }
-.products-grid { display:grid; grid-template-columns:1fr; gap:8px; }
-.product-card { background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:12px; display:flex; align-items:center; gap:12px; cursor:pointer; }
-.product-card:active { transform:scale(0.98); }
-.product-photo { width:70px; height:70px; border-radius:10px; object-fit:cover; flex-shrink:0; background:var(--surface-2); }
-.product-photo-placeholder { width:70px; height:70px; border-radius:10px; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:32px; flex-shrink:0; }
-.product-info { flex:1; min-width:0; }
-.product-name { font-size:14px; font-weight:700; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.product-desc { font-size:11px; color:var(--cream-dim); line-height:1.4; overflow:hidden; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; margin-bottom:4px; }
-.product-price { font-size:14px; font-weight:800; color:var(--amber); }
-.product-add-btn { background:var(--green); color:white; border:none; width:36px; height:36px; border-radius:50%; font-size:22px; font-weight:700; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 2px 8px rgba(122,154,77,0.3); font-family:inherit; }
-.cart-fab { position:fixed; bottom:calc(82px + var(--safe-bottom)); left:16px; right:16px; max-width:448px; margin:0 auto; background:linear-gradient(180deg,var(--amber-bright),var(--amber)); color:#14110d; border:none; padding:14px 18px; border-radius:14px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 24px rgba(212,160,86,0.4); display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:90; font-family:inherit; transform:translateY(100px); opacity:0; transition:transform 0.3s,opacity 0.2s; }
-.cart-fab.show { transform:translateY(0); opacity:1; }
-.cart-fab-count { background:rgba(20,17,13,0.2); padding:4px 10px; border-radius:12px; font-size:12px; font-weight:800; }
-.cart-items { margin-bottom:16px; }
-.cart-item { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid var(--line-soft); }
-.cart-item:last-child { border-bottom:none; }
-.cart-item-info { flex:1; min-width:0; }
-.cart-item-name { font-size:13px; font-weight:600; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.cart-item-price { font-size:11px; color:var(--cream-dim); }
-.cart-item-controls { display:flex; align-items:center; gap:8px; }
-.qty-btn { width:28px; height:28px; border-radius:50%; background:var(--surface); border:1px solid var(--line); color:var(--cream); font-size:16px; cursor:pointer; font-weight:600; font-family:inherit; }
-.qty-num { font-weight:700; min-width:22px; text-align:center; font-size:14px; }
-.cart-totals { border-top:1px solid var(--line); padding-top:14px; margin-bottom:16px; }
-.total-line { display:flex; justify-content:space-between; padding:4px 0; font-size:13px; }
-.total-line.grand { font-size:18px; font-weight:800; color:var(--amber); border-top:1px solid var(--line); margin-top:6px; padding-top:10px; }
-.order-form-row { margin-bottom:12px; }
-.order-form-label { font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; font-weight:700; }
-.order-form-input { width:100%; padding:12px 14px; background:var(--surface); border:1px solid var(--line); border-radius:10px; color:var(--cream); font-size:14px; font-family:inherit; }
-.slot-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-.slot-chip { padding:10px 6px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--cream-dim); font-size:13px; font-weight:600; cursor:pointer; text-align:center; font-family:inherit; }
-.slot-chip.active { background:var(--amber); color:#14110d; border-color:var(--amber); font-weight:800; }
-.order-confirm { text-align:center; padding:30px 20px; }
-.order-confirm-icon { width:80px; height:80px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:40px; color:white; box-shadow:0 8px 24px rgba(122,154,77,0.4); }
-.order-confirm-num { font-size:32px; font-weight:900; color:var(--amber); margin:8px 0; }
-.order-confirm-txt { font-size:14px; color:var(--cream-dim); line-height:1.6; margin-bottom:20px; }
 /* ═══ TRACKING : suivi de commande ═══ */
 .tracking-card { background:linear-gradient(135deg,#1f1a14,#2a231b); border-radius:16px; padding:18px 16px; margin-bottom:14px; border:1px solid var(--line); position:relative; overflow:hidden; }
 .tracking-card.refused { border-color:rgba(214,79,79,0.5); }
@@ -262,7 +334,7 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 <section id="loginScreen" class="login-screen" style="display:none">
   <div class="login-logo">L</div>
   <h1 class="login-title">Le 832</h1>
-  <p class="login-sub">Votre carte fidélité numérique<br>+ commande en ligne</p>
+  <p class="login-sub">Votre espace client<br>commande en ligne · fidélité</p>
   <div class="login-input-wrap">
     <input type="tel" inputmode="tel" id="phoneInput" class="login-input" placeholder="06 12 34 56 78" autocomplete="tel">
     <button class="btn-primary" onclick="login()">Continuer</button>
@@ -279,7 +351,7 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
       <button class="install-banner-btn" onclick="promptInstall()">Installer</button>
     </div>
     <div class="loyalty-card">
-      <div class="loyalty-tag">★ Carte fidélité</div>
+      <div class="loyalty-tag">★ LE 832 FOOD</div>
       <div class="loyalty-brand">Le 832</div>
       <div class="loyalty-content">
         <div class="loyalty-qr"><img id="cardQR" alt="QR" /></div>
@@ -444,6 +516,44 @@ function toast(msg) {
 function normalizePhone(p) { return (p || '').replace(/[^\d+]/g, ''); }
 function fmt(n) { return (n || 0).toFixed(2).replace('.', ',') + ' €'; }
 function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+// Parse JSON avec fallback automatique en cas de corruption localStorage
+function safeJsonParse(json, fallback) {
+  if (typeof json !== 'string' || !json) return fallback;
+  try { return JSON.parse(json); } catch (e) { return fallback; }
+}
+
+// Formate les options choisies pour affichage dans le panier
+function formatItemOptions(opts) {
+  if (!opts) return '';
+  const parts = [];
+  if (opts.base && opts.base.label) parts.push(opts.base.label);
+  if (opts.menu && opts.menu.label && opts.menu.label !== 'Sans menu') parts.push(opts.menu.label);
+  if (opts.meat && opts.meat.label) parts.push('Viande : ' + opts.meat.label);
+  if (Array.isArray(opts.meats) && opts.meats.length) {
+    parts.push('Viandes : ' + opts.meats.map(m => m.label).join(', '));
+  }
+  if (Array.isArray(opts.accompagnements) && opts.accompagnements.length) {
+    parts.push('Accompagnements : ' + opts.accompagnements.map(a => a.label).join(', '));
+  }
+  if (opts.cheeseSauce === true) parts.push('Avec sauce fromagère');
+  if (opts.cheeseSauce === false) parts.push('Sans sauce fromagère');
+  if (opts.kidsMenu && opts.kidsMenu.label) parts.push('Menu : ' + opts.kidsMenu.label);
+  if (opts.meatIfPanini && opts.meatIfPanini.label) parts.push('Panini : ' + opts.meatIfPanini.label);
+  if (Array.isArray(opts.sauces) && opts.sauces.length) {
+    parts.push('Sauces : ' + opts.sauces.map(s => s.label).join(', '));
+  }
+  if (Array.isArray(opts.extras) && opts.extras.length) {
+    parts.push('+ ' + opts.extras.map(e => e.label).join(', '));
+  }
+  if (Array.isArray(opts.removed) && opts.removed.length) {
+    parts.push('Sans ' + opts.removed.join(', '));
+  }
+  if (opts.drink && opts.drink.label) parts.push('🥤 ' + opts.drink.label);
+  if (opts.comment) parts.push('💬 ' + opts.comment);
+  if (parts.length === 0) return '';
+  return `<div class="cart-item-opts">${parts.map(p => `<div>${escapeHtml(p)}</div>`).join('')}</div>`;
+}
 // Fetch avec timeout (évite que la PWA reste bloquée si le serveur ne répond pas)
 async function fetchWithTimeout(url, opts = {}, timeoutMs = 15000) {
   const ctrl = new AbortController();
@@ -461,7 +571,7 @@ function formatDate(ts) { const d = new Date(ts); return d.toLocaleDateString('f
 // ═══ BOUTIQUE : commande mobile ═══
 // Charge le panier depuis localStorage au démarrage
 try {
-  const saved = JSON.parse(localStorage.getItem('le832_cart') || '[]');
+  const saved = safeJsonParse(localStorage.getItem('le832_cart'), []);
   if (Array.isArray(saved)) cart = saved;
 } catch (e) {}
 
@@ -528,9 +638,34 @@ function renderProducts() {
       e.stopPropagation();
       const idx = parseInt(el.dataset.pidx);
       const p = products[idx];
-      if (p) addToCart(p.id, p.name, p.price, p.photo, currentCategory);
+      if (!p) return;
+      // Si le produit a une config (taille, suppléments, boisson...) → ouvrir la modale d'options
+      if (productHasOptions(p)) {
+        openProductOptionsModal(p);
+      } else {
+        addToCart(p.id, p.name, p.price, p.photo, currentCategory, null);
+      }
     });
   });
+}
+
+function productHasOptions(p) {
+  const c = p.config;
+  if (!c || typeof c !== 'object') return false;
+  return (Array.isArray(c.bread) && c.bread.length) ||
+         (Array.isArray(c.base) && c.base.length) ||
+         (Array.isArray(c.menu) && c.menu.length) ||
+         (Array.isArray(c.meat) && c.meat.length) ||
+         (Array.isArray(c.meats) && c.meats.length) ||
+         (Array.isArray(c.kidsMenu) && c.kidsMenu.length) ||
+         (Array.isArray(c.meatIfPanini) && c.meatIfPanini.length) ||
+         (Array.isArray(c.accompagnements) && c.accompagnements.length && p.accompCount) ||
+         (Array.isArray(c.sauces) && c.sauces.length) ||
+         (Array.isArray(c.extras) && c.extras.length) ||
+         (Array.isArray(c.removable) && c.removable.length) ||
+         (Array.isArray(c.drinks) && c.drinks.length) ||
+         c.cheeseSauce === true ||
+         c.comment === true;
 }
 
 function getEmojiFor(p) {
@@ -547,16 +682,558 @@ function getEmojiFor(p) {
   if (n.includes('tacos')) return '🌮';
   if (n.includes('bowl')) return '🍱';
   if (n.includes('poulet') || n.includes('chicken')) return '🍗';
+  if (n.includes('zap')) return '🌯';
+  if (n.includes('gratin')) return '🧀';
+  if (n.includes('enfant') || n.includes('kids')) return '👦';
   return '🍽';
 }
 
-function addToCart(id, name, price, photo, category) {
-  const existing = cart.find(i => i.id === id);
-  if (existing) existing.qty++;
-  else cart.push({ id, name, price, qty: 1, photo, category });
+// Emoji adapté pour les options (viande, sauce, boisson, taille...)
+function _optEmoji(label, category) {
+  if (!label) return '';
+  const l = String(label).toLowerCase();
+  // BOISSONS
+  if (category === 'drinks' || category === 'drink') {
+    if (/coca|cola/i.test(l)) return '🥤';
+    if (/eau (gaz|petillante|sparkling)|gazeuse|perrier|badoit/i.test(l)) return '💧';
+    if (/eau|plate/i.test(l)) return '💧';
+    if (/sprite|7up/i.test(l)) return '🍋';
+    if (/fanta|orangina|orange/i.test(l)) return '🍊';
+    if (/oasis|tropical|fruit/i.test(l)) return '🥭';
+    if (/ice tea|peche/i.test(l)) return '🧊';
+    if (/jus/i.test(l)) return '🧃';
+    if (/lait|milk/i.test(l)) return '🥛';
+    if (/bière|biere/i.test(l)) return '🍺';
+    if (/cafe|café/i.test(l)) return '☕';
+    if (/the|thé/i.test(l)) return '🍵';
+    return '🥤';
+  }
+  // TAILLES (pizzas)
+  if (category === 'bread' && /\d+\s*cm|junior|s[ée]nior|m[ée]ga/i.test(l)) {
+    if (/junior/i.test(l)) return '🟢';
+    if (/sénior|senior/i.test(l)) return '🟡';
+    if (/méga|mega/i.test(l)) return '🔴';
+    return '📏';
+  }
+  // PAINS
+  if (category === 'bread') {
+    if (/classique|nature/i.test(l)) return '🥖';
+    if (/tortilla|wrap/i.test(l)) return '🌯';
+    if (/naan/i.test(l)) return '🫓';
+    if (/brioch|burger/i.test(l)) return '🍔';
+    if (/sesame|sésame/i.test(l)) return '🥯';
+    if (/complet|cereales|céréales/i.test(l)) return '🌾';
+    return '🥖';
+  }
+  // VIANDES
+  if (category === 'meat' || category === 'meats') {
+    if (/poulet|chicken/i.test(l)) return '🍗';
+    if (/dinde|turkey/i.test(l)) return '🦃';
+    if (/boeuf|bœuf|steak|hach/i.test(l)) return '🥩';
+    if (/jambon|ham/i.test(l)) return '🥓';
+    if (/saumon|poisson|thon/i.test(l)) return '🐟';
+    if (/merguez/i.test(l)) return '🌶️';
+    if (/kebab|kefta|grec/i.test(l)) return '🥙';
+    if (/escalope|cordon|nuggets|tenders/i.test(l)) return '🍗';
+    if (/végé|vege|veggie/i.test(l)) return '🥬';
+    return '🥩';
+  }
+  // SAUCES
+  if (category === 'sauces' || category === 'sauce') {
+    if (/ketchup/i.test(l)) return '🍅';
+    if (/mayo/i.test(l)) return '🥚';
+    if (/moutarde|mustard/i.test(l)) return '🟡';
+    if (/algerienne|algérienne|harissa/i.test(l)) return '🌶️';
+    if (/bbq|barbecue|fumée/i.test(l)) return '🔥';
+    if (/bigburger|burger/i.test(l)) return '🍔';
+    if (/samoura[ïi]|piment/i.test(l)) return '🌶️';
+    if (/blanche|fromag|cheese/i.test(l)) return '🧀';
+    if (/curry/i.test(l)) return '🍛';
+    if (/poivre|pepper/i.test(l)) return '⚫';
+    if (/herbes|herb|verte|provence/i.test(l)) return '🌿';
+    if (/citron|lemon/i.test(l)) return '🍋';
+    if (/tomate/i.test(l)) return '🍅';
+    return '🥄';
+  }
+  // BASE PIZZA
+  if (category === 'base') {
+    if (/tomate/i.test(l)) return '🍅';
+    if (/crème|creme|cream/i.test(l)) return '🥛';
+    return '🍕';
+  }
+  // MENU
+  if (category === 'menu') {
+    if (/avec|with|oui/i.test(l)) return '✅';
+    if (/sans|without|non/i.test(l)) return '🚫';
+    return '📋';
+  }
+  // MENU ENFANT (kidsMenu)
+  if (category === 'kidsMenu') {
+    if (/burger|cheese/i.test(l)) return '🍔';
+    if (/nuggets/i.test(l)) return '🍗';
+    if (/panini/i.test(l)) return '🥖';
+    return '👦';
+  }
+  // ACCOMPAGNEMENTS
+  if (category === 'accompagnements' || category === 'side') {
+    if (/frites|fries/i.test(l)) return '🍟';
+    if (/potatoes/i.test(l)) return '🥔';
+    if (/maïs|mais|corn|épi/i.test(l)) return '🌽';
+    if (/riz|rice/i.test(l)) return '🍚';
+    if (/purée|puree/i.test(l)) return '🥣';
+    if (/salade/i.test(l)) return '🥗';
+    if (/banane|plantain/i.test(l)) return '🍌';
+    return '🍽️';
+  }
+  // EXTRAS / SUPPLEMENTS
+  if (category === 'extras') {
+    if (/fromage|cheese|cheddar|mozza/i.test(l)) return '🧀';
+    if (/bacon|lard/i.test(l)) return '🥓';
+    if (/œuf|oeuf|egg/i.test(l)) return '🍳';
+    if (/champignon|mushroom/i.test(l)) return '🍄';
+    if (/oignon|onion/i.test(l)) return '🧅';
+    if (/tomate/i.test(l)) return '🍅';
+    if (/piment/i.test(l)) return '🌶️';
+    if (/avocat|avocado/i.test(l)) return '🥑';
+    if (/raclette/i.test(l)) return '🧀';
+    if (/chèvre|chevre/i.test(l)) return '🐐';
+    if (/miel|honey/i.test(l)) return '🍯';
+    return '➕';
+  }
+  return '';
+}
+
+function addToCart(id, name, price, photo, category, options) {
+  if (options && hasAnyOptionSelected(options)) {
+    cart.push({ id, name, price, qty: 1, photo, category, options });
+  } else {
+    const existing = cart.find(i => i.id === id && !i.options);
+    if (existing) existing.qty++;
+    else cart.push({ id, name, price, qty: 1, photo, category });
+  }
   saveCart();
   updateCartUI();
   toast(`✓ ${name} ajouté`);
+}
+
+function hasAnyOptionSelected(o) {
+  if (!o || typeof o !== 'object') return false;
+  return o.bread || o.base || o.menu || o.meat || o.kidsMenu || o.meatIfPanini ||
+         (Array.isArray(o.meats) && o.meats.length) ||
+         (Array.isArray(o.accompagnements) && o.accompagnements.length) ||
+         (Array.isArray(o.sauces) && o.sauces.length) ||
+         (Array.isArray(o.extras) && o.extras.length) ||
+         (Array.isArray(o.removed) && o.removed.length) ||
+         o.drink || o.cheeseSauce !== undefined || o.comment;
+}
+
+// ═══ MODALE OPTIONS PRODUIT ═══
+let _currentProduct = null;
+let _currentOptions = null;
+
+function _emptyOptions() {
+  return {
+    bread: null,         // taille pizza ou pain sandwich, ou marinade brochette
+    base: null,          // base pizza (sauce tomate / crème fraîche)
+    menu: null,          // panini : avec/sans menu
+    meat: null,          // viande unique (panini, zap'wich)
+    meats: [],           // viandes multiples (tacos 2/3v, bowls)
+    accompagnements: [], // accompagnements (poulet, brochettes)
+    cheeseSauce: null,   // tacos/bowls : avec/sans sauce fromagère
+    kidsMenu: null,      // menu enfant : choix du plat
+    meatIfPanini: null,  // menu enfant : viande si panini choisi
+    sauces: [],
+    extras: [],
+    removed: [],
+    drink: null,
+    comment: ''
+  };
+}
+
+function openProductOptionsModal(p) {
+  _currentProduct = p;
+  _currentOptions = _emptyOptions();
+  const c = p.config || {};
+  // Pré-sélections par défaut
+  if (Array.isArray(c.bread) && c.bread.length) _currentOptions.bread = c.bread[0];
+  if (Array.isArray(c.base) && c.base.length) _currentOptions.base = c.base[0];
+  if (Array.isArray(c.menu) && c.menu.length) _currentOptions.menu = c.menu[0];
+  if (Array.isArray(c.drinks) && c.drinks.length) {
+    const d = c.drinks[0];
+    _currentOptions.drink = typeof d === 'string' ? { label: d, price: 0 } : d;
+  }
+  if (c.cheeseSauce === true) _currentOptions.cheeseSauce = false; // par défaut "sans"
+  renderProductOptionsModal();
+  $('modalOverlay').classList.add('show');
+}
+
+// Helper : un bloc <radio> à choix unique
+function _renderRadioBlock(title, items, currentVal, dataKey, getLabelPrice, emojiCategory) {
+  const sectionAttr = emojiCategory ? ` data-section="${emojiCategory}"` : '';
+  let html = `<div class="opt-section"${sectionAttr}><div class="opt-section-title">${title}</div><div class="opt-list">`;
+  items.forEach((it, i) => {
+    const { label, price } = getLabelPrice(it);
+    const checked = currentVal && currentVal.label === label;
+    const emoji = emojiCategory ? _optEmoji(label, emojiCategory) : '';
+    const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+    const priceTxt = price > 0 ? `<span class="opt-price">+${fmt(price)}</span>` : '';
+    html += `<label class="opt-radio ${checked ? 'active' : ''}">
+      <input type="radio" name="${dataKey}" data-key="${dataKey}" data-idx="${i}" ${checked ? 'checked' : ''}>
+      ${emojiHtml}
+      <span class="opt-radio-label">${escapeHtml(label)}</span>${priceTxt}
+    </label>`;
+  });
+  html += `</div></div>`;
+  return html;
+}
+
+function renderProductOptionsModal() {
+  const p = _currentProduct;
+  if (!p) return;
+  const c = p.config || {};
+  const opts = _currentOptions;
+
+  let html = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="modal-title" style="margin-bottom:0">${escapeHtml(p.name)}</div>
+    <button id="optModalClose" style="background:transparent;border:none;color:var(--cream-dim);font-size:18px;cursor:pointer;padding:4px 8px;font-family:inherit">✕</button>
+  </div>`;
+  if (p.desc || p.description) {
+    html += `<div class="modal-sub">${escapeHtml(p.desc || p.description)}</div>`;
+  }
+
+  // 1) Pizzas : Taille (bread) + Base
+  if (Array.isArray(c.bread) && c.bread.length) {
+    const isPizza = (p.category && p.category.toLowerCase().includes('pizza')) || /junior|sénior|méga/i.test(JSON.stringify(c.bread));
+    const sectionTitle = isPizza ? 'Taille' : 'Pain';
+    html += _renderRadioBlock(sectionTitle, c.bread, opts.bread, 'opt-bread',
+      it => ({ label: it.label, price: it.price || 0 }), 'bread');
+  }
+  if (Array.isArray(c.base) && c.base.length) {
+    html += _renderRadioBlock('Base', c.base, opts.base, 'opt-base',
+      it => ({ label: it.label, price: it.price || 0 }), 'base');
+  }
+
+  // 2) Panini : choix Menu (oui/non)
+  if (Array.isArray(c.menu) && c.menu.length) {
+    html += _renderRadioBlock('Menu', c.menu, opts.menu, 'opt-menu',
+      it => ({ label: it.label, price: it.price || 0 }), 'menu');
+  }
+
+  // 3) Choix de viande — UNIQUE (panini, zap'wich)
+  if (Array.isArray(c.meat) && c.meat.length) {
+    html += _renderRadioBlock('Choix de la viande', c.meat, opts.meat, 'opt-meat',
+      it => ({ label: it.label, price: it.price || 0 }), 'meat');
+  }
+
+  // 4) Choix viandes MULTIPLES (tacos / bowls 2v / 3v)
+  if (Array.isArray(c.meats) && c.meats.length && c.meatCount) {
+    const n = c.meatCount;
+    const remaining = n - opts.meats.length;
+    html += `<div class="opt-section">
+      <div class="opt-section-title">Choix des viandes (${opts.meats.length}/${n})</div>`;
+    if (remaining > 0) {
+      html += `<div style="font-size:11px;color:var(--cream-dim);margin-bottom:6px">Sélectionnez ${remaining} viande${remaining > 1 ? 's' : ''}</div>`;
+    }
+  // 4 bis) Tacos / Bowls : sauce fromagère (oui/non)
+  // (note: dépendance de la section précédente conservée)
+
+    html += `<div class="opt-list">`;
+    c.meats.forEach((m, i) => {
+      const label = typeof m === 'string' ? m : m.label;
+      const checked = opts.meats.some(x => x.label === label);
+      // Disable si pas checké et déjà n viandes sélectionnées
+      const disabled = !checked && opts.meats.length >= n;
+      const emoji = _optEmoji(label, 'meat');
+      const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+      html += `<label class="opt-check ${checked ? 'active' : ''}" ${disabled ? 'style="opacity:0.4;pointer-events:none"' : ''}>
+        <input type="checkbox" data-type="meats" data-idx="${i}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+        ${emojiHtml}
+        <span class="opt-radio-label">${escapeHtml(label)}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 5) Tacos / Bowls : sauce fromagère (oui/non)
+  if (c.cheeseSauce === true) {
+    html += `<div class="opt-section"><div class="opt-section-title">Sauce fromagère</div><div class="opt-list">`;
+    [['Avec', true, '🧀'], ['Sans', false, '🚫']].forEach(([lbl, val, em]) => {
+      const checked = opts.cheeseSauce === val;
+      html += `<label class="opt-radio ${checked ? 'active' : ''}">
+        <input type="radio" name="opt-cheesesauce" data-val="${val}" ${checked ? 'checked' : ''}>
+        <span class="opt-emoji">${em}</span>
+        <span class="opt-radio-label">${lbl} sauce</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 5bis) Accompagnements (poulet braisé, brochettes) — multi-choix limité par accompCount
+  if (Array.isArray(c.accompagnements) && c.accompagnements.length && p.accompCount) {
+    const n = p.accompCount;
+    const remaining = n - opts.accompagnements.length;
+    html += `<div class="opt-section">
+      <div class="opt-section-title">Accompagnements (${opts.accompagnements.length}/${n})</div>`;
+    if (remaining > 0) {
+      html += `<div style="font-size:11px;color:var(--cream-dim);margin-bottom:6px">Sélectionnez ${remaining} accompagnement${remaining > 1 ? 's' : ''}</div>`;
+    }
+    html += `<div class="opt-list">`;
+    c.accompagnements.forEach((a, i) => {
+      const label = a.label;
+      const checked = opts.accompagnements.some(x => x.label === label);
+      const disabled = !checked && opts.accompagnements.length >= n;
+      const emoji = _optEmoji(label, 'accompagnements');
+      const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+      html += `<label class="opt-check ${checked ? 'active' : ''}" ${disabled ? 'style="opacity:0.4;pointer-events:none"' : ''}>
+        <input type="checkbox" data-type="accomp" data-idx="${i}" ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+        ${emojiHtml}
+        <span class="opt-radio-label">${escapeHtml(label)}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 6) Menu Enfant : choix du plat
+  if (Array.isArray(c.kidsMenu) && c.kidsMenu.length) {
+    html += _renderRadioBlock('Choix du menu', c.kidsMenu, opts.kidsMenu, 'opt-kidsmenu',
+      it => ({ label: it.label, price: it.price || 0 }), 'kidsMenu');
+    // Si "Panini" est choisi, afficher le sous-choix de viande
+    if (opts.kidsMenu && opts.kidsMenu.label === 'Panini' && Array.isArray(c.meatIfPanini)) {
+      html += _renderRadioBlock('Choix de la viande (panini)', c.meatIfPanini, opts.meatIfPanini, 'opt-meatpanini',
+        it => ({ label: it.label, price: it.price || 0 }), 'meat');
+    }
+  }
+
+  // 7) Sauces (multi-choix)
+  if (Array.isArray(c.sauces) && c.sauces.length) {
+    html += `<div class="opt-section" data-section="sauces"><div class="opt-section-title">Sauce</div><div class="opt-list">`;
+    c.sauces.forEach((s, i) => {
+      const label = typeof s === 'string' ? s : s.label;
+      const price = typeof s === 'object' && s.price ? s.price : 0;
+      const checked = opts.sauces.some(x => x.label === label);
+      const priceTxt = price > 0 ? `<span class="opt-price">+${fmt(price)}</span>` : '';
+      const emoji = _optEmoji(label, 'sauces');
+      const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+      html += `<label class="opt-check ${checked ? 'active' : ''}">
+        <input type="checkbox" data-type="sauce" data-idx="${i}" ${checked ? 'checked' : ''}>
+        ${emojiHtml}
+        <span class="opt-radio-label">${escapeHtml(label)}</span>${priceTxt}
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 8) Suppléments (multi-choix avec prix)
+  if (Array.isArray(c.extras) && c.extras.length) {
+    html += `<div class="opt-section" data-section="extras"><div class="opt-section-title">Suppléments</div><div class="opt-list">`;
+    c.extras.forEach((e, i) => {
+      const label = e.label || e;
+      const price = e.price || 0;
+      const checked = opts.extras.some(x => x.label === label);
+      const priceTxt = price !== 0 ? `<span class="opt-price">${price > 0 ? '+' : ''}${fmt(price)}</span>` : '';
+      const emoji = _optEmoji(label, 'extras');
+      const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+      html += `<label class="opt-check ${checked ? 'active' : ''}">
+        <input type="checkbox" data-type="extra" data-idx="${i}" ${checked ? 'checked' : ''}>
+        ${emojiHtml}
+        <span class="opt-radio-label">${escapeHtml(label)}</span>${priceTxt}
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 9) À retirer
+  if (Array.isArray(c.removable) && c.removable.length) {
+    html += `<div class="opt-section" data-section="removable"><div class="opt-section-title">Ingrédients à retirer</div><div class="opt-list">`;
+    c.removable.forEach((r, i) => {
+      const label = typeof r === 'string' ? r : r.label;
+      const checked = opts.removed.includes(label);
+      html += `<label class="opt-check opt-remove ${checked ? 'active' : ''}">
+        <input type="checkbox" data-type="removed" data-idx="${i}" ${checked ? 'checked' : ''}>
+        <span class="opt-emoji">🚫</span>
+        <span class="opt-radio-label">Sans ${escapeHtml(label)}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 10) Boisson (radio)
+  if (Array.isArray(c.drinks) && c.drinks.length) {
+    html += `<div class="opt-section" data-section="drinks"><div class="opt-section-title">Boisson</div><div class="opt-list">`;
+    c.drinks.forEach((d, i) => {
+      const label = typeof d === 'string' ? d : d.label;
+      const checked = opts.drink && opts.drink.label === label;
+      const emoji = _optEmoji(label, 'drinks');
+      const emojiHtml = emoji ? `<span class="opt-emoji">${emoji}</span>` : '';
+      html += `<label class="opt-radio ${checked ? 'active' : ''}">
+        <input type="radio" name="opt-drink" data-idx="${i}" ${checked ? 'checked' : ''}>
+        ${emojiHtml}
+        <span class="opt-radio-label">${escapeHtml(label)}</span>
+      </label>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // 11) Note
+  if (c.comment) {
+    html += `<div class="opt-section">
+      <div class="opt-section-title">Note (optionnel)</div>
+      <input type="text" id="optComment" class="order-form-input" placeholder="Ex : pas trop cuit..." value="${escapeHtml(opts.comment || '')}">
+    </div>`;
+  }
+
+  // Bouton ajouter au panier avec total
+  const totalPrice = computeOptionTotal(p, opts);
+  html += `<button class="btn-primary" id="optAddBtn" style="width:100%;margin-top:14px;font-size:15px;padding:14px">
+    Ajouter au panier · ${fmt(totalPrice)}
+  </button>`;
+
+  $('modalContent').innerHTML = html;
+  _attachOptionListeners();
+}
+
+function _attachOptionListeners() {
+  const c = _currentProduct.config || {};
+  $('optModalClose').addEventListener('click', closeModal);
+  $('optAddBtn').addEventListener('click', confirmAddProductWithOptions);
+
+  // Radios génériques (bread, base, menu, meat, kidsmenu, meatpanini)
+  const radioMap = {
+    'opt-bread': ['bread', c.bread],
+    'opt-base': ['base', c.base],
+    'opt-menu': ['menu', c.menu],
+    'opt-meat': ['meat', c.meat],
+    'opt-kidsmenu': ['kidsMenu', c.kidsMenu],
+    'opt-meatpanini': ['meatIfPanini', c.meatIfPanini]
+  };
+  for (const [name, [key, list]] of Object.entries(radioMap)) {
+    if (!list) continue;
+    document.querySelectorAll(`input[name="${name}"]`).forEach(input => {
+      input.addEventListener('change', (e) => {
+        const idx = parseInt(e.target.dataset.idx);
+        _currentOptions[key] = list[idx];
+        // Si on change le menu enfant, reset le sous-choix viande
+        if (key === 'kidsMenu') _currentOptions.meatIfPanini = null;
+        renderProductOptionsModal();
+      });
+    });
+  }
+
+  // Sauce fromagère (oui/non)
+  document.querySelectorAll('input[name="opt-cheesesauce"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      _currentOptions.cheeseSauce = e.target.dataset.val === 'true';
+      renderProductOptionsModal();
+    });
+  });
+
+  // Drink (radio)
+  document.querySelectorAll('input[name="opt-drink"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      const d = c.drinks[idx];
+      _currentOptions.drink = typeof d === 'string' ? { label: d, price: 0 } : d;
+      renderProductOptionsModal();
+    });
+  });
+
+  // Checkboxes (sauces, extras, removed, meats)
+  document.querySelectorAll('input[type="checkbox"]').forEach(input => {
+    input.addEventListener('change', (e) => {
+      const type = e.target.dataset.type;
+      const idx = parseInt(e.target.dataset.idx);
+      if (type === 'sauce') {
+        const s = c.sauces[idx];
+        const label = typeof s === 'string' ? s : s.label;
+        const price = typeof s === 'object' && s.price ? s.price : 0;
+        if (e.target.checked) _currentOptions.sauces.push({ label, price });
+        else _currentOptions.sauces = _currentOptions.sauces.filter(x => x.label !== label);
+      } else if (type === 'extra') {
+        const ex = c.extras[idx];
+        if (e.target.checked) _currentOptions.extras.push({ label: ex.label, price: ex.price || 0 });
+        else _currentOptions.extras = _currentOptions.extras.filter(x => x.label !== ex.label);
+      } else if (type === 'removed') {
+        const r = c.removable[idx];
+        const label = typeof r === 'string' ? r : r.label;
+        if (e.target.checked) _currentOptions.removed.push(label);
+        else _currentOptions.removed = _currentOptions.removed.filter(x => x !== label);
+      } else if (type === 'meats') {
+        const m = c.meats[idx];
+        const label = typeof m === 'string' ? m : m.label;
+        if (e.target.checked) {
+          if (_currentOptions.meats.length < c.meatCount) {
+            _currentOptions.meats.push({ label });
+          }
+        } else {
+          _currentOptions.meats = _currentOptions.meats.filter(x => x.label !== label);
+        }
+      } else if (type === 'accomp') {
+        const a = c.accompagnements[idx];
+        const label = a.label;
+        if (e.target.checked) {
+          if (_currentOptions.accompagnements.length < (_currentProduct.accompCount || 99)) {
+            _currentOptions.accompagnements.push({ label });
+          }
+        } else {
+          _currentOptions.accompagnements = _currentOptions.accompagnements.filter(x => x.label !== label);
+        }
+      }
+      renderProductOptionsModal();
+    });
+  });
+
+  // Comment
+  const cmtInput = $('optComment');
+  if (cmtInput) {
+    cmtInput.addEventListener('input', (e) => {
+      _currentOptions.comment = e.target.value.slice(0, 200);
+    });
+  }
+}
+
+function computeOptionTotal(p, opts) {
+  let total = p.price;
+  if (opts.bread && opts.bread.price) total += opts.bread.price;
+  if (opts.base && opts.base.price) total += opts.base.price;
+  if (opts.menu && opts.menu.price) total += opts.menu.price;
+  if (opts.meat && opts.meat.price) total += opts.meat.price;
+  if (opts.kidsMenu && opts.kidsMenu.price) total += opts.kidsMenu.price;
+  if (Array.isArray(opts.sauces)) opts.sauces.forEach(s => { total += s.price || 0; });
+  if (Array.isArray(opts.extras)) opts.extras.forEach(e => { total += e.price || 0; });
+  if (opts.drink && opts.drink.price) total += opts.drink.price;
+  return total;
+}
+
+function confirmAddProductWithOptions() {
+  const p = _currentProduct;
+  if (!p) return;
+  const opts = _currentOptions;
+  const c = p.config || {};
+
+  // Validation : nb de viandes correct ?
+  if (c.meatCount && Array.isArray(c.meats) && opts.meats.length !== c.meatCount) {
+    toast(`Choisissez ${c.meatCount} viande${c.meatCount > 1 ? 's' : ''}`);
+    return;
+  }
+  // Validation : nb d'accompagnements correct ?
+  if (p.accompCount && Array.isArray(c.accompagnements) && opts.accompagnements.length !== p.accompCount) {
+    toast(`Choisissez ${p.accompCount} accompagnement${p.accompCount > 1 ? 's' : ''}`);
+    return;
+  }
+  // Validation : si menu enfant + Panini choisi, viande requise
+  if (Array.isArray(c.kidsMenu) && opts.kidsMenu && opts.kidsMenu.label === 'Panini' && !opts.meatIfPanini) {
+    toast('Choisissez la viande du panini');
+    return;
+  }
+
+  const totalPrice = computeOptionTotal(p, opts);
+  let displayName = p.name;
+  if (opts.bread && opts.bread.label) displayName += ` · ${opts.bread.label}`;
+  if (opts.kidsMenu && opts.kidsMenu.label) displayName += ` · ${opts.kidsMenu.label}`;
+  if (opts.meat && opts.meat.label) displayName += ` · ${opts.meat.label}`;
+
+  addToCart(p.id, displayName, totalPrice, p.photo, currentCategory, opts);
+  closeModal();
 }
 
 function changeQty(id, delta) {
@@ -627,7 +1304,7 @@ function renderCartModal() {
   const modeLabels = { emporter: '🛍 À emporter', livraison: '🚗 Livraison', sur_place: '🪑 Sur place' };
   const userInfo = currentInfo || {};
   // Pré-remplissage: priorité aux infos serveur, sinon localStorage
-  const extra = JSON.parse(localStorage.getItem('le832_profile_extra') || '{}');
+  const extra = safeJsonParse(localStorage.getItem('le832_profile_extra'), {});
   const firstName = userInfo.firstName || '';
   const lastName = userInfo.lastName || '';
   const phone = currentPhone || userInfo.phone || '';
@@ -679,7 +1356,11 @@ function renderCartModal() {
     <div class="modal-sub">${modeLabels[currentOrderMode]}</div>
     <div class="cart-items" id="cartItemsContainer">
       ${cart.map((i, idx) => `<div class="cart-item">
-        <div class="cart-item-info"><div class="cart-item-name">${escapeHtml(i.name)}</div><div class="cart-item-price">${fmt(i.price)}</div></div>
+        <div class="cart-item-info">
+          <div class="cart-item-name">${escapeHtml(i.name)}</div>
+          ${formatItemOptions(i.options)}
+          <div class="cart-item-price">${fmt(i.price)}</div>
+        </div>
         <div class="cart-item-controls">
           <button class="qty-btn" data-cid="${idx}" data-act="dec">−</button>
           <span class="qty-num">${i.qty}</span>
@@ -810,7 +1491,13 @@ async function sendOrder() {
       },
       type: currentOrderMode,
       table: table,
-      items: cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty })),
+      items: cart.map(i => ({
+        id: i.id,
+        name: i.name,
+        price: i.price,
+        qty: i.qty,
+        options: i.options || null  // Options choisies (taille, sauces, suppléments, sans..., boisson, commentaire)
+      })),
       slot: selectedSlot,
       note: note,
       total: cart.reduce((s, i) => s + i.qty * i.price, 0)
@@ -1127,17 +1814,94 @@ function formatOrderType(o) {
 function startTrackingPolling() {
   stopTrackingPolling();
   loadMyOrders();
-  // Refresh toutes les 20 sec quand on est sur la page de suivi
+  // Connexion SSE pour MAJ instantanée (en plus du polling de secours)
+  startSse();
+  // Polling de secours toutes les 30 sec (au cas où SSE déconnecté)
   _trackingTimer = setInterval(() => {
     if (document.querySelector('#page-tracking.active')) {
       loadMyOrders();
     }
-  }, 20000);
+  }, 30000);
 }
 
 function stopTrackingPolling() {
   if (_trackingTimer) { clearInterval(_trackingTimer); _trackingTimer = null; }
+  stopSse();
 }
+
+// ═══ Server-Sent Events (SSE) — temps réel pour le suivi ═══
+let _sse = null;
+let _sseRetryTimer = null;
+function startSse() {
+  stopSse();
+  if (!currentPhone) return;
+  if (!('EventSource' in window)) {
+    console.warn('EventSource non supporté, fallback polling');
+    return;
+  }
+  try {
+    const url = `${API_BASE}/api/events?phone=${encodeURIComponent(currentPhone)}`;
+    _sse = new EventSource(url);
+
+    // Snapshot initial : MAJ globale
+    _sse.addEventListener('snapshot', () => {
+      loadMyOrders();
+    });
+
+    // Mise à jour d'une commande : MAJ instantanée
+    _sse.addEventListener('order_update', (ev) => {
+      try {
+        const data = JSON.parse(ev.data || '{}');
+        // Recharge en silence pour avoir les détails frais
+        loadMyOrders();
+        // Petit "ping" visuel : flash du badge
+        flashTrackingBadge();
+      } catch (e) {}
+    });
+
+    _sse.onerror = () => {
+      // Reconnexion automatique avec backoff léger
+      if (_sse) { try { _sse.close(); } catch (e) {} _sse = null; }
+      if (_sseRetryTimer) clearTimeout(_sseRetryTimer);
+      _sseRetryTimer = setTimeout(() => {
+        if (currentPhone && document.visibilityState === 'visible') startSse();
+      }, 5000);
+    };
+  } catch (e) {
+    console.warn('SSE échec:', e);
+  }
+}
+
+function stopSse() {
+  if (_sse) { try { _sse.close(); } catch (e) {} _sse = null; }
+  if (_sseRetryTimer) { clearTimeout(_sseRetryTimer); _sseRetryTimer = null; }
+}
+
+// Petit flash visuel sur le badge de suivi quand une nouvelle update arrive
+function flashTrackingBadge() {
+  try {
+    const badge = $('trackingBadge');
+    if (!badge) return;
+    badge.style.transition = 'none';
+    badge.style.background = 'var(--green, #5a9b3f)';
+    badge.style.transform = 'scale(1.3)';
+    setTimeout(() => {
+      badge.style.transition = 'all 0.6s';
+      badge.style.background = '';
+      badge.style.transform = '';
+    }, 100);
+  } catch (e) {}
+}
+
+// Reconnexion SSE quand on revient sur l'onglet
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && currentPhone) {
+    if (!_sse) startSse();
+    loadMyOrders();
+  } else if (document.visibilityState === 'hidden') {
+    stopSse();
+  }
+});
 
 async function init() {
   if ('serviceWorker' in navigator) {
@@ -1164,7 +1928,7 @@ async function init() {
     if (banner) banner.style.display = 'none';
   }
   try {
-    const saved = JSON.parse(localStorage.getItem('le832_cart') || '[]');
+    const saved = safeJsonParse(localStorage.getItem('le832_cart'), []);
     if (Array.isArray(saved)) cart = saved;
     updateCartUI();
   } catch (e) {}
@@ -1267,7 +2031,7 @@ function updateAccountUI() {
   $('profileFirstName').value = currentInfo.firstName || '';
   $('profileLastName').value = currentInfo.lastName || '';
   $('profilePhone').textContent = currentInfo.phone || currentPhone;
-  const extra = JSON.parse(localStorage.getItem('le832_profile_extra') || '{}');
+  const extra = safeJsonParse(localStorage.getItem('le832_profile_extra'), {});
   $('profileEmail').value = extra.email || currentInfo.email || '';
   $('profileBirthday').value = extra.birthday || currentInfo.birthday || '';
   $('profileAddress').value = currentInfo.address || extra.address || '';
@@ -1398,7 +2162,7 @@ function urlBase64ToUint8Array(base64String) {
 }
 
 function renderStoredPromos() {
-  const promos = JSON.parse(localStorage.getItem('le832_promos') || '[]');
+  const promos = safeJsonParse(localStorage.getItem('le832_promos'), []);
   if (promos.length === 0) { $('promosSection').style.display = 'none'; return; }
   $('promosSection').style.display = 'block';
   $('promosList').innerHTML = promos.slice(0, 10).map(p => `<div class="promo-item">
@@ -1412,7 +2176,7 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (ev) => {
     if (ev.data && ev.data.type === 'PROMO_RECEIVED') {
       const promo = ev.data.promo;
-      const promos = JSON.parse(localStorage.getItem('le832_promos') || '[]');
+      const promos = safeJsonParse(localStorage.getItem('le832_promos'), []);
       promos.unshift({ ...promo, receivedAt: Date.now() });
       localStorage.setItem('le832_promos', JSON.stringify(promos.slice(0, 30)));
       renderStoredPromos();
