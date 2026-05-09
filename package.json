@@ -1,0 +1,16 @@
+{
+  "name": "le832food-server",
+  "version": "1.0.0",
+  "description": "Serveur LE 832 FOOD — caisse, borne, PWA, push notifications",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "web-push": "^3.6.7"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
