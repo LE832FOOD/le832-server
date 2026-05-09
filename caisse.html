@@ -13119,6 +13119,17 @@
         </div>
 
         <div class="settings-section">
+          <div class="settings-title">⏰ Horaires d'ouverture</div>
+          <div class="settings-desc">Configure les horaires de ton restaurant pour chaque jour. Pour un service continu (sans pause), laisse vide la 2ème plage. Pour un horaire qui passe minuit (ex. 18h-1h), met simplement 01:00 en heure de fin.</div>
+          <div id="openHoursContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:14px"></div>
+          <div class="settings-row" style="margin-top:14px">
+            <button class="btn" onclick="saveOpenHours()" style="background:var(--green);border-color:var(--green);color:#fff;font-weight:600">💾 Enregistrer les horaires</button>
+            <button class="btn" onclick="resetOpenHoursDefault()" style="margin-left:8px">↺ Réinitialiser</button>
+          </div>
+          <div id="openHoursStatus" style="margin-top:14px;padding:10px;border-radius:6px;font-size:12px"></div>
+        </div>
+
+        <div class="settings-section">
           <div class="settings-title">Happy Hour</div>
           <div class="settings-desc">Réduction automatique sur les catégories sélectionnées pendant les plages horaires définies.</div>
           <div class="settings-row">
@@ -22788,11 +22799,221 @@ function renderHHForm() {
   });
 }
 
-function hhToggleEnabled() {
-  state.happyHour.enabled = !state.happyHour.enabled;
-  const t = document.getElementById('hhToggle');
-  if (t) t.classList.toggle('on', state.happyHour.enabled);
+// ═══ HORAIRES D'OUVERTURE ═══════════════════════════════════════════
+// state.config.openHours = {
+//   monday:    { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '22:30' } },
+//   tuesday:   { open: true,  service1: {...}, service2: {...} },
+//   ...
+//   sunday:    { open: false, service1: null, service2: null }
+// }
+// Si service2.end < service2.start (ex. start=18:00 end=01:00), on considère
+// que l'horaire passe minuit et est valide jusqu'à 1h du matin du lendemain.
+
+const _DAYS = [
+  { key: 'monday',    label: 'Lundi' },
+  { key: 'tuesday',   label: 'Mardi' },
+  { key: 'wednesday', label: 'Mercredi' },
+  { key: 'thursday',  label: 'Jeudi' },
+  { key: 'friday',    label: 'Vendredi' },
+  { key: 'saturday',  label: 'Samedi' },
+  { key: 'sunday',    label: 'Dimanche' }
+];
+
+function _defaultOpenHours() {
+  return {
+    monday:    { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '22:30' } },
+    tuesday:   { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '22:30' } },
+    wednesday: { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '22:30' } },
+    thursday:  { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '22:30' } },
+    friday:    { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '01:00' } },
+    saturday:  { open: true,  service1: { start: '11:30', end: '14:30' }, service2: { start: '18:00', end: '01:00' } },
+    sunday:    { open: false, service1: null, service2: null }
+  };
 }
+
+// Récupère les horaires actuels (avec fallback sur les valeurs par défaut)
+function getOpenHours() {
+  if (!state.config) state.config = {};
+  if (!state.config.openHours) state.config.openHours = _defaultOpenHours();
+  return state.config.openHours;
+}
+
+// Affiche le formulaire des horaires dans paramètres
+function renderOpenHoursForm() {
+  const c = document.getElementById('openHoursContainer');
+  if (!c) return;
+  const hours = getOpenHours();
+  c.innerHTML = _DAYS.map(d => {
+    const h = hours[d.key] || { open: false };
+    const isOpen = !!h.open;
+    const s1 = h.service1 || { start: '', end: '' };
+    const s2 = h.service2 || { start: '', end: '' };
+    return `
+      <div class="oh-row" data-day="${d.key}" style="display:grid;grid-template-columns:90px auto 1fr 1fr;gap:10px;align-items:center;padding:8px;background:var(--surface-2);border-radius:6px;${isOpen ? '' : 'opacity:0.55'}">
+        <div style="font-weight:600;font-size:13px">${d.label}</div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--cream-dim)">
+          <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleDayOpen('${d.key}', this.checked)" style="cursor:pointer">
+          <span>${isOpen ? 'Ouvert' : 'Fermé'}</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px">
+          <span style="color:var(--cream-dim);min-width:40px">Midi :</span>
+          <input type="time" class="oh-input" value="${s1.start || ''}" data-svc="service1" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+          <span>→</span>
+          <input type="time" class="oh-input" value="${s1.end || ''}" data-svc="service1" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px">
+          <span style="color:var(--cream-dim);min-width:40px">Soir :</span>
+          <input type="time" class="oh-input" value="${s2.start || ''}" data-svc="service2" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+          <span>→</span>
+          <input type="time" class="oh-input" value="${s2.end || ''}" data-svc="service2" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+        </div>
+      </div>`;
+  }).join('');
+  refreshOpenHoursStatus();
+}
+
+function toggleDayOpen(dayKey, isOpen) {
+  const hours = getOpenHours();
+  if (!hours[dayKey]) hours[dayKey] = { open: false };
+  hours[dayKey].open = isOpen;
+  if (isOpen) {
+    if (!hours[dayKey].service1) hours[dayKey].service1 = { start: '11:30', end: '14:30' };
+    if (!hours[dayKey].service2) hours[dayKey].service2 = { start: '18:00', end: '22:30' };
+  } else {
+    hours[dayKey].service1 = null;
+    hours[dayKey].service2 = null;
+  }
+  renderOpenHoursForm();
+}
+
+function updateDayHour(dayKey, inputEl) {
+  const hours = getOpenHours();
+  const svc = inputEl.dataset.svc;     // 'service1' | 'service2'
+  const field = inputEl.dataset.field; // 'start' | 'end'
+  if (!hours[dayKey]) hours[dayKey] = { open: true };
+  if (!hours[dayKey][svc]) hours[dayKey][svc] = { start: '', end: '' };
+  hours[dayKey][svc][field] = inputEl.value;
+  // Si les deux champs d'un service sont vides, on supprime le service (continu)
+  const s = hours[dayKey][svc];
+  if (!s.start && !s.end) hours[dayKey][svc] = null;
+}
+
+function saveOpenHours() {
+  saveState();
+  toast('✓ Horaires enregistrés');
+  refreshOpenHoursStatus();
+}
+
+function resetOpenHoursDefault() {
+  if (!confirm('Réinitialiser les horaires aux valeurs par défaut ?')) return;
+  if (!state.config) state.config = {};
+  state.config.openHours = _defaultOpenHours();
+  saveState();
+  renderOpenHoursForm();
+  toast('Horaires réinitialisés');
+}
+
+// Vérifie si le restaurant est ouvert maintenant (utilisable partout)
+// Retourne { isOpen: bool, message: string, nextOpen: Date|null }
+function isRestaurantOpenNow() {
+  const hours = getOpenHours();
+  const now = new Date();
+  const day = now.getDay();   // 0=dimanche, 1=lundi...
+  const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const todayKey = dayKeys[day];
+  const today = hours[todayKey];
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Helper : convertit "HH:MM" en minutes
+  const toMin = s => {
+    if (!s || typeof s !== 'string') return null;
+    const m = s.match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    return parseInt(m[1]) * 60 + parseInt(m[2]);
+  };
+  // Vérifier si on est ouvert maintenant
+  function checkService(s) {
+    if (!s || !s.start || !s.end) return null;
+    const start = toMin(s.start);
+    const end = toMin(s.end);
+    if (start == null || end == null) return null;
+    if (end > start) {
+      // Service classique
+      if (nowMin >= start && nowMin < end) return { open: true, end };
+    } else if (end < start) {
+      // Service qui passe minuit (ex. 18h-1h)
+      if (nowMin >= start) return { open: true, end: end + 24 * 60 };  // ferme demain
+    }
+    return null;
+  }
+  // 1) Est-ce qu'on est dans un service aujourd'hui ?
+  if (today && today.open) {
+    const r1 = checkService(today.service1);
+    if (r1) return { isOpen: true, message: `Ouvert · ferme à ${_minToStr(r1.end)}` };
+    const r2 = checkService(today.service2);
+    if (r2) return { isOpen: true, message: `Ouvert · ferme à ${_minToStr(r2.end)}` };
+  }
+  // 2) Est-ce qu'on est dans la prolongation du service de la veille (passe minuit) ?
+  const yesterdayKey = dayKeys[(day + 6) % 7];
+  const yesterday = hours[yesterdayKey];
+  if (yesterday && yesterday.open) {
+    const yS2 = yesterday.service2;
+    if (yS2 && yS2.start && yS2.end) {
+      const start = toMin(yS2.start);
+      const end = toMin(yS2.end);
+      if (end != null && start != null && end < start) {
+        // Hier le service passe minuit → on regarde si on est avant la fin
+        if (nowMin < end) return { isOpen: true, message: `Ouvert · ferme à ${_minToStr(end)}` };
+      }
+    }
+  }
+  // 3) Pas ouvert : trouver la prochaine ouverture
+  let next = null;
+  for (let i = 0; i < 7; i++) {
+    const checkDay = (day + i) % 7;
+    const dayHrs = hours[dayKeys[checkDay]];
+    if (!dayHrs || !dayHrs.open) continue;
+    const services = [dayHrs.service1, dayHrs.service2].filter(Boolean);
+    for (const s of services) {
+      if (!s.start) continue;
+      const startMin = toMin(s.start);
+      if (i === 0 && startMin <= nowMin) continue;  // déjà passé aujourd'hui
+      next = { day: i, time: s.start, dayLabel: _DAYS.find(d => d.key === dayKeys[checkDay]).label };
+      break;
+    }
+    if (next) break;
+  }
+  if (next) {
+    if (next.day === 0) return { isOpen: false, message: `Fermé · ouvre aujourd'hui à ${next.time}` };
+    if (next.day === 1) return { isOpen: false, message: `Fermé · ouvre demain à ${next.time}` };
+    return { isOpen: false, message: `Fermé · ouvre ${next.dayLabel} à ${next.time}` };
+  }
+  return { isOpen: false, message: 'Fermé' };
+}
+
+function _minToStr(m) {
+  if (m == null) return '';
+  m = ((m % 1440) + 1440) % 1440;
+  const h = Math.floor(m / 60);
+  const mm = m % 60;
+  return String(h).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+}
+
+function refreshOpenHoursStatus() {
+  const el = document.getElementById('openHoursStatus');
+  if (!el) return;
+  const r = isRestaurantOpenNow();
+  if (r.isOpen) {
+    el.style.background = 'rgba(122, 154, 77, 0.15)';
+    el.style.color = '#a8c779';
+    el.innerHTML = '🟢 ' + r.message;
+  } else {
+    el.style.background = 'rgba(184, 85, 58, 0.15)';
+    el.style.color = '#d6a08c';
+    el.innerHTML = '🔴 ' + r.message;
+  }
+}
+
+
 
 function hhSave() {
   const start = document.getElementById('hhStart').value;
@@ -22818,6 +23039,7 @@ function hhSave() {
 //
 function renderSettings() {
   renderHHForm();
+  renderOpenHoursForm();   // ⏰ Horaires d'ouverture
   renderLoyaltyForm();
   renderServersList();
   renderRestaurantSettings();
