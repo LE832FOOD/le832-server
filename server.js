@@ -18,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-
+Cacc
 let WebSocketServer;
 try {
   WebSocketServer = require('ws').Server;
@@ -377,6 +377,25 @@ function sendSseTo(phone, eventName, payload) {
     dead.forEach(c => set.delete(c));
     if (set.size === 0) sseClients.delete(phoneNorm);
   } catch (e) { console.error('sendSseTo error:', e.message); }
+}
+
+// Diffuse un événement SSE à TOUTES les PWA connectées (tous clients)
+// → utilisé quand le menu ou les horaires changent globalement
+function broadcastSseToAll(payload) {
+  try {
+    if (!sseClients) return;
+    const eventName = (payload && payload.type) || 'update';
+    const data = 'event: ' + eventName + '\ndata: ' + JSON.stringify(payload || {}) + '\n\n';
+    sseClients.forEach((set, phone) => {
+      const dead = [];
+      set.forEach(client => {
+        try { client.res.write(data); client.lastSent = Date.now(); }
+        catch (e) { dead.push(client); }
+      });
+      dead.forEach(c => set.delete(c));
+      if (set.size === 0) sseClients.delete(phone);
+    });
+  } catch (e) { console.error('broadcastSseToAll error:', e.message); }
 }
 
 // Demande à toutes les caisses connectées d'ouvrir un SMS pour ce client
@@ -740,9 +759,10 @@ const server = http.createServer(async (req, res) => {
       }
     }
     const config = sharedState.config || {};
-    return jsonRes(res, 200, {
-      menu: filtered,
-      openHours: config.openHours || {
+    // ★ Convertit le nouveau format des horaires (objet par jour) vers l'ancien
+    // format attendu par la PWA (clés courtes + tableau de plages "HH:MM-HH:MM")
+    function convertOpenHoursForPwa(rawHours) {
+      const fallback = {
         mon: ['11:30-14:30','18:00-22:30'],
         tue: ['11:30-14:30','18:00-22:30'],
         wed: ['11:30-14:30','18:00-22:30'],
@@ -750,7 +770,47 @@ const server = http.createServer(async (req, res) => {
         fri: ['11:30-14:30','18:00-23:00'],
         sat: ['11:30-14:30','18:00-23:00'],
         sun: []
-      },
+      };
+      if (!rawHours || typeof rawHours !== 'object') return fallback;
+      // Mapping des clés longues → clés courtes
+      const map = { monday:'mon', tuesday:'tue', wednesday:'wed', thursday:'thu', friday:'fri', saturday:'sat', sunday:'sun' };
+      const out = {};
+      let foundAny = false;
+      for (const longKey in map) {
+        const shortKey = map[longKey];
+        const day = rawHours[longKey];
+        // Détecte le nouveau format : { open: bool, service1: {start,end}, service2: {start,end} }
+        if (day && typeof day === 'object' && !Array.isArray(day)) {
+          foundAny = true;
+          if (!day.open) {
+            out[shortKey] = [];
+            continue;
+          }
+          const ranges = [];
+          if (day.service1 && day.service1.start && day.service1.end) {
+            ranges.push(`${day.service1.start}-${day.service1.end}`);
+          }
+          if (day.service2 && day.service2.start && day.service2.end) {
+            ranges.push(`${day.service2.start}-${day.service2.end}`);
+          }
+          out[shortKey] = ranges;
+        }
+        // Ancien format : on garde tel quel
+        else if (Array.isArray(rawHours[shortKey])) {
+          foundAny = true;
+          out[shortKey] = rawHours[shortKey];
+        }
+        else if (Array.isArray(day)) {
+          foundAny = true;
+          out[shortKey] = day;
+        }
+      }
+      // Si aucune clé trouvée (config vide), on renvoie le fallback
+      return foundAny ? out : fallback;
+    }
+    return jsonRes(res, 200, {
+      menu: filtered,
+      openHours: convertOpenHoursForPwa(config.openHours),
       // ★ Config roue de la chance (personnalisable depuis la caisse)
       wheelConfig: (config.wheelEnabled !== false) ? {
         enabled: true,
@@ -1281,10 +1341,21 @@ wss.on('connection', (ws, req) => {
     }
     if (msg.type === 'state' && msg.data) {
       const oldOrders = sharedState.orders || [];
+      const oldOpenHours = JSON.stringify((sharedState.config && sharedState.config.openHours) || {});
+      const oldMenu = JSON.stringify(sharedState.menu || {});
       sharedState = msg.data;
       // Détection des changements et envoi des notifications PWA
       try { detectOrderChangesAndNotify(oldOrders, sharedState.orders || []); }
       catch (e) { console.error('Erreur notif PWA:', e.message); }
+      // ★ Détection changement d'horaires ou de menu : broadcast SSE à toutes les PWA
+      // pour qu'elles rafraîchissent immédiatement (au lieu d'attendre le polling 60s)
+      try {
+        const newOpenHours = JSON.stringify((sharedState.config && sharedState.config.openHours) || {});
+        const newMenu = JSON.stringify(sharedState.menu || {});
+        if (newOpenHours !== oldOpenHours || newMenu !== oldMenu) {
+          broadcastSseToAll({ type: 'menu-updated', ts: Date.now() });
+        }
+      } catch (e) { console.error('Broadcast SSE menu-updated échoué:', e.message); }
       persistSoon();
       broadcast(ws, { type: 'state', data: sharedState });
     }
