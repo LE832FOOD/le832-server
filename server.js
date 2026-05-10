@@ -18,7 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
-Cacc
+
 let WebSocketServer;
 try {
   WebSocketServer = require('ws').Server;
