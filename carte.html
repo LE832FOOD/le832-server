@@ -33,10 +33,10 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 .page-sub { font-size:12px; color:var(--muted); margin-top:2px; letter-spacing:0.05em; }
 .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--bg-2); border-top:1px solid var(--line); display:flex; padding:8px 4px calc(8px + var(--safe-bottom)); z-index:100; }
 .bottom-nav-inner { max-width:480px; margin:0 auto; display:flex; justify-content:space-around; width:100%; }
-.nav-item { flex:1; background:transparent; border:none; color:var(--muted); padding:8px 6px 4px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:2px; position:relative; }
+.nav-item { flex:1; background:transparent; border:none; color:#aaa; padding:8px 4px 4px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px; position:relative; min-width:0; overflow:hidden; }
 .nav-item.active { color:var(--amber); }
-.nav-item-icon { font-size:22px; line-height:1; }
-.nav-item-label { font-size:10px; font-weight:600; }
+.nav-item-icon { font-size:22px; line-height:1; display:block; }
+.nav-item-label { font-size:10px; font-weight:600; color:inherit; white-space:nowrap; text-overflow:ellipsis; max-width:100%; overflow:hidden; }
 .nav-item-badge { position:absolute; top:4px; right:50%; transform:translateX(14px); background:var(--red); color:white; border-radius:10px; min-width:18px; height:18px; padding:0 5px; font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px var(--bg-2); }
 .page { display:none; padding:0 16px 24px; animation:fadeIn 0.25s ease-out; }
 .page.active { display:block; }
@@ -1875,11 +1875,82 @@ function checkOpenStatus() {
   }
 }
 
-function openCartModal() {
+// Refresh manuel via bouton (force le re-fetch immédiat, ignore le cache 30s)
+async function refreshOpenHoursManually() {
+  _lastHoursRefresh = 0;
+  toast('🔄 Actualisation…');
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/menu`, {}, 8000);
+    if (!res.ok) throw new Error('Réponse invalide');
+    const data = await res.json();
+    if (data.openHours) {
+      openHours = data.openHours;
+      _lastHoursRefresh = Date.now();
+      try {
+        const cached = localStorage.getItem('le832_menu_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          parsed.openHours = data.openHours;
+          parsed.cachedAt = Date.now();
+          localStorage.setItem('le832_menu_cache', JSON.stringify(parsed));
+        }
+      } catch (e) {}
+      checkOpenStatus();
+      if ($('modalOverlay').classList.contains('show')) {
+        renderCartModal();
+      }
+      toast('✓ Horaires actualisés');
+    }
+  } catch (e) {
+    toast('Erreur lors de l\'actualisation');
+  }
+}
+
+async function openCartModal() {
   if (cart.length === 0) { toast('Votre panier est vide'); return; }
+  // Refresh des horaires en arrière-plan pour avoir les créneaux à jour
+  // (si plus de 30 sec depuis la dernière mise à jour)
+  refreshOpenHoursIfStale();
   renderCartModal();
   $('modalOverlay').classList.add('show');
 }
+
+// Polling : refresh des horaires depuis le serveur si cache > 30 sec
+let _lastHoursRefresh = 0;
+async function refreshOpenHoursIfStale() {
+  const now = Date.now();
+  if (now - _lastHoursRefresh < 30000) return;  // Pas besoin si récent
+  try {
+    const res = await fetchWithTimeout(`${API_BASE}/api/menu`, {}, 8000);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.openHours) {
+      openHours = data.openHours;
+      _lastHoursRefresh = now;
+      // Met à jour le cache localStorage aussi
+      try {
+        const cached = localStorage.getItem('le832_menu_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          parsed.openHours = data.openHours;
+          parsed.cachedAt = now;
+          localStorage.setItem('le832_menu_cache', JSON.stringify(parsed));
+        }
+      } catch (e) {}
+      // Si la modale du panier est ouverte, re-render pour afficher les nouveaux créneaux
+      if ($('modalOverlay').classList.contains('show')) {
+        renderCartModal();
+      }
+      checkOpenStatus();
+    }
+  } catch (e) {
+    console.warn('refreshOpenHoursIfStale failed', e);
+  }
+}
+
+// Polling automatique : refresh des horaires toutes les 60 secondes
+// (au cas où la caisse change les horaires pendant que la PWA est ouverte)
+setInterval(() => { refreshOpenHoursIfStale(); }, 60000);
 
 function renderCartModal() {
   const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
@@ -1928,7 +1999,30 @@ function renderCartModal() {
   if (slots.length > 0) {
     slotsHtml = `<div class="slot-grid" id="slotGrid">${slots.map(s => `<button class="slot-chip" data-slot="${s}">${s}</button>`).join('')}</div>`;
   } else {
-    slotsHtml = `<div style="font-size:12px;color:var(--cream-dim);padding:10px;background:var(--surface);border-radius:8px;text-align:center">Aucun créneau disponible aujourd'hui</div>`;
+    // Aucun créneau : message clair selon la situation
+    let msg = "Aucun créneau disponible";
+    let subMsg = "";
+    if (!openHours || Object.keys(openHours).length === 0) {
+      subMsg = "Le restaurant n'a pas encore configuré ses horaires";
+    } else {
+      const targetDate = new Date();
+      if (_orderForTomorrow) targetDate.setDate(targetDate.getDate() + 1);
+      const day = targetDate.getDay();
+      const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][day];
+      const hours = openHours[dayKey];
+      if (!hours || hours.length === 0) {
+        msg = "Restaurant fermé " + (_orderForTomorrow ? 'demain' : "aujourd'hui");
+        subMsg = "Choisissez " + (_orderForTomorrow ? "aujourd'hui" : "demain") + " pour voir d'autres créneaux";
+      } else {
+        msg = "Aucun créneau disponible " + (_orderForTomorrow ? 'demain' : "pour aujourd'hui");
+        if (!_orderForTomorrow) subMsg = "Le service est peut-être terminé. Essayez demain.";
+      }
+    }
+    slotsHtml = `<div style="font-size:12px;color:var(--cream-dim);padding:14px 12px;background:var(--surface);border-radius:8px;text-align:center;line-height:1.5">
+      <div style="font-weight:600;color:var(--cream);margin-bottom:4px">${msg}</div>
+      ${subMsg ? `<div style="font-size:11px">${subMsg}</div>` : ''}
+      <button onclick="refreshOpenHoursManually()" style="margin-top:10px;background:var(--amber);color:#14110d;border:none;padding:6px 14px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🔄 Actualiser</button>
+    </div>`;
   }
 
   $('modalContent').innerHTML = `
@@ -2049,12 +2143,15 @@ function generateSlots(forTomorrow) {
     const [sh, sm] = s.split(':').map(Number);
     const [eh, em] = e.split(':').map(Number);
     const periodStart = sh * 60 + sm;
-    const periodEnd = eh * 60 + em;
+    let periodEnd = eh * 60 + em;
+    // Service qui passe minuit (ex. 18:00-01:00) → on étend jusqu'à minuit + heure de fin
+    if (periodEnd <= periodStart) periodEnd += 24 * 60;
     let cur = forTomorrow ? periodStart : Math.max(periodStart, startNowMin);
     cur = Math.ceil(cur / 15) * 15;
     while (cur <= periodEnd) {
-      const h = Math.floor(cur / 60);
-      const m = cur % 60;
+      const dispMin = cur % (24 * 60);  // affichage 0-23h59 même si la valeur dépasse
+      const h = Math.floor(dispMin / 60);
+      const m = dispMin % 60;
       slots.push(`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`);
       cur += 15;
     }
@@ -2568,6 +2665,15 @@ function startSse() {
         // Petit "ping" visuel : flash du badge
         flashTrackingBadge();
       } catch (e) {}
+    });
+
+    // ★ Menu ou horaires modifiés sur la caisse : refresh immédiat
+    _sse.addEventListener('menu-updated', () => {
+      console.log('[SSE] Menu/horaires mis à jour côté caisse, refresh PWA');
+      _lastHoursRefresh = 0;
+      refreshOpenHoursIfStale();
+      // Recharge le menu complet en arrière-plan
+      try { loadMenu(); } catch (e) {}
     });
 
     _sse.onerror = () => {
