@@ -318,31 +318,44 @@
   #view-landing {
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
-    padding: max(40px, calc(env(safe-area-inset-top, 0) + 20px)) 40px max(40px, calc(env(safe-area-inset-bottom, 0) + 20px)) 40px;
+    padding-top: max(60px, calc(env(safe-area-inset-top, 0) + 40px));
+    padding-bottom: max(60px, calc(env(safe-area-inset-bottom, 0) + 40px));
+    padding-left: 40px;
+    padding-right: 40px;
     min-height: 100vh;
     min-height: 100dvh;
     box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Auto-centrer si le contenu est plus petit que l'écran */
+  @media (min-height: 800px) {
+    #view-landing {
+      justify-content: center;
+    }
   }
 
   .landing-logo-img {
-    width: 140px;
-    height: 140px;
+    width: clamp(90px, 15vh, 140px);
+    height: clamp(90px, 15vh, 140px);
     border-radius: 50%;
     margin-bottom: 18px;
     object-fit: cover;
     box-shadow: 0 12px 40px rgba(46, 139, 87, 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
     background: #fff;
     display: block;
+    flex-shrink: 0;
   }
   .landing-brand {
     font-family: 'Fraunces', serif;
     font-style: italic;
-    font-size: 64px;
+    font-size: clamp(36px, 6vw, 64px);
     font-weight: 400;
     letter-spacing: -0.02em;
     margin-bottom: 8px;
+    line-height: 1.1;
   }
   .landing-brand::first-letter { color: var(--amber); }
 
@@ -22902,9 +22915,62 @@ function updateDayHour(dayKey, inputEl) {
 }
 
 function saveOpenHours() {
+  // 1) Sauvegarde locale + broadcast WebSocket
   saveState();
-  toast('✓ Horaires enregistrés');
+  // 2) Test : récupère la version envoyée au serveur dans 2 secondes
+  toast('💾 Enregistrement…');
   refreshOpenHoursStatus();
+  // Attendre que le WebSocket ait eu le temps de pousser le state
+  setTimeout(async () => {
+    try {
+      const res = await fetch('/api/menu', { cache: 'no-store' });
+      if (!res.ok) throw new Error('Réponse serveur invalide');
+      const data = await res.json();
+      const serverHours = data.openHours || {};
+      const localHours = getOpenHours();
+      // Convertit le format local vers le format serveur pour comparer
+      const map = { monday:'mon', tuesday:'tue', wednesday:'wed', thursday:'thu', friday:'fri', saturday:'sat', sunday:'sun' };
+      let allOk = true;
+      let totalSlots = 0;
+      for (const longKey in map) {
+        const sk = map[longKey];
+        const lh = localHours[longKey];
+        const sh = serverHours[sk] || [];
+        const expectedRanges = [];
+        if (lh && lh.open) {
+          if (lh.service1 && lh.service1.start && lh.service1.end) expectedRanges.push(`${lh.service1.start}-${lh.service1.end}`);
+          if (lh.service2 && lh.service2.start && lh.service2.end) expectedRanges.push(`${lh.service2.start}-${lh.service2.end}`);
+        }
+        totalSlots += sh.length;
+        if (JSON.stringify(expectedRanges) !== JSON.stringify(sh)) allOk = false;
+      }
+      const statusEl = document.getElementById('openHoursStatus');
+      if (allOk) {
+        toast('✅ Horaires enregistrés et transmis à la PWA');
+        if (statusEl) {
+          const r = isRestaurantOpenNow();
+          const baseHtml = (r.isOpen ? '🟢 ' : '🔴 ') + r.message;
+          statusEl.innerHTML = baseHtml + '<br><small style="opacity:0.8">✅ ' + totalSlots + ' plages actives sur le serveur · Synchro PWA OK</small>';
+        }
+      } else {
+        toast('⚠️ Sauvegarde locale OK mais pas synchronisée au serveur', true);
+        if (statusEl) {
+          statusEl.innerHTML = '⚠️ Horaires locaux OK, mais le serveur a une version différente.<br><small>Vérifie ta connexion WebSocket (icône en haut à droite). Réessaye dans 5 secondes.</small>';
+          statusEl.style.background = 'rgba(212, 160, 86, 0.15)';
+          statusEl.style.color = '#d4a657';
+        }
+      }
+    } catch (e) {
+      console.error('Test serveur échec:', e);
+      toast('⚠️ Sauvegarde locale OK, mais test serveur échoué', true);
+      const statusEl = document.getElementById('openHoursStatus');
+      if (statusEl) {
+        statusEl.innerHTML = '⚠️ Sauvegarde locale OK, mais impossible de vérifier sur le serveur.<br><small>' + e.message + '</small>';
+        statusEl.style.background = 'rgba(212, 160, 86, 0.15)';
+        statusEl.style.color = '#d4a657';
+      }
+    }
+  }, 2000);
 }
 
 function resetOpenHoursDefault() {
