@@ -12295,6 +12295,109 @@
 
   /* Le clavier flotte au-dessus du contenu sans décaler la page.
      Le scrollIntoView garantit que le champ reste visible. */
+
+  /* ═══ PARAMÈTRES V2 — Navigation par catégories ═══ */
+  .settings-v2-wrap {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 18px;
+    margin-top: 14px;
+    align-items: start;
+  }
+  .settings-v2-sidebar {
+    position: sticky;
+    top: 12px;
+    background: rgba(31, 26, 20, 0.6);
+    border: 1px solid var(--line, rgba(212,160,86,0.12));
+    border-radius: 14px;
+    padding: 12px 10px;
+    align-self: start;
+  }
+  .settings-v2-search {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(20, 17, 13, 0.6);
+    border: 1px solid var(--line, rgba(212,160,86,0.12));
+    color: inherit;
+    padding: 9px 12px;
+    border-radius: 9px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    font-family: inherit;
+  }
+  .settings-v2-search:focus {
+    outline: none;
+    border-color: var(--amber, #d4a056);
+  }
+  .settings-v2-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .settings-v2-cat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 11px;
+    background: transparent;
+    border: none;
+    color: var(--cream-dim, #a39481);
+    text-align: left;
+    cursor: pointer;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    width: 100%;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .settings-v2-cat span:first-child { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .settings-v2-cat:hover {
+    background: rgba(212, 160, 86, 0.06);
+    color: var(--cream, #fff8e7);
+  }
+  .settings-v2-cat.active {
+    background: rgba(212, 160, 86, 0.18);
+    color: var(--amber-bright, #e8b568);
+    font-weight: 700;
+  }
+  .settings-v2-content {
+    min-width: 0;
+  }
+  /* Cache les sections non actives */
+  .settings-v2-content .settings-section { display: none; }
+  .settings-v2-content .settings-section.settings-v2-show { display: block; }
+
+  .settings-v2-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--cream-dim, #a39481);
+  }
+
+  /* Responsive : sidebar en haut sur mobile */
+  @media (max-width: 760px) {
+    .settings-v2-wrap {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .settings-v2-sidebar {
+      position: static;
+    }
+    .settings-v2-nav {
+      flex-direction: row;
+      overflow-x: auto;
+      scrollbar-width: none;
+      gap: 6px;
+      padding-bottom: 2px;
+    }
+    .settings-v2-nav::-webkit-scrollbar { display: none; }
+    .settings-v2-cat {
+      flex-shrink: 0;
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+  }
+
 </style>
 </head>
 <body>
@@ -12808,7 +12911,24 @@
           <div class="list-count">Réservé au manager</div>
         </div>
 
-        <div class="settings-section">
+        <!-- ★ NOUVELLE NAVIGATION PAR CATÉGORIES ─────────────────── -->
+        <div class="settings-v2-wrap">
+          <aside class="settings-v2-sidebar">
+            <input type="text" class="settings-v2-search" id="settingsV2Search" placeholder="🔍 Rechercher…" oninput="settingsV2Filter()" />
+            <nav class="settings-v2-nav">
+              <button class="settings-v2-cat active" data-cat="restaurant" onclick="settingsV2SetCat('restaurant')"><span>🏪</span><span>Restaurant</span></button>
+              <button class="settings-v2-cat" data-cat="horaires" onclick="settingsV2SetCat('horaires')"><span>⏰</span><span>Horaires</span></button>
+              <button class="settings-v2-cat" data-cat="menu" onclick="settingsV2SetCat('menu')"><span>🍕</span><span>Menu & tarifs</span></button>
+              <button class="settings-v2-cat" data-cat="fidelite" onclick="settingsV2SetCat('fidelite')"><span>🏆</span><span>Fidélité & Promos</span></button>
+              <button class="settings-v2-cat" data-cat="communication" onclick="settingsV2SetCat('communication')"><span>📨</span><span>Communication</span></button>
+              <button class="settings-v2-cat" data-cat="livraison" onclick="settingsV2SetCat('livraison')"><span>🚗</span><span>Livraison</span></button>
+              <button class="settings-v2-cat" data-cat="borne" onclick="settingsV2SetCat('borne')"><span>📱</span><span>Borne & salle</span></button>
+              <button class="settings-v2-cat" data-cat="systeme" onclick="settingsV2SetCat('systeme')"><span>⚙️</span><span>Système</span></button>
+            </nav>
+          </aside>
+          <div class="settings-v2-content" id="settingsV2Content">
+
+        <div class="settings-section" data-cat="restaurant">
           <div class="settings-title">Identité du restaurant</div>
           <div class="settings-desc">Le nom et le logo affichés sur l'écran d'accueil de la borne. Le logo remplace le nom si présent.</div>
           <div class="settings-row">
@@ -12826,7 +12946,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="systeme">
           <div class="settings-title">Clavier virtuel tactile</div>
           <div class="settings-desc">Affiche automatiquement un clavier AZERTY à l'écran lors de la saisie. Utile sur écran tactile sans clavier physique. Désactivez-le si vous utilisez la caisse avec un clavier.</div>
           <div class="settings-row" style="border:none;padding-top:6px">
@@ -12842,7 +12962,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🏆 Récompenses fidélité automatiques</div>
           <div class="settings-desc">Quand un client atteint un palier de commandes, il reçoit automatiquement un message avec un code promo cadeau. <strong style="color:#95b85e">Push gratuit pour les clients PWA, SMS pour les autres.</strong> Personnalise tes paliers, montants et durées de validité.</div>
 
@@ -12872,7 +12992,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🎰 Roue de la chance (PWA)</div>
           <div class="settings-desc">Personnalise les lots et les chances de gain de la roue de la chance affichée dans la PWA. Le client peut tenter sa chance une fois par <strong>X jours</strong>. Quand il gagne, un code promo unique lui est envoyé automatiquement.</div>
 
@@ -12913,7 +13033,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">📨 Newsletter mensuelle</div>
           <div class="settings-desc">Envoie un message à tous tes clients en 1 clic. Les clients PWA reçoivent un push gratuit, les autres reçoivent un SMS. Idéal pour annoncer les nouveautés, promos, événements.</div>
 
@@ -12926,7 +13046,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">⭐ Avis Google après livraison</div>
           <div class="settings-desc">Envoie automatiquement un SMS au client 2h après la livraison pour lui demander un avis Google. Plus d'avis = meilleur référencement = plus de clients.</div>
 
@@ -12962,7 +13082,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">📲 Invitation PWA automatique</div>
           <div class="settings-desc">Envoie automatiquement un SMS d'invitation à installer la PWA aux nouveaux clients. Une fois la PWA installée, tu peux leur envoyer des notifications push <strong>gratuites</strong> au lieu de SMS payants.</div>
 
@@ -12983,7 +13103,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">📱 Liens WhatsApp Business</div>
           <div class="settings-desc">Génère des liens prêts à partager sur WhatsApp Business pour que tes clients commandent directement depuis ta PWA. Les commandes arrivent automatiquement dans la caisse.</div>
 
@@ -13012,7 +13132,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="borne">
           <div class="settings-title">📱 QR codes par table</div>
           <div class="settings-desc">Génère un QR code unique par table. Le client le scanne, tape son prénom, commande directement depuis son téléphone — pas besoin de te déranger.</div>
 
@@ -13034,7 +13154,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">📨 Relance clients inactifs</div>
           <div class="settings-desc">Envoie automatiquement un code promo aux clients qui n'ont pas commandé depuis un certain temps. Code unique à usage unique, envoyé par notification push (PWA) ou SMS.</div>
 
@@ -13080,7 +13200,7 @@
           <div id="relanceLastRunInfo" style="font-size:11px;color:var(--muted);margin-top:10px;padding:8px 12px;background:rgba(255,255,255,0.02);border-radius:6px;display:none"></div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="restaurant">
           <div class="settings-title">Couleurs de l'application</div>
           <div class="settings-desc">Personnalisez les couleurs principales pour qu'elles correspondent à l'identité de votre restaurant. La couleur primaire est utilisée pour les boutons, accents et prix. La couleur secondaire pour les confirmations et succès.</div>
           <div class="settings-row" style="border:none">
@@ -13103,7 +13223,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="menu">
           <div class="settings-title">Personnalisation par défaut des articles</div>
           <div class="settings-desc">Définit le formulaire de personnalisation qui s'affiche automatiquement quand le client choisit un article sur la borne. S'applique à tous les produits sauf ceux marqués <em>« Pas de personnalisation »</em> dans le menu (ex. boissons, desserts) ou ceux qui ont leur propre configuration spécifique.</div>
           <div class="cfg-editor" id="globalCfgEditor"></div>
@@ -13116,7 +13236,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="menu">
           <div class="settings-title">Menu du restaurant</div>
           <div class="settings-desc">Charge le menu complet du restaurant : pizzas (3 tailles), sandwichs, burgers doublés, tacos, bowls, paninis, salades, gratins, poulet braisé, brochettes, plateaux, boxes, fingers, accompagnements, desserts et boissons. <strong>Cette action remplace intégralement le menu actuel.</strong></div>
           <div class="settings-row" style="border:none;padding-top:6px">
@@ -13130,7 +13250,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="restaurant">
           <div class="settings-title">Sauvegarde des données</div>
           <div class="settings-desc">Exportez régulièrement une sauvegarde complète (commandes, clients, menu, paramètres, réservations…) pour pouvoir restaurer en cas de problème ou migrer vers un autre appareil.</div>
           <div class="settings-row" style="border:none;padding-top:6px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -13139,7 +13259,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="horaires">
           <div class="settings-title">⏰ Horaires d'ouverture</div>
           <div class="settings-desc">Configure les horaires de ton restaurant pour chaque jour. Pour un service continu (sans pause), laisse vide la 2ème plage. Pour un horaire qui passe minuit (ex. 18h-1h), met simplement 01:00 en heure de fin.</div>
           <div id="openHoursContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:14px"></div>
@@ -13150,7 +13270,7 @@
           <div id="openHoursStatus" style="margin-top:14px;padding:10px;border-radius:6px;font-size:12px"></div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="horaires">
           <div class="settings-title">Happy Hour</div>
           <div class="settings-desc">Réduction automatique sur les catégories sélectionnées pendant les plages horaires définies.</div>
           <div class="settings-row">
@@ -13178,7 +13298,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">Programme de fidélité</div>
           <div class="settings-desc">Les clients livraison cumulent des points à chaque paiement. Une fois le seuil atteint, ils peuvent les utiliser comme réduction.</div>
           <div class="settings-row">
@@ -13202,7 +13322,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="borne">
           <div class="settings-title">Salle</div>
           <div class="settings-row">
             <div class="settings-label">Nombre de tables<small>Plan de salle et numéros disponibles</small></div>
@@ -13213,7 +13333,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="borne">
           <div class="settings-title">Borne — Temporisations</div>
           <div class="settings-desc">Le délai d'inactivité réinitialise la borne après une période sans interaction. Le délai après confirmation contrôle le retour automatique à l'accueil après qu'un client a validé sa commande. Mettez 0 pour désactiver.</div>
           <div class="settings-row">
@@ -13229,7 +13349,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">Codes promo</div>
           <div class="settings-desc">Réductions ponctuelles applicables manuellement à un ticket. Différent du Happy Hour qui s'applique automatiquement.</div>
           <div class="promo-list" id="promoCodesList"></div>
@@ -13238,7 +13358,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="menu">
           <div class="settings-title">Menu</div>
           <div class="settings-desc">Modifiez les produits et catégories. Les commandes existantes ne sont pas affectées.</div>
           <div class="menu-editor-tabs" id="menuEditorTabs"></div>
@@ -13253,7 +13373,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="systeme">
           <div class="settings-title">Synchronisation multi-appareils</div>
           <div class="settings-desc">Connectez plusieurs caisses, bornes ou tablettes ensemble via un serveur de synchronisation. Voir le fichier <code>server.js</code> joint pour lancer le backend en local.</div>
           <div class="settings-row">
@@ -13269,7 +13389,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="systeme">
           <div class="settings-title">Personnel</div>
           <div class="settings-desc">Gérez les serveurs et leurs codes PIN d'accès.</div>
           <div class="servers-list" id="serversList"></div>
@@ -13278,7 +13398,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="systeme">
           <div class="settings-title">Sécurité</div>
           <div class="settings-row">
             <div class="settings-label">Code de modification des tickets terminés<small>Demandé pour modifier un paiement déjà encaissé</small></div>
@@ -13289,7 +13409,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">Notifications push (LE 832 FOOD)</div>
           <div class="settings-desc">Envoyez des promotions directement aux clients qui ont installé l'application LE 832 FOOD. <a href="#" onclick="event.preventDefault();showPushSetupHelp()" style="color:var(--amber);text-decoration:underline">Comment ça marche ?</a></div>
           <div class="settings-row">
@@ -13308,7 +13428,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="systeme">
           <div class="settings-title">Sons & Notifications</div>
           <div class="settings-desc">Active les sons d'alerte pour ne pas rater les nouvelles commandes provenant de la borne.</div>
           <div class="settings-row" style="border:none;padding-top:8px">
@@ -13325,7 +13445,7 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="livraison">
           <div class="settings-title">Zones de livraison</div>
           <div class="settings-desc">Définissez les paliers de distance, le montant minimum de commande et les frais de livraison pour chaque zone autour de Vitry-le-François.</div>
           <div class="settings-row" style="border:none;padding-top:14px">
@@ -13333,13 +13453,21 @@
           </div>
         </div>
 
-        <div class="settings-section">
+        <div class="settings-section" data-cat="communication">
           <div class="settings-title">Modèles SMS</div>
           <div class="settings-desc">Personnalisez les messages envoyés aux clients livraison. L'envoi se fait via l'application SMS native de l'appareil — aucun coût, aucun service tiers à configurer.</div>
           <div class="settings-row" style="border:none;padding-top:14px">
             <button class="btn btn-primary" style="width:100%;grid-column:1/-1" onclick="smsTemplatesEditor()">Modifier les modèles</button>
           </div>
         </div>
+
+          </div><!-- /settings-v2-content -->
+          <div class="settings-v2-empty" id="settingsV2Empty" style="display:none">
+            <div style="font-size:42px;line-height:1;margin-bottom:10px">🔍</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">Aucun réglage trouvé</div>
+            <div style="font-size:12px;color:var(--cream-dim,#a39481)">Essayez un autre terme de recherche</div>
+          </div>
+        </div><!-- /settings-v2-wrap -->
 
       </div>
     </section>
@@ -32171,6 +32299,74 @@ setTimeout(() => {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && _vkbActiveField) vkbHide();
   });
+})();
+
+// ═══ PARAMÈTRES V2 — Navigation + recherche ═══
+(function() {
+  // Catégorie active (persistée dans localStorage)
+  let _currentCat = localStorage.getItem('le832_settings_cat') || 'restaurant';
+
+  function showCat(cat) {
+    _currentCat = cat;
+    localStorage.setItem('le832_settings_cat', cat);
+    // Met à jour les boutons
+    document.querySelectorAll('.settings-v2-cat').forEach(b => {
+      b.classList.toggle('active', b.dataset.cat === cat);
+    });
+    // Affiche les sections de cette catégorie
+    const empty = document.getElementById('settingsV2Empty');
+    let count = 0;
+    document.querySelectorAll('#settingsV2Content .settings-section').forEach(s => {
+      const matches = s.dataset.cat === cat;
+      s.classList.toggle('settings-v2-show', matches);
+      if (matches) count++;
+    });
+    if (empty) empty.style.display = count === 0 ? 'block' : 'none';
+  }
+
+  function filterByQuery(query) {
+    const q = (query || '').toLowerCase().trim();
+    const empty = document.getElementById('settingsV2Empty');
+    if (!q) {
+      // Pas de recherche : on revient à la catégorie active
+      showCat(_currentCat);
+      return;
+    }
+    // Mode recherche : affiche toutes les sections qui matchent (toute catégorie)
+    let count = 0;
+    document.querySelectorAll('#settingsV2Content .settings-section').forEach(s => {
+      const text = s.textContent.toLowerCase();
+      const matches = text.includes(q);
+      s.classList.toggle('settings-v2-show', matches);
+      if (matches) count++;
+    });
+    // Désélectionne tous les boutons cats pendant la recherche
+    document.querySelectorAll('.settings-v2-cat').forEach(b => b.classList.remove('active'));
+    if (empty) empty.style.display = count === 0 ? 'block' : 'none';
+  }
+
+  // Expose globalement (appelé depuis onclick HTML)
+  window.settingsV2SetCat = function(cat) {
+    // Reset la recherche si on clique sur une cat
+    const search = document.getElementById('settingsV2Search');
+    if (search && search.value) search.value = '';
+    showCat(cat);
+  };
+  window.settingsV2Filter = function() {
+    const search = document.getElementById('settingsV2Search');
+    filterByQuery(search ? search.value : '');
+  };
+
+  // Init au chargement : affiche la dernière catégorie sélectionnée
+  function init() {
+    // Si l'utilisateur ouvre l'onglet Paramètres, on initialise l'affichage
+    showCat(_currentCat);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 </body>
