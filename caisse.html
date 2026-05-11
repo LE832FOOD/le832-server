@@ -26990,12 +26990,16 @@ function renderMenuEditor() {
 
   tabsEl.innerHTML = '';
   cats.forEach(cat => {
+    const productCount = (state.menu[cat] || []).length;
     const btn = document.createElement('button');
     btn.className = 'menu-editor-tab' + (cat === menuEditorCat ? ' active' : '');
-    btn.textContent = cat;
+    btn.innerHTML = `${cat} <span style="opacity:0.6;font-size:10px;margin-left:4px">${productCount}</span>`;
     btn.onclick = () => { menuEditorCat = cat; renderMenuEditor(); };
     tabsEl.appendChild(btn);
   });
+
+  // Récupère le filtre de recherche (préservé entre re-renders)
+  const searchValue = (window._menuEditorSearch || '').toLowerCase().trim();
 
   let html = `
     <div class="cat-controls">
@@ -27003,6 +27007,12 @@ function renderMenuEditor() {
       <button class="icon-btn" onclick="autoApplyLe832Photos('${menuEditorCat.replace(/'/g, "\\'")}')" style="border-color:var(--green);color:var(--green)" title="Applique automatiquement les photos LE 832 qui matchent">⚡ Auto-photos</button>
       <button class="icon-btn" onclick="renameCategory('${menuEditorCat}')" style="border-color:var(--line);color:var(--cream-dim)">Renommer</button>
       <button class="icon-btn" onclick="deleteCategory('${menuEditorCat}')">Supprimer</button>
+    </div>
+
+    <!-- ★ BARRE DE RECHERCHE ──────────────── -->
+    <div style="margin:14px 0 12px;position:relative">
+      <input type="text" id="menuEditorSearchInput" placeholder="🔍 Rechercher un produit (nom, description)…" value="${escapeHtml(searchValue)}" oninput="setMenuEditorSearch(this.value)" style="width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:9px 14px 9px 14px;border-radius:9px;font-size:13px;font-family:inherit" />
+      ${searchValue ? `<button onclick="setMenuEditorSearch('')" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:var(--cream-dim);cursor:pointer;font-size:18px;padding:4px 8px">×</button>` : ''}
     </div>
   `;
 
@@ -27032,51 +27042,159 @@ function renderMenuEditor() {
       </div>
     `;
   }
-  state.menu[menuEditorCat].forEach(p => {
-    const stockTag = (typeof p.stock === 'number')
-      ? (p.stock <= 0 ? '<span style="color:var(--red);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700">Rupture</span>' :
-        (p.stock < 5 ? `<span style="color:var(--amber);font-size:11px">Stock : ${p.stock}</span>` :
-        `<span style="color:var(--muted);font-size:11px">Stock : ${p.stock}</span>`))
-      : '';
-    let optsTag = '';
-    if (p.noCustomization) {
-      optsTag = '<span style="color:var(--muted);font-size:11px">Sans personnalisation</span>';
-    } else if (p.config) {
-      const c = p.config;
-      let n = 0;
-      if (c.menu && c.menu.available) n++;
-      if (Array.isArray(c.bread) && c.bread.length) n++;
-      if (Array.isArray(c.sauces) && c.sauces.length) n++;
-      if (Array.isArray(c.extras) && c.extras.length) n++;
-      if (Array.isArray(c.removable) && c.removable.length) n++;
-      if (c.comment) n++;
-      if (n > 0) optsTag = `<span style="color:var(--green);font-size:11px">Config spécifique (${n} section${n > 1 ? 's' : ''})</span>`;
-    } else {
-      optsTag = '<span style="color:var(--cream-dim);font-size:11px">Formulaire par défaut</span>';
-    }
-    const photoTag = p.photo
-      ? `<img src="${p.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:6px" />`
-      : '';
+
+  // Filtre les produits selon la recherche
+  const allProducts = state.menu[menuEditorCat] || [];
+  const products = searchValue
+    ? allProducts.filter(p => {
+        const haystack = ((p.name || '') + ' ' + (p.desc || '')).toLowerCase();
+        return haystack.includes(searchValue);
+      })
+    : allProducts;
+
+  // Stats : total + manquants
+  const totalProducts = allProducts.length;
+  const noPhotoCount = allProducts.filter(p => !p.photo).length;
+  const ruptureCount = allProducts.filter(p => typeof p.stock === 'number' && p.stock <= 0).length;
+
+  if (totalProducts > 0) {
     html += `
-      <div class="menu-product-row">
-        ${photoTag ? `<div style="margin-right:10px">${photoTag}</div>` : ''}
-        <div class="menu-product-info">
-          <div class="name">${p.name}</div>
-          ${p.desc ? `<div class="desc">${p.desc}</div>` : ''}
-          ${(stockTag || optsTag) ? `<div style="display:flex;gap:14px;margin-top:4px">${stockTag} ${optsTag}</div>` : ''}
-        </div>
-        <div class="menu-product-price">${p.price.toFixed(2).replace('.', ',')} €</div>
-        <button class="icon-btn" onclick="editMenuProduct(${p.id})" style="border-color:var(--line);color:var(--cream-dim)">Modifier</button>
-        <button class="icon-btn" onclick="deleteMenuProduct(${p.id})">Suppr.</button>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;font-size:11px">
+        <span style="color:var(--cream-dim)">${searchValue ? `${products.length}/${totalProducts}` : totalProducts} produit${totalProducts > 1 ? 's' : ''}</span>
+        ${noPhotoCount > 0 ? `<span style="color:var(--amber)">· 📷 ${noPhotoCount} sans photo</span>` : ''}
+        ${ruptureCount > 0 ? `<span style="color:var(--red)">· ⚠️ ${ruptureCount} en rupture</span>` : ''}
       </div>
     `;
-  });
+  }
+
+  if (searchValue && products.length === 0) {
+    html += `
+      <div style="text-align:center;padding:40px 20px;color:var(--cream-dim)">
+        <div style="font-size:40px;line-height:1;margin-bottom:10px">🔍</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:4px">Aucun résultat</div>
+        <div style="font-size:12px">Essayez un autre terme dans "${escapeHtml(menuEditorCat)}"</div>
+      </div>
+    `;
+  } else {
+    products.forEach(p => {
+      const inStock = typeof p.stock === 'number' ? p.stock > 0 : true;
+      const stockTag = (typeof p.stock === 'number')
+        ? (p.stock <= 0 ? '<span style="color:var(--red);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-weight:700">Rupture</span>' :
+          (p.stock < 5 ? `<span style="color:var(--amber);font-size:11px">Stock : ${p.stock}</span>` :
+          `<span style="color:var(--muted);font-size:11px">Stock : ${p.stock}</span>`))
+        : '';
+      let optsTag = '';
+      if (p.noCustomization) {
+        optsTag = '<span style="color:var(--muted);font-size:11px">Sans personnalisation</span>';
+      } else if (p.config) {
+        const c = p.config;
+        let n = 0;
+        if (c.menu && c.menu.available) n++;
+        if (Array.isArray(c.bread) && c.bread.length) n++;
+        if (Array.isArray(c.sauces) && c.sauces.length) n++;
+        if (Array.isArray(c.extras) && c.extras.length) n++;
+        if (Array.isArray(c.removable) && c.removable.length) n++;
+        if (c.comment) n++;
+        if (n > 0) optsTag = `<span style="color:var(--green);font-size:11px">Config spécifique (${n} section${n > 1 ? 's' : ''})</span>`;
+      } else {
+        optsTag = '<span style="color:var(--cream-dim);font-size:11px">Formulaire par défaut</span>';
+      }
+      const photoTag = p.photo
+        ? `<img src="${p.photo}" style="width:40px;height:40px;object-fit:cover;border-radius:6px" />`
+        : `<div style="width:40px;height:40px;border-radius:6px;background:var(--surface-2);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;color:var(--amber);font-size:14px" title="Photo manquante">📷</div>`;
+
+      // ★ Bouton En rupture / Dispo
+      const stockToggleLabel = inStock ? '⚠️ Rupture' : '✓ Dispo';
+      const stockToggleColor = inStock ? 'var(--red)' : 'var(--green)';
+
+      html += `
+        <div class="menu-product-row" style="${!inStock ? 'opacity:0.65' : ''}">
+          <div style="margin-right:10px">${photoTag}</div>
+          <div class="menu-product-info">
+            <div class="name">${p.name}</div>
+            ${p.desc ? `<div class="desc">${p.desc}</div>` : ''}
+            ${(stockTag || optsTag) ? `<div style="display:flex;gap:14px;margin-top:4px;flex-wrap:wrap">${stockTag} ${optsTag}</div>` : ''}
+          </div>
+          <div class="menu-product-price">${p.price.toFixed(2).replace('.', ',')} €</div>
+          <button class="icon-btn" onclick="toggleProductStock(${p.id})" style="border-color:${stockToggleColor};color:${stockToggleColor};font-size:11px" title="Marquer en rupture ou dispo">${stockToggleLabel}</button>
+          <button class="icon-btn" onclick="duplicateMenuProduct(${p.id})" style="border-color:var(--line);color:var(--cream-dim)" title="Dupliquer ce produit">⎘ Dupliquer</button>
+          <button class="icon-btn" onclick="editMenuProduct(${p.id})" style="border-color:var(--line);color:var(--cream-dim)">Modifier</button>
+          <button class="icon-btn" onclick="deleteMenuProduct(${p.id})">Suppr.</button>
+        </div>
+      `;
+    });
+  }
+
   html += `
     <div style="margin-top:12px">
       <button class="btn" style="width:100%" onclick="addMenuProduct()">+ Ajouter un produit</button>
     </div>
   `;
   contentEl.innerHTML = html;
+}
+
+// ★ Recherche menu : met à jour le filtre et re-rend
+function setMenuEditorSearch(value) {
+  window._menuEditorSearch = value;
+  renderMenuEditor();
+  // Re-focus le champ après re-render
+  const input = document.getElementById('menuEditorSearchInput');
+  if (input && document.activeElement !== input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
+}
+
+// ★ Toggle rupture / dispo
+function toggleProductStock(productId) {
+  const cats = Object.keys(state.menu);
+  for (const cat of cats) {
+    const products = state.menu[cat] || [];
+    const p = products.find(x => x.id === productId);
+    if (p) {
+      const isInStock = typeof p.stock === 'number' ? p.stock > 0 : true;
+      if (isInStock) {
+        // On le passe en rupture (stock = 0)
+        p.stock = 0;
+        toast(`⚠️ "${p.name}" en rupture`);
+      } else {
+        // On le rend dispo : on enlève la limite de stock (illimité)
+        delete p.stock;
+        toast(`✓ "${p.name}" disponible`);
+      }
+      saveState();
+      renderMenuEditor();
+      return;
+    }
+  }
+}
+
+// ★ Dupliquer un produit
+function duplicateMenuProduct(productId) {
+  const cats = Object.keys(state.menu);
+  for (const cat of cats) {
+    const products = state.menu[cat] || [];
+    const idx = products.findIndex(x => x.id === productId);
+    if (idx >= 0) {
+      const p = products[idx];
+      // Crée un nouvel ID unique
+      let newId = Date.now();
+      // S'assure que l'ID est unique dans tout le menu
+      const allIds = new Set();
+      cats.forEach(c => (state.menu[c] || []).forEach(prod => allIds.add(prod.id)));
+      while (allIds.has(newId)) newId++;
+      // Clone profond du produit (JSON est suffisant car pas de fonctions)
+      const clone = JSON.parse(JSON.stringify(p));
+      clone.id = newId;
+      clone.name = p.name + ' (copie)';
+      // Insère juste après l'original
+      products.splice(idx + 1, 0, clone);
+      saveState();
+      renderMenuEditor();
+      toast(`✓ "${p.name}" dupliqué`);
+      return;
+    }
+  }
 }
 
 function addCategory() {
