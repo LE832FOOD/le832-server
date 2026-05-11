@@ -486,26 +486,54 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
 .slot-chip { padding:10px 6px; background:var(--surface); border:1px solid var(--line); border-radius:8px; color:var(--cream-dim); font-size:13px; font-weight:600; cursor:pointer; text-align:center; font-family:inherit; }
 .slot-chip.active { background:var(--amber); color:#14110d; border-color:var(--amber); font-weight:800; }
 
-/* Toggle jour : aujourd'hui / demain */
-.slot-day-btn {
-  padding:10px;
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:8px;
-  color:var(--cream-dim);
-  font-size:13px;
-  font-weight:600;
-  cursor:pointer;
-  text-align:center;
-  font-family:inherit;
-  transition:all 0.18s;
+/* "Quand voulez-vous récupérer ?" - 2 boutons rapides */
+.when-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
-.slot-day-btn.active {
-  background:linear-gradient(180deg, #95b85e, #7a9a4d);
-  color:#fff;
-  border-color:#7a9a4d;
-  font-weight:700;
+.when-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px 10px;
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  color: var(--cream-dim);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 88px;
 }
+.when-btn:active { transform: scale(0.97); }
+.when-btn-icon {
+  font-size: 26px;
+  line-height: 1;
+  filter: grayscale(0.4);
+  transition: filter 0.2s;
+}
+.when-btn-text {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.when-btn-hint {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.when-btn.active {
+  background: linear-gradient(180deg, rgba(149,184,94,0.18), rgba(122,154,77,0.12));
+  border-color: var(--green-bright);
+  color: var(--cream);
+  box-shadow: 0 4px 14px rgba(122,154,77,0.18);
+}
+.when-btn.active .when-btn-icon { filter: grayscale(0); }
+.when-btn.active .when-btn-hint { color: rgba(255,248,231,0.5); }
 .order-confirm { text-align:center; padding:30px 20px; }
 .order-confirm-icon { width:80px; height:80px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:40px; color:white; box-shadow:0 8px 24px rgba(122,154,77,0.4); }
 .order-confirm-num { font-size:32px; font-weight:900; color:var(--amber); margin:8px 0; }
@@ -1275,7 +1303,7 @@ function safeJsonParse(json, fallback) {
 function formatItemOptions(opts) {
   if (!opts) return '';
   const parts = [];
-  if (opts.base && opts.base.label) parts.push(opts.base.label);
+  // ★ Base pizza supprimée de la PWA : si ancienne commande l'a, on l'ignore
   if (opts.menu && opts.menu.label && opts.menu.label !== 'Sans menu') parts.push(opts.menu.label);
   if (opts.meat && opts.meat.label) parts.push('Viande : ' + opts.meat.label);
   if (Array.isArray(opts.meats) && opts.meats.length) {
@@ -1821,10 +1849,7 @@ function renderProductOptionsModal() {
     html += _renderRadioBlock(sectionTitle, c.bread, opts.bread, 'opt-bread',
       it => ({ label: it.label, price: it.price || 0 }), 'bread');
   }
-  if (Array.isArray(c.base) && c.base.length) {
-    html += _renderRadioBlock('Base', c.base, opts.base, 'opt-base',
-      it => ({ label: it.label, price: it.price || 0 }), 'base');
-  }
+  // ★ Base pizza (Sauce tomate / Crème fraîche) supprimée : le client la précise dans la note
 
   // 2) Panini : choix Menu (oui/non)
   if (Array.isArray(c.menu) && c.menu.length) {
@@ -2521,15 +2546,20 @@ function renderCartModal() {
     <div class="cart-totals"><div class="total-line grand"><span>TOTAL</span><span>${fmt(total)}</span></div></div>
     ${formHtml}
     <div class="order-form-row">
-      <div class="order-form-label">Pour quand ?</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
-        <button class="slot-day-btn ${!_orderForTomorrow ? 'active' : ''}" data-day="today" type="button">📅 Aujourd'hui</button>
-        <button class="slot-day-btn ${_orderForTomorrow ? 'active' : ''}" data-day="tomorrow" type="button">⏭ Demain</button>
+      <div class="order-form-label">Quand voulez-vous récupérer ?</div>
+      <div class="when-options">
+        <button class="when-btn active" data-when="asap" type="button">
+          <span class="when-btn-icon">⚡</span>
+          <span class="when-btn-text">Dès que possible</span>
+        </button>
+        <button class="when-btn" data-when="later" type="button">
+          <span class="when-btn-icon">🕐</span>
+          <span class="when-btn-text">Plus tard</span>
+          <span class="when-btn-hint">(préciser dans note)</span>
+        </button>
       </div>
-      <div class="order-form-label">Heure souhaitée</div>
-      <div id="slotGridContainer">${slotsHtml}</div>
     </div>
-    <div class="order-form-row"><div class="order-form-label">Note (optionnel)</div><input type="text" id="orderNote" class="order-form-input" placeholder="Ex : sans oignons..."></div>
+    <div class="order-form-row"><div class="order-form-label">Note (optionnel)</div><input type="text" id="orderNote" class="order-form-input" placeholder="Ex : sans oignons, pour 20h15..."></div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn-secondary" style="flex:1" id="cartCancelBtn">Modifier</button>
       <button class="btn-primary" id="btnSendOrder" style="flex:2">Envoyer</button>
@@ -2545,42 +2575,17 @@ function renderCartModal() {
       changeQty(it.id, btn.dataset.act === 'inc' ? 1 : -1);
     });
   });
-  // Listeners slots
-  document.querySelectorAll('#slotGrid .slot-chip').forEach(btn => {
+  // Listeners "Quand" (Dès que possible / Plus tard)
+  document.querySelectorAll('.when-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      selectedSlot = btn.dataset.slot;
-      document.querySelectorAll('#slotGrid .slot-chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.when-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      _orderForTomorrow = false;  // jamais "demain" : si "Plus tard", c'est dans la note
+      selectedSlot = btn.dataset.when === 'asap' ? 'asap' : 'later';
     });
   });
-  // Listeners aujourd'hui/demain
-  document.querySelectorAll('.slot-day-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const wantTomorrow = btn.dataset.day === 'tomorrow';
-      if (wantTomorrow === _orderForTomorrow) return;
-      _orderForTomorrow = wantTomorrow;
-      selectedSlot = null;
-      // Re-render uniquement la zone slots
-      const slots = generateSlots(_orderForTomorrow);
-      document.querySelectorAll('.slot-day-btn').forEach(b => b.classList.toggle('active', b.dataset.day === btn.dataset.day));
-      const container = document.getElementById('slotGridContainer');
-      if (container) {
-        if (slots.length > 0) {
-          container.innerHTML = `<div class="slot-grid" id="slotGrid">${slots.map(s => `<button class="slot-chip" data-slot="${s}">${s}</button>`).join('')}</div>`;
-          container.querySelectorAll('.slot-chip').forEach(b2 => {
-            b2.addEventListener('click', () => {
-              selectedSlot = b2.dataset.slot;
-              container.querySelectorAll('.slot-chip').forEach(c => c.classList.remove('active'));
-              b2.classList.add('active');
-            });
-          });
-        } else {
-          const lbl = _orderForTomorrow ? 'demain' : "aujourd'hui";
-          container.innerHTML = `<div style="font-size:12px;color:var(--cream-dim);padding:10px;background:var(--surface);border-radius:8px;text-align:center">Aucun créneau disponible ${lbl}</div>`;
-        }
-      }
-    });
-  });
+  // Slot par défaut : ASAP
+  selectedSlot = 'asap';
   // Boutons modale
   $('cartCancelBtn').addEventListener('click', closeModal);
   $('btnSendOrder').addEventListener('click', sendOrder);
@@ -2721,7 +2726,7 @@ async function sendOrder() {
     return _sendOrderTableMode();
   }
 
-  if (!selectedSlot) { toast('Choisissez une heure'); return; }
+  // Pas de check selectedSlot car défini par défaut à 'asap'
 
   // Récupération des infos selon le mode
   let address = '', table = '';
@@ -2769,14 +2774,18 @@ async function sendOrder() {
         qty: i.qty,
         options: i.options || null  // Options choisies (taille, sauces, suppléments, sans..., boisson, commentaire)
       })),
-      slot: selectedSlot,
-      forTomorrow: !!_orderForTomorrow,
-      // Pré-commande J+1 : timestamp ISO du créneau prévu (utile pour la caisse)
+      slot: selectedSlot === 'asap' ? 'Dès que possible' : (selectedSlot === 'later' ? 'Plus tard (voir note)' : selectedSlot),
+      forTomorrow: false,
+      // scheduledFor : pour ASAP, estimation selon le type de commande
+      //   - Livraison : 45 min
+      //   - À emporter / sur place : 30 min (entre 25 et 40 min)
+      // Pour "later" : heure actuelle, le resto verra la note avec l'heure réelle
       scheduledFor: (() => {
         const d = new Date();
-        if (_orderForTomorrow) d.setDate(d.getDate() + 1);
-        const [h, m] = (selectedSlot || '12:00').split(':').map(Number);
-        d.setHours(h, m, 0, 0);
+        if (selectedSlot === 'asap') {
+          const delay = currentOrderMode === 'livraison' ? 45 : 30;
+          d.setMinutes(d.getMinutes() + delay);
+        }
         return d.toISOString();
       })(),
       note: note,
@@ -2802,7 +2811,7 @@ async function sendOrder() {
       <div class="order-confirm-icon">✓</div>
       <div style="font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700">Commande envoyée</div>
       <div class="order-confirm-num">N° ${data.number}</div>
-      <div class="order-confirm-txt">Votre commande a bien été reçue !<br><br>Le restaurant va la confirmer.<br>Vous recevrez un <strong style="color:var(--amber)">SMS</strong> dès que c'est validé.<br><br><strong>${selectedSlot}</strong></div>
+      <div class="order-confirm-txt">Votre commande a bien été reçue !<br><br>Le restaurant va la confirmer.<br>Vous recevrez un <strong style="color:var(--amber)">SMS</strong> dès que c'est validé.</div>
       <button class="btn-primary" id="orderConfirmBackBtn">Voir le suivi</button>
     </div>`;
     $('orderConfirmBackBtn').addEventListener('click', () => { closeModal(); switchPage('tracking'); });
@@ -3216,7 +3225,28 @@ function renderOrderCard(o) {
     </div>
   </div>`;
 
-  const etaHtml = eta ? `<div class="ord-eta">⏱ Prévu vers <strong>${eta}</strong></div>` : '';
+  // ETA : texte adapté selon le slot
+  // - "Dès que possible" → "Prêt vers HH:MM (~X min)"
+  // - "Plus tard (voir note)" → "Heure dans votre note"
+  // - Heure précise (ancien format) → "Prévu vers HH:MM"
+  let etaHtml = '';
+  if (o.slot === 'Plus tard (voir note)' || o.slot === 'later') {
+    etaHtml = `<div class="ord-eta">📝 <strong>Heure précisée dans votre note</strong></div>`;
+  } else if (eta) {
+    const isAsap = o.slot === 'Dès que possible' || o.slot === 'asap';
+    if (isAsap && o.scheduledFor) {
+      // Calcul du temps restant approximatif
+      const target = new Date(o.scheduledFor).getTime();
+      const diffMin = Math.max(0, Math.round((target - Date.now()) / 60000));
+      if (diffMin > 0 && diffMin < 120) {
+        etaHtml = `<div class="ord-eta">⏱ Prêt vers <strong>${eta}</strong> · <span style="color:var(--cream-dim)">~${diffMin} min</span></div>`;
+      } else {
+        etaHtml = `<div class="ord-eta">⏱ Prêt vers <strong>${eta}</strong></div>`;
+      }
+    } else {
+      etaHtml = `<div class="ord-eta">⏱ Prévu vers <strong>${eta}</strong></div>`;
+    }
+  }
 
   // Items
   const itemsCount = (o.items || []).length;
