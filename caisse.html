@@ -12299,7 +12299,7 @@
   /* ═══ PARAMÈTRES V2 — Navigation par catégories ═══ */
   .settings-v2-wrap {
     display: grid;
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 250px 1fr;
     gap: 18px;
     margin-top: 14px;
     align-items: start;
@@ -12307,62 +12307,102 @@
   .settings-v2-sidebar {
     position: sticky;
     top: 12px;
-    background: rgba(31, 26, 20, 0.6);
+    background: linear-gradient(180deg, rgba(31, 26, 20, 0.7), rgba(31, 26, 20, 0.5));
     border: 1px solid var(--line, rgba(212,160,86,0.12));
-    border-radius: 14px;
-    padding: 12px 10px;
+    border-radius: 16px;
+    padding: 14px 12px;
     align-self: start;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   }
   .settings-v2-search {
     width: 100%;
     box-sizing: border-box;
-    background: rgba(20, 17, 13, 0.6);
+    background: rgba(20, 17, 13, 0.7);
     border: 1px solid var(--line, rgba(212,160,86,0.12));
     color: inherit;
-    padding: 9px 12px;
-    border-radius: 9px;
+    padding: 10px 14px;
+    border-radius: 10px;
     font-size: 13px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     font-family: inherit;
+    transition: all 0.2s ease;
   }
   .settings-v2-search:focus {
     outline: none;
     border-color: var(--amber, #d4a056);
+    background: rgba(20, 17, 13, 0.9);
+    box-shadow: 0 0 0 3px rgba(212, 160, 86, 0.15);
   }
   .settings-v2-nav {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
   }
   .settings-v2-cat {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 9px 11px;
+    gap: 11px;
+    padding: 11px 12px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--cream-dim, #a39481);
     text-align: left;
     cursor: pointer;
-    border-radius: 9px;
+    border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
     width: 100%;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
   }
-  .settings-v2-cat span:first-child { font-size: 16px; line-height: 1; flex-shrink: 0; }
+  .settings-v2-cat-icon {
+    font-size: 18px;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+  }
+  .settings-v2-cat-label {
+    flex: 1;
+    letter-spacing: -0.005em;
+  }
+  .settings-v2-cat-count {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--cream-dim, #a39481);
+    background: rgba(255, 255, 255, 0.06);
+    padding: 2px 7px;
+    border-radius: 100px;
+    min-width: 18px;
+    text-align: center;
+    font-feature-settings: 'tnum';
+  }
+  .settings-v2-cat-count:empty { display: none; }
   .settings-v2-cat:hover {
-    background: rgba(212, 160, 86, 0.06);
+    background: rgba(212, 160, 86, 0.08);
     color: var(--cream, #fff8e7);
   }
+  .settings-v2-cat:hover .settings-v2-cat-icon {
+    transform: scale(1.1);
+  }
   .settings-v2-cat.active {
-    background: rgba(212, 160, 86, 0.18);
+    background: linear-gradient(180deg, rgba(212, 160, 86, 0.22), rgba(212, 160, 86, 0.14));
     color: var(--amber-bright, #e8b568);
     font-weight: 700;
+    border-color: rgba(212, 160, 86, 0.25);
+    box-shadow: 0 2px 8px rgba(212, 160, 86, 0.15);
+  }
+  .settings-v2-cat.active .settings-v2-cat-count {
+    background: rgba(212, 160, 86, 0.25);
+    color: var(--amber-bright, #e8b568);
   }
   .settings-v2-content {
     min-width: 0;
+    animation: settingsV2FadeIn 0.25s ease-out;
+  }
+  @keyframes settingsV2FadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   /* Cache les sections non actives */
   .settings-v2-content .settings-section { display: none; }
@@ -12396,6 +12436,7 @@
       padding: 8px 12px;
       white-space: nowrap;
     }
+    .settings-v2-cat-count { display: none; }
   }
 
 </style>
@@ -12914,16 +12955,48 @@
         <!-- ★ NOUVELLE NAVIGATION PAR CATÉGORIES ─────────────────── -->
         <div class="settings-v2-wrap">
           <aside class="settings-v2-sidebar">
-            <input type="text" class="settings-v2-search" id="settingsV2Search" placeholder="🔍 Rechercher…" oninput="settingsV2Filter()" />
+            <input type="text" class="settings-v2-search" id="settingsV2Search" placeholder="🔍 Rechercher un réglage…" oninput="settingsV2Filter()" />
             <nav class="settings-v2-nav">
-              <button class="settings-v2-cat active" data-cat="restaurant" onclick="settingsV2SetCat('restaurant')"><span>🏪</span><span>Restaurant</span></button>
-              <button class="settings-v2-cat" data-cat="horaires" onclick="settingsV2SetCat('horaires')"><span>⏰</span><span>Horaires</span></button>
-              <button class="settings-v2-cat" data-cat="menu" onclick="settingsV2SetCat('menu')"><span>🍕</span><span>Menu & tarifs</span></button>
-              <button class="settings-v2-cat" data-cat="fidelite" onclick="settingsV2SetCat('fidelite')"><span>🏆</span><span>Fidélité & Promos</span></button>
-              <button class="settings-v2-cat" data-cat="communication" onclick="settingsV2SetCat('communication')"><span>📨</span><span>Communication</span></button>
-              <button class="settings-v2-cat" data-cat="livraison" onclick="settingsV2SetCat('livraison')"><span>🚗</span><span>Livraison</span></button>
-              <button class="settings-v2-cat" data-cat="borne" onclick="settingsV2SetCat('borne')"><span>📱</span><span>Borne & salle</span></button>
-              <button class="settings-v2-cat" data-cat="systeme" onclick="settingsV2SetCat('systeme')"><span>⚙️</span><span>Système</span></button>
+              <button class="settings-v2-cat active" data-cat="restaurant" onclick="settingsV2SetCat('restaurant')">
+                <span class="settings-v2-cat-icon">🏪</span>
+                <span class="settings-v2-cat-label">Restaurant</span>
+                <span class="settings-v2-cat-count" data-count="restaurant"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="horaires" onclick="settingsV2SetCat('horaires')">
+                <span class="settings-v2-cat-icon">⏰</span>
+                <span class="settings-v2-cat-label">Horaires</span>
+                <span class="settings-v2-cat-count" data-count="horaires"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="menu" onclick="settingsV2SetCat('menu')">
+                <span class="settings-v2-cat-icon">🍕</span>
+                <span class="settings-v2-cat-label">Menu & tarifs</span>
+                <span class="settings-v2-cat-count" data-count="menu"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="fidelite" onclick="settingsV2SetCat('fidelite')">
+                <span class="settings-v2-cat-icon">🏆</span>
+                <span class="settings-v2-cat-label">Fidélité & Promos</span>
+                <span class="settings-v2-cat-count" data-count="fidelite"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="communication" onclick="settingsV2SetCat('communication')">
+                <span class="settings-v2-cat-icon">📨</span>
+                <span class="settings-v2-cat-label">Communication</span>
+                <span class="settings-v2-cat-count" data-count="communication"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="livraison" onclick="settingsV2SetCat('livraison')">
+                <span class="settings-v2-cat-icon">🚗</span>
+                <span class="settings-v2-cat-label">Livraison</span>
+                <span class="settings-v2-cat-count" data-count="livraison"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="borne" onclick="settingsV2SetCat('borne')">
+                <span class="settings-v2-cat-icon">📱</span>
+                <span class="settings-v2-cat-label">Borne & salle</span>
+                <span class="settings-v2-cat-count" data-count="borne"></span>
+              </button>
+              <button class="settings-v2-cat" data-cat="systeme" onclick="settingsV2SetCat('systeme')">
+                <span class="settings-v2-cat-icon">⚙️</span>
+                <span class="settings-v2-cat-label">Système</span>
+                <span class="settings-v2-cat-count" data-count="systeme"></span>
+              </button>
             </nav>
           </aside>
           <div class="settings-v2-content" id="settingsV2Content">
@@ -13261,7 +13334,7 @@
 
         <div class="settings-section" data-cat="horaires">
           <div class="settings-title">⏰ Horaires d'ouverture</div>
-          <div class="settings-desc">Configure les horaires de ton restaurant pour chaque jour. Pour un service continu (sans pause), laisse vide la 2ème plage. Pour un horaire qui passe minuit (ex. 18h-1h), met simplement 01:00 en heure de fin.</div>
+          <div class="settings-desc">Configure tes horaires jour par jour. <strong style="color:var(--amber-bright,#e8b568)">Tu peux activer le midi sans le soir (ou l'inverse)</strong> grâce aux cases à cocher 🟦 devant chaque service. Pour un horaire qui passe minuit (ex. 18h-1h), met simplement 01:00 en heure de fin.</div>
           <div id="openHoursContainer" style="display:flex;flex-direction:column;gap:6px;margin-top:14px"></div>
           <div class="settings-row" style="margin-top:14px">
             <button class="btn" onclick="saveOpenHours()" style="background:var(--green);border-color:var(--green);color:#fff;font-weight:600">💾 Enregistrer les horaires</button>
@@ -22995,8 +23068,13 @@ function renderOpenHoursForm() {
   c.innerHTML = _DAYS.map(d => {
     const h = hours[d.key] || { open: false };
     const isOpen = !!h.open;
-    const s1 = h.service1 || { start: '', end: '' };
-    const s2 = h.service2 || { start: '', end: '' };
+    const s1 = h.service1 || null;
+    const s2 = h.service2 || null;
+    // Un service est "actif" si l'objet existe (non null)
+    const hasMidi = !!s1;
+    const hasSoir = !!s2;
+    const s1v = s1 || { start: '', end: '' };
+    const s2v = s2 || { start: '', end: '' };
     return `
       <div class="oh-row" data-day="${d.key}" style="display:grid;grid-template-columns:90px auto 1fr 1fr;gap:10px;align-items:center;padding:8px;background:var(--surface-2);border-radius:6px;${isOpen ? '' : 'opacity:0.55'}">
         <div style="font-weight:600;font-size:13px">${d.label}</div>
@@ -23004,17 +23082,31 @@ function renderOpenHoursForm() {
           <input type="checkbox" ${isOpen ? 'checked' : ''} onchange="toggleDayOpen('${d.key}', this.checked)" style="cursor:pointer">
           <span>${isOpen ? 'Ouvert' : 'Fermé'}</span>
         </label>
-        <div style="display:flex;align-items:center;gap:4px;font-size:11px">
-          <span style="color:var(--cream-dim);min-width:40px">Midi :</span>
-          <input type="time" class="oh-input" value="${s1.start || ''}" data-svc="service1" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
-          <span>→</span>
-          <input type="time" class="oh-input" value="${s1.end || ''}" data-svc="service1" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+
+        <!-- ★ Bloc Midi avec son toggle indépendant -->
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;min-width:60px">
+            <input type="checkbox" ${hasMidi ? 'checked' : ''} onchange="toggleService('${d.key}', 'service1', this.checked)" style="cursor:pointer;width:14px;height:14px">
+            <span style="color:${hasMidi ? 'var(--cream)' : 'var(--cream-dim)'};font-weight:${hasMidi ? '600' : '400'}">Midi</span>
+          </label>
+          ${hasMidi ? `
+            <input type="time" class="oh-input" value="${s1v.start}" data-svc="service1" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;flex:1">
+            <span>→</span>
+            <input type="time" class="oh-input" value="${s1v.end}" data-svc="service1" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;flex:1">
+          ` : `<span style="color:var(--cream-dim);font-style:italic;opacity:0.5;flex:1">Fermé</span>`}
         </div>
-        <div style="display:flex;align-items:center;gap:4px;font-size:11px">
-          <span style="color:var(--cream-dim);min-width:40px">Soir :</span>
-          <input type="time" class="oh-input" value="${s2.start || ''}" data-svc="service2" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
-          <span>→</span>
-          <input type="time" class="oh-input" value="${s2.end || ''}" data-svc="service2" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+
+        <!-- ★ Bloc Soir avec son toggle indépendant -->
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;${isOpen ? '' : 'pointer-events:none;opacity:0.5'}">
+          <label style="display:flex;align-items:center;gap:4px;cursor:pointer;min-width:60px">
+            <input type="checkbox" ${hasSoir ? 'checked' : ''} onchange="toggleService('${d.key}', 'service2', this.checked)" style="cursor:pointer;width:14px;height:14px">
+            <span style="color:${hasSoir ? 'var(--cream)' : 'var(--cream-dim)'};font-weight:${hasSoir ? '600' : '400'}">Soir</span>
+          </label>
+          ${hasSoir ? `
+            <input type="time" class="oh-input" value="${s2v.start}" data-svc="service2" data-field="start" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;flex:1">
+            <span>→</span>
+            <input type="time" class="oh-input" value="${s2v.end}" data-svc="service2" data-field="end" onchange="updateDayHour('${d.key}', this)" style="background:var(--surface);border:1px solid var(--line);color:var(--cream);padding:4px 6px;border-radius:4px;font-size:11px;font-family:inherit;flex:1">
+          ` : `<span style="color:var(--cream-dim);font-style:italic;opacity:0.5;flex:1">Fermé</span>`}
         </div>
       </div>`;
   }).join('');
@@ -23026,11 +23118,34 @@ function toggleDayOpen(dayKey, isOpen) {
   if (!hours[dayKey]) hours[dayKey] = { open: false };
   hours[dayKey].open = isOpen;
   if (isOpen) {
+    // Si on ouvre le jour, on active midi+soir avec horaires par défaut
     if (!hours[dayKey].service1) hours[dayKey].service1 = { start: '11:30', end: '14:30' };
     if (!hours[dayKey].service2) hours[dayKey].service2 = { start: '18:00', end: '22:30' };
   } else {
     hours[dayKey].service1 = null;
     hours[dayKey].service2 = null;
+  }
+  renderOpenHoursForm();
+}
+
+// ★ Active/désactive un service (midi ou soir) indépendamment
+function toggleService(dayKey, serviceKey, isOn) {
+  const hours = getOpenHours();
+  if (!hours[dayKey]) hours[dayKey] = { open: true };
+  if (isOn) {
+    // Active avec horaires par défaut selon le service
+    const defaults = serviceKey === 'service1'
+      ? { start: '11:30', end: '14:30' }
+      : { start: '18:00', end: '22:30' };
+    hours[dayKey][serviceKey] = defaults;
+    // Si le jour était fermé, on l'ouvre maintenant qu'un service est actif
+    hours[dayKey].open = true;
+  } else {
+    hours[dayKey][serviceKey] = null;
+    // Si les 2 services sont désactivés, le jour devient fermé
+    if (!hours[dayKey].service1 && !hours[dayKey].service2) {
+      hours[dayKey].open = false;
+    }
   }
   renderOpenHoursForm();
 }
@@ -32306,6 +32421,20 @@ setTimeout(() => {
   // Catégorie active (persistée dans localStorage)
   let _currentCat = localStorage.getItem('le832_settings_cat') || 'restaurant';
 
+  function updateCounts() {
+    // Compte les sections de chaque catégorie
+    const counts = {};
+    document.querySelectorAll('#settingsV2Content .settings-section').forEach(s => {
+      const cat = s.dataset.cat;
+      if (cat) counts[cat] = (counts[cat] || 0) + 1;
+    });
+    document.querySelectorAll('.settings-v2-cat-count').forEach(el => {
+      const cat = el.dataset.count;
+      const n = counts[cat] || 0;
+      el.textContent = n > 0 ? String(n) : '';
+    });
+  }
+
   function showCat(cat) {
     _currentCat = cat;
     localStorage.setItem('le832_settings_cat', cat);
@@ -32313,6 +32442,13 @@ setTimeout(() => {
     document.querySelectorAll('.settings-v2-cat').forEach(b => {
       b.classList.toggle('active', b.dataset.cat === cat);
     });
+    // Re-déclenche l'animation en re-appliquant la classe au container
+    const content = document.getElementById('settingsV2Content');
+    if (content) {
+      content.style.animation = 'none';
+      content.offsetHeight; // reflow
+      content.style.animation = '';
+    }
     // Affiche les sections de cette catégorie
     const empty = document.getElementById('settingsV2Empty');
     let count = 0;
@@ -32357,9 +32493,9 @@ setTimeout(() => {
     filterByQuery(search ? search.value : '');
   };
 
-  // Init au chargement : affiche la dernière catégorie sélectionnée
+  // Init au chargement : compteurs + affichage de la dernière catégorie
   function init() {
-    // Si l'utilisateur ouvre l'onglet Paramètres, on initialise l'affichage
+    updateCounts();
     showCat(_currentCat);
   }
   if (document.readyState === 'loading') {
