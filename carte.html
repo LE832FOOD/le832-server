@@ -855,13 +855,128 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
 .order-confirm-icon { width:80px; height:80px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:40px; color:white; box-shadow:0 8px 24px rgba(122,154,77,0.4); }
 .order-confirm-num { font-size:32px; font-weight:900; color:var(--amber); margin:8px 0; }
 .order-confirm-txt { font-size:14px; color:var(--cream-dim); line-height:1.6; margin-bottom:20px; }
-.level-card { background:var(--surface); border-radius:16px; padding:20px; margin-bottom:16px; border:1px solid var(--line); }
-.level-card-current { text-align:center; margin-bottom:14px; }
-.level-card-icon { font-size:44px; margin-bottom:8px; line-height:1; }
-.level-card-name { font-size:18px; font-weight:800; margin-bottom:4px; }
-.level-card-progress { background:rgba(255,255,255,0.06); height:8px; border-radius:4px; overflow:hidden; }
-.level-card-progress-bar { height:100%; background:linear-gradient(90deg,var(--amber),var(--amber-bright)); border-radius:4px; transition:width 0.6s; }
-.level-card-progress-text { font-size:11px; color:var(--cream-dim); text-align:center; margin-top:8px; }
+/* ═══ PAGE MES POINTS — Style Apple sobre + premium ═══ */
+.level-hero {
+  background: linear-gradient(155deg, rgba(31,26,20,0.95), rgba(42,35,27,0.9), rgba(31,26,20,0.95));
+  border: 1px solid rgba(212,160,86,0.22);
+  border-radius: 24px;
+  padding: 24px 20px 22px;
+  margin-bottom: 18px;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
+}
+.level-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -30%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(212,160,86,0.08), transparent 70%);
+  pointer-events: none;
+}
+.level-hero-ring-wrap {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.level-hero-ring {
+  position: absolute;
+  inset: 0;
+}
+.level-hero-ring circle:nth-child(2) {
+  transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1);
+  filter: drop-shadow(0 0 8px rgba(212,160,86,0.4));
+}
+.level-hero-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.level-hero-icon {
+  font-size: 38px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.level-hero-points {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--amber-bright);
+  line-height: 1;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.03em;
+}
+.level-hero-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cream-dim);
+  letter-spacing: 0.16em;
+  margin-top: 2px;
+}
+.level-hero-name {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+.level-hero-progress-text {
+  font-size: 12px;
+  color: var(--cream-dim);
+  line-height: 1.4;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
+/* Stats en 2 colonnes */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  padding: 16px 12px;
+  text-align: center;
+  transition: transform 0.15s ease;
+}
+.stat-card:active { transform: scale(0.97); }
+.stat-card-icon {
+  font-size: 24px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-card-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--cream);
+  letter-spacing: -0.02em;
+  font-feature-settings: 'tnum';
+  margin-bottom: 2px;
+}
+.stat-card-lbl {
+  font-size: 10.5px;
+  color: var(--cream-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+
+/* Ancien level-card supprimé, on garde la classe pour compat mais inutilisée */
+.level-card { display: none; }
+
+
 .reward-item { background:var(--surface); border-radius:12px; padding:14px 16px; margin-bottom:8px; display:flex; align-items:center; gap:12px; border:1px solid var(--line-soft); }
 .reward-item.unlocked { border-color:rgba(122,154,77,0.3); background:linear-gradient(135deg,rgba(122,154,77,0.08),transparent); }
 .reward-item.locked { opacity:0.5; }
@@ -1521,24 +1636,51 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
   <section id="page-points" class="page">
     <header class="page-header" style="position:relative;background:transparent;border:none">
       <h1 class="page-title">⭐ Mes points</h1>
-      <div class="page-sub">Niveau, récompenses, progression</div>
+      <div class="page-sub">Niveau · récompenses · progression</div>
     </header>
-    <div class="level-card">
-      <div class="level-card-current">
-        <div class="level-card-icon" id="pointsLevelIcon">🥉</div>
-        <div class="level-card-name" id="pointsLevelName">Découvreur</div>
-        <div id="pointsLevelBadge"></div>
+
+    <!-- ★ HERO NIVEAU avec anneau de progression -->
+    <div class="level-hero">
+      <div class="level-hero-ring-wrap">
+        <svg class="level-hero-ring" width="148" height="148" viewBox="0 0 148 148">
+          <circle cx="74" cy="74" r="68" stroke="rgba(212,160,86,0.12)" stroke-width="9" fill="none"/>
+          <circle id="pointsLevelRingArc" cx="74" cy="74" r="68" stroke="url(#levelRingGrad)" stroke-width="9" fill="none" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="427" transform="rotate(-90 74 74)"/>
+          <defs>
+            <linearGradient id="levelRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#e8b568"/>
+              <stop offset="100%" stop-color="#95b85e"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="level-hero-center">
+          <div class="level-hero-icon" id="pointsLevelIcon">🥉</div>
+          <div class="level-hero-points"><span id="pointsHeroNum">0</span></div>
+          <div class="level-hero-lbl">points</div>
+        </div>
       </div>
-      <div class="level-card-progress"><div class="level-card-progress-bar" id="pointsLevelBar" style="width:0%"></div></div>
-      <div class="level-card-progress-text" id="pointsLevelText">—</div>
+      <div class="level-hero-name" id="pointsLevelName">Découvreur</div>
+      <div class="level-hero-progress-text" id="pointsLevelText">—</div>
+      <div id="pointsLevelBadge" style="display:none"></div>
     </div>
+
+    <!-- 📊 STATS en 2 colonnes -->
+    <div class="section-title">📈 Mes statistiques</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-icon">🛒</div>
+        <div class="stat-card-num" id="statsOrderCount">0</div>
+        <div class="stat-card-lbl">Visites</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-icon">💶</div>
+        <div class="stat-card-num" id="statsTotalSpent">0 €</div>
+        <div class="stat-card-lbl">Dépensé</div>
+      </div>
+    </div>
+
+    <!-- 🎁 RÉCOMPENSES -->
     <div class="section-title">🎁 Mes récompenses</div>
     <div id="rewardsList"></div>
-    <div class="section-title">📈 Mes statistiques</div>
-    <div class="profile-section">
-      <div class="profile-row"><div class="profile-label">Visites</div><div class="profile-value" id="statsOrderCount">0</div></div>
-      <div class="profile-row"><div class="profile-label">Total dépensé</div><div class="profile-value" id="statsTotalSpent">0,00 €</div></div>
-    </div>
   </section>
   <section id="page-account" class="page">
     <header class="page-header" style="position:relative;background:transparent;border:none">
@@ -3911,17 +4053,35 @@ function updatePointsUI() {
   const level = getLevel(points);
   $('pointsLevelIcon').textContent = level.icon;
   $('pointsLevelName').textContent = level.name;
-  $('pointsLevelBadge').innerHTML = `<span class="level-badge ${level.class}">${level.icon} ${level.name}</span>`;
+  // Met à jour le nombre de points au centre de l'anneau
+  const heroNum = document.getElementById('pointsHeroNum');
+  if (heroNum) heroNum.textContent = points;
+  // Met à jour le badge niveau si présent (compatibilité ancien template)
+  const badge = document.getElementById('pointsLevelBadge');
+  if (badge) badge.innerHTML = `<span class="level-badge ${level.class}">${level.icon} ${level.name}</span>`;
+
   const nextLevel = LEVELS.find(l => l.minPoints > points);
+  let progressPct = 1;
   if (nextLevel) {
     const range = nextLevel.minPoints - level.minPoints;
     const inLevel = points - level.minPoints;
-    $('pointsLevelBar').style.width = ((inLevel / range) * 100) + '%';
-    $('pointsLevelText').textContent = `${nextLevel.minPoints - points} points pour devenir ${nextLevel.name}`;
+    progressPct = Math.max(0, Math.min(1, inLevel / range));
+    $('pointsLevelText').textContent = `Plus que ${nextLevel.minPoints - points} points pour devenir ${nextLevel.name}`;
   } else {
-    $('pointsLevelBar').style.width = '100%';
+    progressPct = 1;
     $('pointsLevelText').textContent = '🏆 Niveau maximum atteint !';
   }
+  // Anime l'anneau de progression (style Apple Watch)
+  const ringArc = document.getElementById('pointsLevelRingArc');
+  if (ringArc) {
+    const circumference = 2 * Math.PI * 68;  // ~427
+    const offset = circumference * (1 - progressPct);
+    ringArc.setAttribute('stroke-dashoffset', String(offset));
+  }
+  // Compat ancien template
+  const oldBar = document.getElementById('pointsLevelBar');
+  if (oldBar) oldBar.style.width = (progressPct * 100) + '%';
+
   $('rewardsList').innerHTML = REWARDS.map(r => {
     const unlocked = points >= r.cost;
     return `<div class="reward-item ${unlocked ? 'unlocked' : 'locked'}">
