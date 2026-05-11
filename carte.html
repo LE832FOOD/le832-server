@@ -150,6 +150,28 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
   display: block;
   border-radius: 4px;
 }
+.loyalty-card-photo {
+  width: 100px;
+  height: 100px;
+  border-radius: 8px;
+  background-color: var(--surface-2);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  position: relative;
+}
+.loyalty-card-photo::after {
+  content: '🔢';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  background: rgba(0,0,0,0.65);
+  color: white;
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 100px;
+  line-height: 1;
+}
 .loyalty-card-stats {
   flex: 1;
   min-width: 0;
@@ -855,7 +877,454 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
 .order-confirm-icon { width:80px; height:80px; border-radius:50%; background:var(--green); display:flex; align-items:center; justify-content:center; margin:0 auto 18px; font-size:40px; color:white; box-shadow:0 8px 24px rgba(122,154,77,0.4); }
 .order-confirm-num { font-size:32px; font-weight:900; color:var(--amber); margin:8px 0; }
 .order-confirm-txt { font-size:14px; color:var(--cream-dim); line-height:1.6; margin-bottom:20px; }
-/* ═══ PAGE MES POINTS — Style Apple sobre + premium ═══ */
+/* ═══ PAGE COMPTE — Style Réglages iOS sobre + premium ═══ */
+
+/* ═══ CLASSEMENT (LEADERBOARD) — Top 3 podium + suite ═══ */
+.leaderboard-header {
+  text-align: center;
+  padding: 14px 0 18px;
+}
+.leaderboard-trophy { font-size: 44px; line-height: 1; margin-bottom: 6px; }
+.leaderboard-title {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--cream);
+}
+.leaderboard-subtitle {
+  font-size: 12px;
+  color: var(--cream-dim);
+  margin-top: 4px;
+}
+
+/* Podium top 3 */
+.podium {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 1fr;
+  gap: 8px;
+  align-items: end;
+  margin: 18px 0 20px;
+}
+.podium-spot {
+  position: relative;
+  background: linear-gradient(180deg, rgba(31,26,20,0.9), rgba(31,26,20,0.6));
+  border: 1px solid var(--line);
+  border-radius: 14px 14px 8px 8px;
+  padding: 12px 8px 14px;
+  text-align: center;
+}
+.podium-spot--1 {
+  border-color: rgba(255,215,0,0.45);
+  background: linear-gradient(180deg, rgba(255,215,0,0.12), rgba(31,26,20,0.6));
+  box-shadow: 0 8px 24px rgba(255,215,0,0.18);
+  padding-top: 16px;
+}
+.podium-spot--2 {
+  border-color: rgba(192,192,192,0.4);
+  background: linear-gradient(180deg, rgba(192,192,192,0.1), rgba(31,26,20,0.6));
+}
+.podium-spot--3 {
+  border-color: rgba(205,127,50,0.45);
+  background: linear-gradient(180deg, rgba(205,127,50,0.1), rgba(31,26,20,0.6));
+}
+.podium-medal {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.podium-spot--1 .podium-medal { font-size: 38px; }
+.podium-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  background: var(--surface-2) center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--cream-dim);
+  border: 2px solid var(--line);
+}
+.podium-spot--1 .podium-avatar {
+  width: 56px;
+  height: 56px;
+  border-color: rgba(255,215,0,0.55);
+  font-size: 22px;
+}
+.podium-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.podium-spot--1 .podium-name { font-size: 13px; }
+.podium-amount {
+  font-size: 11px;
+  color: var(--amber-bright);
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+}
+.podium-me-badge {
+  display: inline-block;
+  background: var(--amber);
+  color: #14110d;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 100px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+/* Liste rangs 4-10 */
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rank-item {
+  display: grid;
+  grid-template-columns: 32px 40px 1fr;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.rank-item--me {
+  background: rgba(212,160,86,0.12);
+  border-color: rgba(212,160,86,0.4);
+}
+.rank-number {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--cream-dim);
+  font-feature-settings: 'tnum';
+}
+.rank-item--me .rank-number { color: var(--amber); }
+.rank-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface-2) center / cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cream-dim);
+}
+.rank-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rank-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--amber-bright);
+  font-feature-settings: 'tnum';
+}
+
+.leaderboard-me-out {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(212,160,86,0.12), rgba(212,160,86,0.04));
+  border: 1px solid rgba(212,160,86,0.3);
+  border-radius: 12px;
+  font-size: 12px;
+  color: var(--cream);
+  text-align: center;
+}
+.leaderboard-me-out strong { color: var(--amber); font-feature-settings: 'tnum'; }
+
+.leaderboard-anonymous-cta {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  font-size: 11.5px;
+  color: var(--cream-dim);
+  text-align: center;
+  line-height: 1.5;
+}
+.leaderboard-anonymous-cta strong { color: var(--cream); }
+
+
+.ios-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 30px;
+  flex-shrink: 0;
+}
+.ios-switch input { opacity: 0; width: 0; height: 0; }
+.ios-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background: #3a3328;
+  border-radius: 100px;
+  transition: background 0.25s ease;
+}
+.ios-switch-slider::before {
+  position: absolute;
+  content: '';
+  width: 26px;
+  height: 26px;
+  left: 2px;
+  top: 2px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.ios-switch input:checked + .ios-switch-slider {
+  background: #34c759;
+}
+.ios-switch input:checked + .ios-switch-slider::before {
+  transform: translateX(20px);
+}
+
+/* Settings toggle row */
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.settings-toggle-row:last-child { border-bottom: none; }
+.settings-toggle-info { flex: 1; min-width: 0; }
+.settings-toggle-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: -0.01em;
+  margin-bottom: 3px;
+}
+.settings-toggle-sub {
+  font-size: 11.5px;
+  color: var(--cream-dim);
+  line-height: 1.35;
+}
+
+/* Avatar (button avec photo) */
+.account-avatar {
+  position: relative;
+  border: none;
+  cursor: pointer;
+  background-size: cover !important;
+  background-position: center !important;
+  padding: 0;
+  font-family: inherit;
+}
+.account-avatar.has-photo {
+  background: var(--surface) center / cover no-repeat;
+  color: transparent;
+}
+.account-avatar.has-photo::after {
+  content: '📷';
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  background: var(--surface);
+  border: 2px solid var(--bg-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.account-avatar:not(.has-photo)::after {
+  content: '📷';
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  width: 24px;
+  height: 24px;
+  background: var(--surface);
+  border: 2px solid var(--bg-2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+/* Hero du compte : avatar + nom */
+.account-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  background: linear-gradient(155deg, rgba(31,26,20,0.95), rgba(42,35,27,0.85));
+  border: 1px solid rgba(212,160,86,0.22);
+  border-radius: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+  position: relative;
+  overflow: hidden;
+}
+.account-hero::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -20%;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(212,160,86,0.08), transparent 70%);
+  pointer-events: none;
+}
+.account-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--amber-bright), var(--amber));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  color: #14110d;
+  flex-shrink: 0;
+  box-shadow: 0 6px 18px rgba(212,160,86,0.35);
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+.account-hero-info {
+  flex: 1;
+  min-width: 0;
+}
+.account-hero-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-hero-phone {
+  font-size: 12px;
+  color: var(--cream-dim);
+  letter-spacing: 0.04em;
+  font-feature-settings: 'tnum';
+  margin-bottom: 8px;
+}
+.account-hero-level-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+  background: rgba(212,160,86,0.15);
+  color: var(--amber-bright);
+  letter-spacing: 0.02em;
+}
+.account-hero-level-pill:empty { display: none; }
+
+/* Liste réglages style iOS Settings */
+.settings-list {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+.settings-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line-soft);
+  position: relative;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.settings-row-input {
+  background: transparent;
+  border: none;
+  color: var(--cream);
+  font-size: 15px;
+  font-family: inherit;
+  padding: 2px 0;
+  width: 100%;
+  letter-spacing: -0.01em;
+}
+.settings-row-input:focus {
+  outline: none;
+}
+.settings-row-input::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+.settings-row-value {
+  font-size: 15px;
+  color: var(--cream);
+  letter-spacing: -0.01em;
+  font-feature-settings: 'tnum';
+}
+.settings-row--readonly .settings-row-label {
+  color: var(--muted);
+}
+
+/* Boutons action style iOS row */
+.settings-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line-soft);
+  color: var(--cream);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 0.15s ease;
+}
+.settings-action-btn:last-child { border-bottom: none; }
+.settings-action-btn:active { background: rgba(255,255,255,0.04); }
+.settings-action-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.settings-action-label {
+  flex: 1;
+  letter-spacing: -0.01em;
+}
+.settings-action-arrow {
+  font-size: 20px;
+  color: var(--muted);
+  line-height: 1;
+  font-weight: 400;
+}
+
+
 .level-hero {
   background: linear-gradient(155deg, rgba(31,26,20,0.95), rgba(42,35,27,0.9), rgba(31,26,20,0.95));
   border: 1px solid rgba(212,160,86,0.22);
@@ -1685,24 +2154,94 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
   <section id="page-account" class="page">
     <header class="page-header" style="position:relative;background:transparent;border:none">
       <h1 class="page-title">👤 Mon compte</h1>
-      <div class="page-sub">Infos personnelles</div>
+      <div class="page-sub">Infos personnelles · historique</div>
     </header>
-    <div class="section-title">📝 Informations</div>
-    <div class="profile-section">
-      <div class="profile-row"><div class="profile-label">Prénom</div><input class="profile-input" id="profileFirstName" type="text" placeholder="—" onblur="saveProfile()"></div>
-      <div class="profile-row"><div class="profile-label">Nom</div><input class="profile-input" id="profileLastName" type="text" placeholder="—" onblur="saveProfile()"></div>
-      <div class="profile-row"><div class="profile-label">Téléphone</div><div class="profile-value" id="profilePhone">—</div></div>
-      <div class="profile-row"><div class="profile-label">Email</div><input class="profile-input" id="profileEmail" type="email" placeholder="—" onblur="saveProfile()"></div>
-      <div class="profile-row"><div class="profile-label">Anniversaire</div><input class="profile-input" id="profileBirthday" type="date" onblur="saveProfile()"></div>
-      <div class="profile-row"><div class="profile-label">Adresse</div><input class="profile-input" id="profileAddress" type="text" placeholder="Adresse" onblur="saveProfile()"></div>
+
+    <!-- ★ HERO COMPTE : avatar + nom + niveau -->
+    <div class="account-hero">
+      <button class="account-avatar" id="accountAvatar" onclick="document.getElementById('photoFileInput').click()" aria-label="Changer ma photo">?</button>
+      <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
+      <div class="account-hero-info">
+        <div class="account-hero-name" id="accountHeroName">—</div>
+        <div class="account-hero-phone" id="accountHeroPhone">—</div>
+        <div class="account-hero-level-pill" id="accountHeroLevel"></div>
+      </div>
     </div>
-    <div class="section-title">📜 Historique</div>
+
+    <!-- ★ INFOS PERSONNELLES — style Réglages iOS -->
+    <div class="section-title">📝 Mes informations</div>
+    <div class="settings-list">
+      <div class="settings-row">
+        <label for="profileFirstName" class="settings-row-label">Prénom</label>
+        <input class="settings-row-input" id="profileFirstName" type="text" placeholder="—" onblur="saveProfile()">
+      </div>
+      <div class="settings-row">
+        <label for="profileLastName" class="settings-row-label">Nom</label>
+        <input class="settings-row-input" id="profileLastName" type="text" placeholder="—" onblur="saveProfile()">
+      </div>
+      <div class="settings-row settings-row--readonly">
+        <span class="settings-row-label">Téléphone</span>
+        <span class="settings-row-value" id="profilePhone">—</span>
+      </div>
+      <div class="settings-row">
+        <label for="profileEmail" class="settings-row-label">Email</label>
+        <input class="settings-row-input" id="profileEmail" type="email" placeholder="—" onblur="saveProfile()">
+      </div>
+      <div class="settings-row">
+        <label for="profileBirthday" class="settings-row-label">Anniversaire</label>
+        <input class="settings-row-input" id="profileBirthday" type="date" onblur="saveProfile()">
+      </div>
+      <div class="settings-row">
+        <label for="profileAddress" class="settings-row-label">Adresse</label>
+        <input class="settings-row-input" id="profileAddress" type="text" placeholder="Adresse" onblur="saveProfile()">
+      </div>
+    </div>
+
+    <!-- ★ PRÉFÉRENCES — toggles iOS -->
+    <div class="section-title">🎛 Préférences</div>
+    <div class="settings-list">
+      <div class="settings-toggle-row">
+        <div class="settings-toggle-info">
+          <div class="settings-toggle-title">Afficher ma photo sur la carte</div>
+          <div class="settings-toggle-sub">Remplace le QR code par votre photo. Le QR reste accessible en cliquant dessus.</div>
+        </div>
+        <label class="ios-switch">
+          <input type="checkbox" id="togglePhotoOnCard" onchange="togglePhotoOnCard()">
+          <span class="ios-switch-slider"></span>
+        </label>
+      </div>
+      <div class="settings-toggle-row">
+        <div class="settings-toggle-info">
+          <div class="settings-toggle-title">Apparaître dans le classement 🏆</div>
+          <div class="settings-toggle-sub">Vos meilleurs clients sont mis à l'honneur. Si désactivé, vous restez anonyme.</div>
+        </div>
+        <label class="ios-switch">
+          <input type="checkbox" id="toggleInLeaderboard" onchange="toggleInLeaderboard()">
+          <span class="ios-switch-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ★ HISTORIQUE -->
+    <div class="section-title">📜 Mes dernières commandes</div>
     <div id="historyList"></div>
-    <div class="section-title">⚙ Paramètres</div>
-    <div class="profile-section">
-      <button class="btn-secondary" onclick="logout()" style="margin-bottom:0">🚪 Changer de compte</button>
+
+    <!-- ★ ACTIONS -->
+    <div class="section-title">⚙ Actions</div>
+    <div class="settings-list">
+      <button class="settings-action-btn" onclick="openLeaderboardModal()">
+        <span class="settings-action-icon">🏆</span>
+        <span class="settings-action-label">Voir le classement</span>
+        <span class="settings-action-arrow">›</span>
+      </button>
+      <button class="settings-action-btn" onclick="logout()">
+        <span class="settings-action-icon">🚪</span>
+        <span class="settings-action-label">Changer de compte</span>
+        <span class="settings-action-arrow">›</span>
+      </button>
     </div>
-    <div class="footer-credit">Version 2.0 · LE 832 FOOD</div>
+
+    <div class="footer-credit">LE 832 FOOD · v2.0</div>
   </section>
   <nav class="bottom-nav">
     <div class="bottom-nav-inner">
@@ -4046,6 +4585,40 @@ function updateHomeUI() {
   }
   const level = getLevel(points);
   $('cardLevelBadge').innerHTML = `<span class="level-badge ${level.class}">${level.icon} ${level.name}</span>`;
+
+  // ★ Affiche photo OU QR sur la carte fidélité selon préférence
+  const qrEl = document.querySelector('.loyalty-card-qr');
+  if (qrEl) {
+    if (currentInfo.showPhotoOnCard && currentInfo.photo) {
+      // Mode photo : remplace le QR par la photo, taille identique, clic pour revoir le QR
+      qrEl.innerHTML = `<div class="loyalty-card-photo" style="background-image:url('${currentInfo.photo}')" onclick="showQrModal()" title="Toucher pour voir le QR"></div>`;
+    } else {
+      // Mode QR (par défaut) : conserve l'image QR
+      if (!qrEl.querySelector('#cardQR')) {
+        qrEl.innerHTML = '<img id="cardQR" alt="QR" />';
+        const qrData = encodeURIComponent('FLAMME:' + currentPhone);
+        document.getElementById('cardQR').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${qrData}`;
+      }
+    }
+  }
+}
+
+// Modale pour voir le QR en grand quand la photo masque le QR sur la carte
+function showQrModal() {
+  const overlay = $('modalOverlay');
+  const qrData = encodeURIComponent('FLAMME:' + currentPhone);
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:340px;text-align:center">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">×</button>
+      <div style="padding:8px 0 4px">
+        <div style="font-size:16px;font-weight:800;margin-bottom:14px">Votre QR de fidélité</div>
+        <div style="background:white;padding:16px;border-radius:16px;display:inline-block;box-shadow:0 8px 22px rgba(0,0,0,0.4)">
+          <img alt="QR" style="width:220px;height:220px;display:block" src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${qrData}" />
+        </div>
+        <div style="font-size:12px;color:var(--cream-dim);margin-top:14px">Présentez ce code en caisse pour cumuler vos points</div>
+      </div>
+    </div>`;
+  overlay.classList.add('show');
 }
 
 function updatePointsUI() {
@@ -4095,6 +4668,41 @@ function updatePointsUI() {
 }
 
 function updateAccountUI() {
+  // ★ Hero du compte : avatar avec initiales + nom + niveau
+  const firstName = (currentInfo.firstName || '').trim();
+  const lastName = (currentInfo.lastName || '').trim();
+  const fullName = (firstName + ' ' + lastName).trim() || 'Client';
+  const initials = (firstName.charAt(0) + lastName.charAt(0)).toUpperCase() || '?';
+  const avatarEl = document.getElementById('accountAvatar');
+  if (avatarEl) {
+    if (currentInfo.photo) {
+      avatarEl.classList.add('has-photo');
+      avatarEl.style.backgroundImage = `url('${currentInfo.photo}')`;
+      avatarEl.textContent = '';
+    } else {
+      avatarEl.classList.remove('has-photo');
+      avatarEl.style.backgroundImage = '';
+      avatarEl.textContent = initials;
+    }
+  }
+  const heroNameEl = document.getElementById('accountHeroName');
+  if (heroNameEl) heroNameEl.textContent = fullName;
+  const heroPhoneEl = document.getElementById('accountHeroPhone');
+  if (heroPhoneEl) heroPhoneEl.textContent = currentInfo.phone || currentPhone || '—';
+  const heroLevelEl = document.getElementById('accountHeroLevel');
+  if (heroLevelEl) {
+    const points = currentInfo.points || 0;
+    const level = getLevel(points);
+    heroLevelEl.textContent = `${level.icon} ${level.name}`;
+  }
+
+  // ★ État des toggles
+  const togglePhoto = document.getElementById('togglePhotoOnCard');
+  if (togglePhoto) togglePhoto.checked = !!currentInfo.showPhotoOnCard;
+  const toggleLb = document.getElementById('toggleInLeaderboard');
+  if (toggleLb) toggleLb.checked = !!currentInfo.inLeaderboard;
+
+  // Champs éditables
   $('profileFirstName').value = currentInfo.firstName || '';
   $('profileLastName').value = currentInfo.lastName || '';
   $('profilePhone').textContent = currentInfo.phone || currentPhone;
@@ -4133,6 +4741,187 @@ function saveProfile() {
       })
     });
   } catch (e) {}
+}
+
+// ═══ PHOTO DE PROFIL ═══
+async function uploadProfilePhoto(input) {
+  const file = input && input.files && input.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    toast('⚠️ Veuillez choisir une image');
+    return;
+  }
+  if (file.size > 8 * 1024 * 1024) {
+    toast('⚠️ Image trop lourde (max 8 Mo)');
+    return;
+  }
+  toast('📷 Compression de la photo…');
+  try {
+    // Charger l'image et la compresser à 300x300 max
+    const img = await new Promise((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = URL.createObjectURL(file);
+    });
+    const maxSize = 300;
+    const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+    const w = Math.round(img.width * ratio);
+    const h = Math.round(img.height * ratio);
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    // Compression progressive jusqu'à <250 Ko
+    let quality = 0.85;
+    let dataUrl = canvas.toDataURL('image/jpeg', quality);
+    while (dataUrl.length > 300000 && quality > 0.4) {
+      quality -= 0.1;
+      dataUrl = canvas.toDataURL('image/jpeg', quality);
+    }
+    URL.revokeObjectURL(img.src);
+
+    // Envoi au serveur
+    const res = await fetch(`${API_BASE}/api/customer-update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: currentPhone, photo: dataUrl })
+    });
+    if (!res.ok) throw new Error('upload failed');
+    currentInfo.photo = dataUrl;
+    updateAccountUI();
+    updateHomeUI();
+    toast('✅ Photo enregistrée');
+  } catch (e) {
+    console.warn('Photo upload error:', e);
+    toast('❌ Erreur lors de l\'upload');
+  }
+  input.value = '';  // reset l'input pour pouvoir re-uploader la même photo
+}
+
+// ═══ TOGGLE : PHOTO SUR LA CARTE FIDÉLITÉ ═══
+async function togglePhotoOnCard() {
+  const checked = $('togglePhotoOnCard').checked;
+  // Si activation mais pas de photo, on demande d'abord d'en uploader une
+  if (checked && !currentInfo.photo) {
+    $('togglePhotoOnCard').checked = false;
+    toast('📷 Ajoutez d\'abord une photo en touchant l\'avatar');
+    return;
+  }
+  currentInfo.showPhotoOnCard = checked;
+  updateHomeUI();
+  try {
+    await fetch(`${API_BASE}/api/customer-update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: currentPhone, showPhotoOnCard: checked })
+    });
+    toast(checked ? '📷 Photo affichée sur la carte' : '🔢 QR code affiché sur la carte');
+  } catch (e) {}
+}
+
+// ═══ TOGGLE : APPARAÎTRE DANS LE CLASSEMENT ═══
+async function toggleInLeaderboard() {
+  const checked = $('toggleInLeaderboard').checked;
+  currentInfo.inLeaderboard = checked;
+  try {
+    await fetch(`${API_BASE}/api/customer-update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: currentPhone, inLeaderboard: checked })
+    });
+    toast(checked ? '🏆 Vous apparaissez dans le classement' : '🔒 Vous êtes anonyme');
+  } catch (e) {}
+}
+
+// ═══ MODALE CLASSEMENT ═══
+async function openLeaderboardModal() {
+  const overlay = $('modalOverlay');
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:460px">
+      <button class="modal-close" onclick="closeModal()" aria-label="Fermer">×</button>
+      <div class="leaderboard-header">
+        <div class="leaderboard-trophy">🏆</div>
+        <h2 class="leaderboard-title">Classement</h2>
+        <div class="leaderboard-subtitle">Nos meilleurs clients</div>
+      </div>
+      <div id="leaderboardContent" class="empty-state" style="padding:30px 0">
+        <div class="spinner"></div>
+        <div style="margin-top:12px;font-size:12px;color:var(--muted)">Chargement…</div>
+      </div>
+    </div>`;
+  overlay.classList.add('show');
+
+  try {
+    const res = await fetch(`${API_BASE}/api/leaderboard?phone=${encodeURIComponent(currentPhone)}`);
+    const data = await res.json();
+    renderLeaderboard(data);
+  } catch (e) {
+    $('leaderboardContent').innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Erreur</div><div class="empty-state-text">Impossible de charger le classement</div></div>`;
+  }
+}
+
+function renderLeaderboard(data) {
+  const container = $('leaderboardContent');
+  const top = data.top || [];
+  if (top.length === 0) {
+    container.className = '';
+    container.innerHTML = `<div class="empty-state" style="padding:20px"><div class="empty-state-icon">🏆</div><div class="empty-state-title">Soyez le premier !</div><div class="empty-state-text">Aucune commande terminée pour le moment</div></div>`;
+    return;
+  }
+  container.className = '';
+
+  // Top 3 podium (réordonné visuellement : 2 - 1 - 3)
+  const podium = [];
+  if (top[1]) podium.push({ ...top[1], slot: 2 });
+  if (top[0]) podium.push({ ...top[0], slot: 1 });
+  if (top[2]) podium.push({ ...top[2], slot: 3 });
+
+  const medals = { 1: '🥇', 2: '🥈', 3: '🥉' };
+  const podiumHtml = podium.length > 0 ? `<div class="podium">${podium.map(p => {
+    const avatarStyle = p.photo ? `style="background-image:url('${escapeHtml(p.photo)}')"` : '';
+    const avatarContent = p.photo ? '' : escapeHtml((p.displayName || '?').charAt(0).toUpperCase());
+    const meBadge = p.isMe ? '<div class="podium-me-badge">VOUS</div>' : '';
+    return `<div class="podium-spot podium-spot--${p.slot}">
+      ${meBadge}
+      <div class="podium-medal">${medals[p.slot] || ''}</div>
+      <div class="podium-avatar" ${avatarStyle}>${avatarContent}</div>
+      <div class="podium-name">${escapeHtml(p.displayName)}</div>
+    </div>`;
+  }).join('')}</div>` : '';
+
+  // Rangs 4 à 10
+  const rest = top.slice(3);
+  const restHtml = rest.length > 0 ? `<div class="rank-list">${rest.map(p => {
+    const avatarStyle = p.photo ? `style="background-image:url('${escapeHtml(p.photo)}')"` : '';
+    const avatarContent = p.photo ? '' : escapeHtml((p.displayName || '?').charAt(0).toUpperCase());
+    return `<div class="rank-item ${p.isMe ? 'rank-item--me' : ''}">
+      <div class="rank-number">#${p.rank}</div>
+      <div class="rank-avatar" ${avatarStyle}>${avatarContent}</div>
+      <div class="rank-name">${escapeHtml(p.displayName)}${p.isMe ? ' <span style="color:var(--amber);font-size:10px">(vous)</span>' : ''}</div>
+    </div>`;
+  }).join('')}</div>` : '';
+
+  // Position personnelle hors top
+  let meHtml = '';
+  if (data.me) {
+    const m = data.me;
+    meHtml = `<div class="leaderboard-me-out">
+      Votre position : <strong>#${m.rank}</strong>
+    </div>`;
+  }
+
+  // CTA si l'utilisateur n'est pas opt-in
+  let ctaHtml = '';
+  if (!currentInfo.inLeaderboard) {
+    ctaHtml = `<div class="leaderboard-anonymous-cta">
+      🔒 Vous apparaissez en <strong>Anonyme</strong>.<br>
+      Activez "Apparaître dans le classement" dans votre Compte pour être visible.
+    </div>`;
+  }
+
+  container.innerHTML = podiumHtml + restHtml + meHtml + ctaHtml;
 }
 
 function switchPage(page) {

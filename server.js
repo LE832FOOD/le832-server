@@ -560,6 +560,9 @@ const server = http.createServer(async (req, res) => {
       email: c.email || '',
       birthday: c.birthday || '',
       address: c.address || '',
+      photo: c.photo || '',
+      inLeaderboard: !!c.inLeaderboard,
+      showPhotoOnCard: !!c.showPhotoOnCard,
       points: c.points || 0,
       orderCount: c.orderCount || 0,
       totalSpent: c.totalSpent || 0,
@@ -676,6 +679,31 @@ const server = http.createServer(async (req, res) => {
     if (!phone) return jsonRes(res, 400, { error: 'phone manquant' });
     if (!sharedState.customers) sharedState.customers = {};
     const existing = sharedState.customers[phone] || { phone, points: 0, orderCount: 0, createdAt: Date.now() };
+
+    // ★ Photo de profil : valider le base64 et la taille (max ~250 Ko)
+    let photo = existing.photo || '';
+    if (typeof body.photo === 'string') {
+      // Si chaîne vide, on supprime la photo
+      if (body.photo === '') {
+        photo = '';
+      } else if (body.photo.startsWith('data:image/') && body.photo.length < 350000) {
+        photo = body.photo;
+      }
+      // Sinon on ignore (image trop grosse ou mauvais format)
+    }
+
+    // ★ Opt-in classement : booléen explicite, défaut false
+    let inLeaderboard = !!existing.inLeaderboard;
+    if (typeof body.inLeaderboard === 'boolean') {
+      inLeaderboard = body.inLeaderboard;
+    }
+
+    // ★ Photo sur carte (toggle photo OU QR) : booléen explicite, défaut false (QR)
+    let showPhotoOnCard = !!existing.showPhotoOnCard;
+    if (typeof body.showPhotoOnCard === 'boolean') {
+      showPhotoOnCard = body.showPhotoOnCard;
+    }
+
     sharedState.customers[phone] = {
       ...existing,
       firstName: body.firstName || existing.firstName || '',
@@ -683,12 +711,67 @@ const server = http.createServer(async (req, res) => {
       email: body.email || existing.email || '',
       birthday: body.birthday || existing.birthday || '',
       address: body.address || existing.address || '',
+      photo: photo,
+      inLeaderboard: inLeaderboard,
+      showPhotoOnCard: showPhotoOnCard,
       updatedAt: Date.now()
     };
     persistSoon();
     // Broadcast aux caisses connectées
     broadcast(null, { type: 'state', data: sharedState });
     return jsonRes(res, 200, { ok: true });
+  }
+
+  // ─── /api/leaderboard : Top 10 des plus gros acheteurs (opt-in seulement) ───
+  if (req.method === 'GET' && pathname === '/api/leaderboard') {
+    const requesterPhone = normalizePhone(url.searchParams.get('phone') || '');
+    const customers = sharedState.customers || {};
+    // Calcule le total dépensé par client à partir des commandes
+    const orders = sharedState.orders || [];
+    const spentByPhone = {};
+    const ordersByPhone = {};
+    for (const o of orders) {
+      if (o.status !== 'terminee') continue;
+      const ph = normalizePhone((o.customer && o.customer.phone) || '');
+      if (!ph) continue;
+      spentByPhone[ph] = (spentByPhone[ph] || 0) + (o.total || 0);
+      ordersByPhone[ph] = (ordersByPhone[ph] || 0) + 1;
+    }
+    // Construit la liste complète et trie
+    const all = Object.keys(spentByPhone).map(ph => {
+      const c = customers[ph] || {};
+      const optIn = !!c.inLeaderboard;
+      const firstName = (c.firstName || '').trim();
+      const lastName = (c.lastName || '').trim();
+      const displayName = optIn
+        ? ((firstName + (lastName ? ' ' + lastName.charAt(0).toUpperCase() + '.' : '')) || 'Anonyme')
+        : 'Anonyme';
+      return {
+        phone: ph,
+        displayName: displayName,
+        photo: (optIn && c.photo) ? c.photo : '',
+        anonymous: !optIn,
+        totalSpent: Math.round(spentByPhone[ph] * 100) / 100,
+        orderCount: ordersByPhone[ph] || 0,
+        isMe: ph === requesterPhone
+      };
+    }).sort((a, b) => b.totalSpent - a.totalSpent);
+    // Top 10
+    const top10 = all.slice(0, 10).map((c, i) => ({ ...c, rank: i + 1 }));
+    // Position du demandeur s'il est en dehors du top 10
+    let myEntry = null;
+    if (requesterPhone) {
+      const myIdx = all.findIndex(c => c.phone === requesterPhone);
+      if (myIdx >= 10) {
+        myEntry = { ...all[myIdx], rank: myIdx + 1 };
+      }
+    }
+    return jsonRes(res, 200, {
+      top: top10,
+      me: myEntry,
+      totalParticipants: all.filter(c => !c.anonymous).length,
+      totalCustomers: all.length
+    });
   }
 
   // ─── /api/has-push : vérifie si un téléphone a déjà la PWA installée ───
