@@ -7,8 +7,8 @@
    - Le clic sur les notifications (ouvre l'app)
    ═══════════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'le832food-v3';     // ↑ bump pour forcer le re-cache des nouvelles icônes
-const CACHE_API = 'le832food-api-v3';
+const CACHE_VERSION = 'le832food-v4';     // ↑ bump pour forcer le re-cache (stale-while-revalidate)
+const CACHE_API = 'le832food-api-v4';
 const ASSETS = [
   '/carte.html',
   '/manifest.json',
@@ -83,16 +83,24 @@ self.addEventListener('fetch', (event) => {
   // Ne pas intercepter les autres API (orders, push, etc.)
   if (url.pathname.startsWith('/api/')) return;
 
-  // HTML : network-first avec fallback cache
+  // HTML : stale-while-revalidate (rapide + frais)
+  // Renvoie immédiatement le cache si présent (instantané), puis met à jour en tâche de fond
   if (req.destination === 'document' || url.pathname.endsWith('.html')) {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || caches.match('/carte.html')))
+      caches.match(req).then((cached) => {
+        const fetchPromise = fetch(req)
+          .then((res) => {
+            if (res.ok) {
+              const copy = res.clone();
+              caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+            }
+            return res;
+          })
+          .catch(() => cached || caches.match('/carte.html'));
+        // Si on a un cache → renvoie tout de suite (rapide)
+        // Sinon attend le réseau
+        return cached || fetchPromise;
+      })
     );
     return;
   }
