@@ -8626,6 +8626,56 @@
     border-radius: 12px;
     border: 1px solid var(--line);
   }
+
+  /* ★ Badge "Requis" sur sections obligatoires */
+  .pdm-required-badge {
+    display: inline-block;
+    font-family: 'Manrope', sans-serif;
+    font-size: 9px;
+    font-weight: 800;
+    color: #e55252;
+    background: rgba(229, 82, 82, 0.12);
+    border: 1px solid rgba(229, 82, 82, 0.4);
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  /* Quand le choix est fait : on cache le badge */
+  .pdm-section.pdm-section--filled .pdm-required-badge {
+    color: #95b85e;
+    background: rgba(149, 184, 94, 0.15);
+    border-color: rgba(149, 184, 94, 0.4);
+  }
+  .pdm-section.pdm-section--filled .pdm-required-badge::before {
+    content: '✓ ';
+  }
+  /* Section en erreur : flash rouge */
+  .pdm-section.pdm-section--error {
+    background: rgba(229, 82, 82, 0.08);
+    border: 2px solid #e55252 !important;
+    border-left-width: 4px !important;
+    animation: pdmShake 0.4s ease;
+    border-radius: 10px;
+  }
+  @keyframes pdmShake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+
+  /* Bouton Ajouter en état "à compléter" */
+  .pdm-add.pdm-add--incomplete {
+    background: linear-gradient(135deg, #c97a4a, #a85d2a) !important;
+    color: #fff !important;
+    opacity: 0.95;
+  }
+  .pdm-add.pdm-add--incomplete:hover {
+    background: linear-gradient(135deg, #d68552, #b8683a) !important;
+  }
+
   .pdm-sub-label {
     font-size: 11px;
     color: var(--muted);
@@ -17046,6 +17096,52 @@ function showCaisseProductDetail(p, mode) {
     return `${(unit * qty).toFixed(2).replace('.', ',')} €`;
   }
 
+  // ★ Validation des sections obligatoires
+  // Retourne { valid: bool, missingSection: HTMLElement|null, missingLabel: string }
+  function _validateRequiredChoices() {
+    const sections = document.querySelectorAll('.pdm-section[data-required="true"]');
+    for (const section of sections) {
+      // Ne pas valider si la section est cachée (display:none)
+      if (section.style.display === 'none') continue;
+      const selKey = section.dataset.selKey;
+      const requiredCount = parseInt(section.dataset.requiredCount) || 1;
+      const value = sel[selKey];
+      let missing = false;
+      if (Array.isArray(value)) {
+        // Pour meats : il faut le bon nombre choisi
+        missing = value.length < requiredCount;
+      } else {
+        missing = !value;
+      }
+      if (missing) {
+        const titleEl = section.querySelector('.pdm-section-title');
+        const title = titleEl ? titleEl.textContent.replace('Requis', '').trim() : 'un choix';
+        return { valid: false, missingSection: section, missingLabel: title };
+      }
+    }
+    return { valid: true, missingSection: null, missingLabel: '' };
+  }
+
+  // ★ Met à jour l'état visuel de chaque section (filled vs vide)
+  function _refreshSectionStates() {
+    const sections = document.querySelectorAll('.pdm-section[data-required="true"]');
+    sections.forEach(section => {
+      if (section.style.display === 'none') return;
+      const selKey = section.dataset.selKey;
+      const requiredCount = parseInt(section.dataset.requiredCount) || 1;
+      const value = sel[selKey];
+      let filled = false;
+      if (Array.isArray(value)) {
+        filled = value.length >= requiredCount;
+      } else {
+        filled = !!value;
+      }
+      section.classList.toggle('pdm-section--filled', filled);
+      // Retire l'état d'erreur si l'utilisateur a fait le choix
+      if (filled) section.classList.remove('pdm-section--error');
+    });
+  }
+
   let sections = '';
 
   if (cfg.menu && cfg.menu.available) {
@@ -17119,7 +17215,7 @@ function showCaisseProductDetail(p, mode) {
           ${k.price ? `<span class="pdm-opt-price">+${k.price.toFixed(2).replace('.', ',')} €</span>` : ''}
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="kidsMenu"><div class="pdm-section-title">Choix du plat</div><div class="pdm-opts">${kidsHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="kidsMenu" data-required="true" data-sel-key="kidsMenu"><div class="pdm-section-title">Choix du plat <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${kidsHtml}</div></div>`;
   }
 
   // ★ VIANDE (Panini, Zap'wich, Tacos/Bowls 1V) — choix unique
@@ -17131,7 +17227,7 @@ function showCaisseProductDetail(p, mode) {
           ${m.price ? `<span class="pdm-opt-price">+${m.price.toFixed(2).replace('.', ',')} €</span>` : ''}
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="meat"><div class="pdm-section-title">Viande</div><div class="pdm-opts">${meatHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="meat" data-required="true" data-sel-key="meat"><div class="pdm-section-title">Viande <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${meatHtml}</div></div>`;
   }
 
   // ★ VIANDES MULTIPLES (Tacos/Bowls 1V/2V/3V)
@@ -17145,7 +17241,7 @@ function showCaisseProductDetail(p, mode) {
           ${m.price ? `<span class="pdm-opt-price">+${m.price.toFixed(2).replace('.', ',')} €</span>` : ''}
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="meats"><div class="pdm-section-title">${labelTitle} ${hint}</div><div class="pdm-opts">${meatsHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="meats" data-required="true" data-sel-key="meats" data-required-count="${cfg.meatCount}"><div class="pdm-section-title">${labelTitle} <span class="pdm-required-badge">Requis</span> ${hint}</div><div class="pdm-opts">${meatsHtml}</div></div>`;
   }
 
   // ★ MEAT IF PANINI (Menu Enfant — affiché conditionnellement)
@@ -17156,7 +17252,7 @@ function showCaisseProductDetail(p, mode) {
           <span class="pdm-opt-name">${m.label}</span>
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="meatIfPanini" id="${idPrefix}MeatIfPaniniSection" style="display:${sel.kidsMenu === 'Panini' ? '' : 'none'}"><div class="pdm-section-title">Viande du panini</div><div class="pdm-opts">${meatIfPaniniHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="meatIfPanini" id="${idPrefix}MeatIfPaniniSection" data-required="true" data-sel-key="meatIfPanini" data-required-when-kidsmenu="Panini" style="display:${sel.kidsMenu === 'Panini' ? '' : 'none'}"><div class="pdm-section-title">Viande du panini <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${meatIfPaniniHtml}</div></div>`;
   }
 
   // ★ SAUCE FROMAGÈRE (Tacos/Bowls — avec/sans)
@@ -17176,7 +17272,7 @@ function showCaisseProductDetail(p, mode) {
           ${b.price ? `<span class="pdm-opt-price">+${b.price.toFixed(2).replace('.', ',')} €</span>` : ''}
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread)}</div><div class="pdm-opts">${breadHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
   }
 
   // ★ ACCOMPAGNEMENTS (Poulet, Brochette, Plateau)
@@ -17325,6 +17421,8 @@ function showCaisseProductDetail(p, mode) {
       qtyEl.textContent = qty;
       qtyEl.dataset.q = qty;
       totalEl.innerHTML = priceHtml();
+      // Met à jour l'état des sections obligatoires
+      _refreshSectionStates();
     };
     document.getElementById(idPrefix+'Dec').onclick = () => { if (qty > 1) { qty--; refresh(); } };
     document.getElementById(idPrefix+'Inc').onclick = () => { qty++; refresh(); };
@@ -17482,6 +17580,20 @@ function showCaisseProductDetail(p, mode) {
     if (seulBtn) seulBtn.classList.add('selected');
 
     document.getElementById(idPrefix+'AddBtn').onclick = () => {
+      // ★ Validation des choix obligatoires AVANT d'ajouter
+      const v = _validateRequiredChoices();
+      if (!v.valid) {
+        // Scroll vers la section manquante et flash rouge
+        v.missingSection.classList.add('pdm-section--error');
+        v.missingSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast('⚠ Choix manquant : ' + v.missingLabel, true);
+        // Retirer l'erreur après l'animation
+        setTimeout(() => {
+          if (v.missingSection) v.missingSection.classList.remove('pdm-section--error');
+        }, 2500);
+        return;
+      }
+
       if (typeof p.stock === 'number') {
         const inCart = cart.find(i => i.id === p.id);
         const currentQty = inCart ? inCart.qty : 0;
@@ -17561,6 +17673,9 @@ function showCaisseProductDetail(p, mode) {
       (isBorne ? borneAddCustomized : addCaisseCustomized)(p, qty, finalUnit, p.price, sel, customizationLabel);
       closeModal();
     };
+
+    // ★ Init : applique l'état "filled" sur les sections déjà pré-remplies (ex: bread)
+    _refreshSectionStates();
   }, 30);
 }
 
