@@ -18,6 +18,7 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+const zlib = require('zlib');
 
 let WebSocketServer;
 try {
@@ -488,9 +489,36 @@ const server = http.createServer(async (req, res) => {
     const conf = STATIC_FILES[pathname];
     const filePath = path.join(__dirname, conf.file);
     if (fs.existsSync(filePath)) {
-      res.writeHead(200, { 'Content-Type': conf.type, 'Cache-Control': 'no-cache' });
-      fs.createReadStream(filePath).pipe(res);
-      return;
+      // Compression gzip/deflate si supporté par le client
+      const acceptEncoding = (req.headers['accept-encoding'] || '').toLowerCase();
+      const compressible = /text|javascript|json|xml|html|svg/.test(conf.type);
+      // Cache : long pour les icônes/images (immutables), court pour HTML/JS
+      const isImage = /image\//.test(conf.type) || /\.(png|jpg|jpeg|ico|svg|webp)$/i.test(conf.file);
+      const cacheControl = isImage ? 'public, max-age=2592000, immutable' : 'public, max-age=300, must-revalidate';
+      try {
+        const headers = { 'Content-Type': conf.type, 'Cache-Control': cacheControl };
+        // Compression seulement si compressible et accept-encoding compatible
+        if (compressible && acceptEncoding.includes('gzip')) {
+          headers['Content-Encoding'] = 'gzip';
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(200, headers);
+          fs.createReadStream(filePath).pipe(zlib.createGzip()).pipe(res);
+        } else if (compressible && acceptEncoding.includes('deflate')) {
+          headers['Content-Encoding'] = 'deflate';
+          headers['Vary'] = 'Accept-Encoding';
+          res.writeHead(200, headers);
+          fs.createReadStream(filePath).pipe(zlib.createDeflate()).pipe(res);
+        } else {
+          res.writeHead(200, headers);
+          fs.createReadStream(filePath).pipe(res);
+        }
+        return;
+      } catch (e) {
+        console.error('Erreur servir fichier:', e.message);
+        res.writeHead(500);
+        res.end('Erreur serveur');
+        return;
+      }
     } else {
       res.writeHead(404);
       res.end(`Fichier ${conf.file} introuvable. Place-le à côté de server.js.`);

@@ -3416,7 +3416,12 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px;
+    padding: max(40px, calc(env(safe-area-inset-top, 0) + 20px)) 40px max(40px, calc(env(safe-area-inset-bottom, 0) + 20px)) 40px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .login-title {
