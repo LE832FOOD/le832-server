@@ -5307,6 +5307,43 @@
   }
   .welcome-quit:active { transform: scale(0.92); }
 
+  /* ★ MODE KIOSK : bouton sortie invisible (zone tactile dans le coin haut-gauche) */
+  /* Pour sortir : maintenir le coin haut-gauche pendant 3 secondes */
+  .welcome-quit-stealth {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 70px;
+    height: 70px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 10;
+    /* Hint visuel très très subtil : un coin doré transparent */
+    -webkit-tap-highlight-color: transparent;
+  }
+  .welcome-quit-stealth:active {
+    background: radial-gradient(circle at 0% 0%, rgba(212,160,86,0.15), transparent 70%);
+  }
+  /* Pendant le long press : feedback visuel progressif */
+  .welcome-quit-stealth.pressing {
+    background: radial-gradient(circle at 0% 0%, rgba(212,160,86,0.3), transparent 70%);
+  }
+  .borne-quit-stealth {
+    position: relative;
+    width: 50px !important;
+    height: 50px !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    color: transparent !important;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .borne-quit-stealth.pressing {
+    background: rgba(212,160,86,0.2) !important;
+  }
+
   /* ----- HEADER avec step indicator ----- */
   .borne-steps {
     display: flex;
@@ -13664,6 +13701,25 @@
           </div>
         </div>
 
+        <!-- ★ NOUVELLE SECTION : Mode kiosk -->
+        <div class="settings-section" data-cat="borne">
+          <div class="settings-title">🔐 Mode kiosk (sécurité borne)</div>
+          <div class="settings-desc">Protections actives pour empêcher les clients de quitter la borne ou modifier les paramètres du navigateur.</div>
+          <div style="background:rgba(149,184,94,0.06);border:1px solid rgba(149,184,94,0.2);border-radius:8px;padding:14px;margin-top:14px">
+            <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:10px">✅ Protections actives :</div>
+            <ul style="margin:0;padding-left:20px;font-size:12px;color:var(--cream-dim);line-height:1.7">
+              <li><strong style="color:var(--cream)">Sortie protégée</strong> — Le bouton ← visible a été remplacé par une zone tactile invisible dans le coin haut-gauche. Pour sortir : <strong>maintenir le coin haut-gauche pendant 3 secondes</strong> puis saisir le code PIN Manager.</li>
+              <li><strong style="color:var(--cream)">Blocage zoom</strong> — Ctrl+Molette et pinch-zoom désactivés.</li>
+              <li><strong style="color:var(--cream)">Blocage menu contextuel</strong> — Clic droit désactivé.</li>
+              <li><strong style="color:var(--cream)">Blocage raccourcis</strong> — F5, F11, F12, Ctrl+R, Ctrl+U, Ctrl+W, Ctrl+Shift+I désactivés.</li>
+              <li><strong style="color:var(--cream)">Timeout inactivité</strong> — Reset automatique selon le réglage ci-dessus (panier vidé, retour à l'accueil).</li>
+            </ul>
+          </div>
+          <div style="background:rgba(212,160,86,0.08);border:1px solid rgba(212,160,86,0.25);border-radius:8px;padding:12px 14px;margin-top:10px;font-size:12px;color:var(--cream)">
+            💡 <strong>Astuce manager</strong> : pour quitter la borne, maintenez le coin haut-gauche de l'écran pendant 3 secondes. Une bulle dorée apparaît pendant le press pour confirmer. Ensuite, saisissez le code PIN Manager (par défaut : <code style="color:var(--amber)">9999</code>) — modifiable dans la section "Personnel".
+          </div>
+        </div>
+
         <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">Codes promo</div>
           <div class="settings-desc">Réductions ponctuelles applicables manuellement à un ticket. Différent du Happy Hour qui s'applique automatiquement.</div>
@@ -13848,7 +13904,10 @@
       <span class="bs-sep"></span>
       <span class="bs-step" data-step="paychoice"><span class="bs-num"><span>3</span></span><span class="bs-lbl">Paiement</span></span>
     </div>
-    <button class="borne-quit" onclick="exitBorne()">← Quitter</button>
+    <button class="borne-quit borne-quit-stealth" aria-label="Sortie protégée"
+      ontouchstart="_borneLongPressStart()" ontouchend="_borneLongPressEnd()" ontouchcancel="_borneLongPressEnd()"
+      onmousedown="_borneLongPressStart()" onmouseup="_borneLongPressEnd()" onmouseleave="_borneLongPressEnd()"
+    ></button>
   </header>
 
   <div class="borne-body">
@@ -13909,7 +13968,11 @@
         </div>
       </div>
 
-      <button class="welcome-quit" onclick="exitBorne()">←</button>
+      <!-- ★ MODE KIOSK : bouton sortie invisible, accessible via long-press (3 sec) -->
+      <button class="welcome-quit-stealth" id="welcomeQuitStealth" aria-label="Sortie protégée"
+        ontouchstart="_borneLongPressStart()" ontouchend="_borneLongPressEnd()" ontouchcancel="_borneLongPressEnd()"
+        onmousedown="_borneLongPressStart()" onmouseup="_borneLongPressEnd()" onmouseleave="_borneLongPressEnd()"
+      ></button>
     </div>
 
     <!-- Step 1 : Ancien écran type plein écran — gardé pour compat (rarement utilisé maintenant) -->
@@ -15821,9 +15884,23 @@ function logout() {
 }
 
 function exitBorne() {
+  // ★ MODE KIOSK : sortie protégée par PIN manager
+  // Si le panier n'est pas vide, on demande confirmation d'abord
   if (borneCart.length > 0 && !confirm(t('confirm_quit'))) return;
+  // Puis on demande le PIN manager pour confirmer la sortie
+  askManagerPin();
+  // Après que le PIN soit validé, askManagerPin appelle loginAs() qui affichera le panel manager.
+  // Le mode borne se ferme automatiquement à ce moment-là.
+  // On stoppe juste les timers en attente
   stopBorneIdle();
   stopBorneDoneTimer();
+}
+
+// ★ Sortie d'urgence sans PIN (utilisée en interne, ex: timeout)
+function _exitBorneForced() {
+  stopBorneIdle();
+  stopBorneDoneTimer();
+  borneCart = [];
   showView('landing');
 }
 
@@ -32866,7 +32943,99 @@ setTimeout(() => {
   });
 })();
 
-// ═══ PARAMÈTRES V2 — Navigation + recherche ═══
+// ═══ MODE KIOSK BORNE — Protections renforcées ═══
+(function() {
+  let _longPressTimer = null;
+  let _longPressTargets = [];
+  const LONG_PRESS_MS = 3000;  // 3 secondes
+
+  // Long-press sur le bouton stealth → demande PIN manager
+  window._borneLongPressStart = function(evt) {
+    // Identifier les éléments en cours de press pour leur ajouter une classe visuelle
+    _longPressTargets = Array.from(document.querySelectorAll('.welcome-quit-stealth, .borne-quit-stealth'));
+    _longPressTargets.forEach(el => el.classList.add('pressing'));
+    if (_longPressTimer) clearTimeout(_longPressTimer);
+    _longPressTimer = setTimeout(() => {
+      // Long press réussi → demande PIN
+      _longPressTargets.forEach(el => el.classList.remove('pressing'));
+      _longPressTargets = [];
+      _longPressTimer = null;
+      exitBorne();  // déclenche le PIN manager
+    }, LONG_PRESS_MS);
+  };
+
+  window._borneLongPressEnd = function() {
+    if (_longPressTimer) {
+      clearTimeout(_longPressTimer);
+      _longPressTimer = null;
+    }
+    _longPressTargets.forEach(el => el.classList.remove('pressing'));
+    _longPressTargets = [];
+  };
+
+  // ★ Détecte si on est en mode borne (currentView === 'borne' ou .borne-view visible)
+  function isBorneActive() {
+    const v = document.querySelector('.borne-view');
+    if (!v) return false;
+    return v.style.display !== 'none' && !v.hidden;
+  }
+
+  // ★ Blocage zoom navigateur (Ctrl+wheel)
+  document.addEventListener('wheel', (e) => {
+    if (isBorneActive() && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // ★ Blocage zoom tactile (pinch)
+  document.addEventListener('touchmove', (e) => {
+    if (isBorneActive() && e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }, { passive: false });
+
+  // ★ Blocage clic droit (menu contextuel)
+  document.addEventListener('contextmenu', (e) => {
+    if (isBorneActive()) e.preventDefault();
+  });
+
+  // ★ Blocage F5 / Ctrl+R / Ctrl+W / F11 / F12 / Ctrl+Shift+I (DevTools)
+  document.addEventListener('keydown', (e) => {
+    if (!isBorneActive()) return;
+    const k = e.key;
+    const ctrl = e.ctrlKey || e.metaKey;
+    // Touches dangereuses à bloquer
+    if (
+      k === 'F5' ||                          // refresh
+      (ctrl && k.toLowerCase() === 'r') ||   // refresh
+      (ctrl && k.toLowerCase() === 'w') ||   // close tab
+      k === 'F11' ||                         // fullscreen toggle
+      k === 'F12' ||                         // DevTools
+      (ctrl && e.shiftKey && k.toLowerCase() === 'i') ||  // DevTools
+      (ctrl && e.shiftKey && k.toLowerCase() === 'j') ||  // DevTools console
+      (ctrl && e.shiftKey && k.toLowerCase() === 'c') ||  // DevTools inspector
+      (ctrl && k.toLowerCase() === 'u') ||   // view source
+      (ctrl && (k === '+' || k === '-' || k === '=' || k === '0'))  // zoom
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      return false;
+    }
+  }, true);  // capture phase pour bloquer avant les autres handlers
+
+  // ★ Empêche la sélection de texte (multi-tap accidentel sur écran tactile)
+  document.addEventListener('selectstart', (e) => {
+    if (isBorneActive()) {
+      // Sauf dans les inputs et textarea
+      const target = e.target;
+      const tag = target.tagName;
+      if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+        e.preventDefault();
+      }
+    }
+  });
+})();
+
 (function() {
   // Catégorie active (persistée dans localStorage)
   let _currentCat = localStorage.getItem('le832_settings_cat') || 'restaurant';
