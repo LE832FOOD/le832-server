@@ -2953,9 +2953,16 @@ function closeModalIfBg(e) { if (e.target === $('modalOverlay')) closeModal(); }
 
 async function refreshNotifButton() {
   const block = $('notifBlock'), btn = $('notifBtn'), sub = $('notifSub');
+  // Détection iOS Safari
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
     btn.style.display = 'none';
-    sub.textContent = 'Non supporté par votre navigateur';
+    if (isIOS && !isStandalone) {
+      sub.innerHTML = '📱 Pour activer les notifications :<br>1. Touchez <strong>Partager</strong> en bas<br>2. Choisissez <strong>"Sur l\'écran d\'accueil"</strong><br>3. Rouvrez depuis l\'icône installée';
+    } else {
+      sub.textContent = 'Non supporté par votre navigateur';
+    }
     return;
   }
   if (Notification.permission === 'denied') {
