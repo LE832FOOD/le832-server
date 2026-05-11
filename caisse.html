@@ -6845,6 +6845,118 @@
     margin: 0 4px;
   }
 
+  /* ★ Écran de confirmation paiement v3 */
+  .paychoice-v3 {
+    display: flex !important;
+    flex-direction: column;
+    padding: 30px 30px 0 !important;
+  }
+  .paychoice-v3-inner {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 auto;
+    width: 100%;
+    text-align: center;
+  }
+  .paychoice-v3-emoji {
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+  .paychoice-v3-title {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+  .paychoice-v3-sub {
+    font-size: 15px;
+    color: var(--cream-dim, #a39481);
+    margin-bottom: 30px;
+  }
+  /* Bloc montant */
+  .paychoice-v3-amount {
+    background: linear-gradient(135deg, rgba(212,160,86,0.15), rgba(232,181,104,0.05));
+    border: 2px solid rgba(212,160,86,0.35);
+    border-radius: 20px;
+    padding: 24px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 24px rgba(212,160,86,0.12);
+  }
+  .paychoice-v3-amount-lbl {
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .paychoice-v3-amount-val {
+    font-family: 'Fraunces', serif;
+    font-size: 46px;
+    font-weight: 600;
+    color: var(--amber-bright, #e8b568);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  /* Étapes 1-2-3 */
+  .paychoice-v3-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    text-align: left;
+  }
+  .paychoice-v3-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(31, 26, 20, 0.5);
+    border: 1px solid rgba(212,160,86,0.12);
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .paychoice-v3-step-num {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, var(--amber-bright, #e8b568), var(--amber, #d4a056));
+    color: #14110d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(212,160,86,0.3);
+  }
+  .paychoice-v3-step-text { flex: 1; }
+  .paychoice-v3-step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--cream, #fff8e7);
+    margin-bottom: 2px;
+  }
+  .paychoice-v3-step-sub {
+    font-size: 13px;
+    color: var(--cream-dim, #a39481);
+  }
+
+  /* Bouton Valider avec total */
+  #paychoiceValidateBtn strong {
+    font-weight: 700;
+    margin: 0 4px;
+  }
+
+  /* Format PC tactile vertical (style McDo) : plus grand */
+  @media (min-width: 900px) and (orientation: portrait) {
+    .paychoice-v3-title { font-size: 38px; }
+    .paychoice-v3-amount-val { font-size: 56px; }
+    .paychoice-v3-step-num { width: 48px; height: 48px; font-size: 24px; }
+    .paychoice-v3-step-title { font-size: 18px; }
+  }
+
   /* ★ Champ commentaire global commande */
   .cart-global-comment-wrap {
     margin: 14px 0;
@@ -14406,47 +14518,59 @@
       </div>
     </div>
 
-    <!-- Step 5 : Choix du paiement -->
-    <div id="borne-step-paychoice" class="borne-step">
-      <div class="borne-step-title">Comment souhaitez-vous payer ?</div>
-      <div class="borne-step-sub" id="paychoiceSub">—</div>
-      <div class="borne-pay-grid">
-        <button class="borne-pay-card-v2" onclick="borneChoosePay('en_ligne')">
-          <div class="pay-emoji">💳</div>
-          <div class="borne-pay-name">Payer maintenant</div>
-          <div class="borne-pay-desc">Carte bancaire sur la borne</div>
-        </button>
-        <button class="borne-pay-card-v2" onclick="borneChoosePay('caisse')">
-          <div class="pay-emoji">💵</div>
-          <div class="borne-pay-name">Payer en caisse</div>
-          <div class="borne-pay-desc">Régler au comptoir avec votre numéro</div>
-        </button>
+    <!-- Step 5 : Confirmation + paiement au comptoir uniquement -->
+    <div id="borne-step-paychoice" class="borne-step paychoice-v3">
+      <div class="paychoice-v3-inner">
+        <div class="paychoice-v3-emoji">🧾</div>
+        <div class="paychoice-v3-title">Confirmer votre commande</div>
+        <div class="paychoice-v3-sub" id="paychoiceSub">Vérifiez avant de valider</div>
+
+        <!-- Récap montant -->
+        <div class="paychoice-v3-amount">
+          <div class="paychoice-v3-amount-lbl">Montant total</div>
+          <div class="paychoice-v3-amount-val" id="paychoiceAmount">0,00 €</div>
+        </div>
+
+        <!-- Explication des étapes -->
+        <div class="paychoice-v3-steps">
+          <div class="paychoice-v3-step">
+            <div class="paychoice-v3-step-num">1</div>
+            <div class="paychoice-v3-step-text">
+              <div class="paychoice-v3-step-title">Validez votre commande</div>
+              <div class="paychoice-v3-step-sub">Votre numéro s'affiche à l'écran</div>
+            </div>
+          </div>
+          <div class="paychoice-v3-step">
+            <div class="paychoice-v3-step-num">2</div>
+            <div class="paychoice-v3-step-text">
+              <div class="paychoice-v3-step-title">Présentez-vous au comptoir</div>
+              <div class="paychoice-v3-step-sub">Donnez votre numéro de commande</div>
+            </div>
+          </div>
+          <div class="paychoice-v3-step">
+            <div class="paychoice-v3-step-num">3</div>
+            <div class="paychoice-v3-step-text">
+              <div class="paychoice-v3-step-title">Payez au comptoir</div>
+              <div class="paychoice-v3-step-sub">CB, espèces, tickets restaurant…</div>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="borne-step-actions">
-        <button class="borne-btn-back" onclick="bornePrevPayChoice()">← Retour</button>
+        <button class="borne-btn-back" onclick="bornePrevPayChoice()">← Retour au panier</button>
+        <button class="borne-btn-next" id="paychoiceValidateBtn" onclick="borneChoosePay('caisse')">Valider ma commande →</button>
       </div>
     </div>
 
-    <!-- Step 6 : Paiement par carte -->
-    <div id="borne-step-card" class="borne-step">
-      <div class="borne-step-title">Paiement par carte</div>
-      <div class="borne-step-sub">Insérez ou saisissez votre carte</div>
-      <div class="card-pay-amount">
-        <div class="cpa-label">Montant à régler</div>
-        <div class="cpa-value" id="borneCardAmount">0,00 €</div>
-      </div>
-      <div class="card-form">
-        <input type="text" class="borne-form-input" id="cardNumber" placeholder="Numéro de carte" maxlength="19" />
-        <div class="card-form-row">
-          <input type="text" class="borne-form-input" id="cardExpiry" placeholder="MM / AA" maxlength="7" />
-          <input type="text" class="borne-form-input" id="cardCvc" placeholder="CVC" maxlength="3" />
-        </div>
-        <input type="text" class="borne-form-input" id="cardName" placeholder="Titulaire de la carte" />
-      </div>
-      <div class="borne-step-actions">
-        <button class="borne-btn-back" onclick="borneStep('paychoice')">← Retour</button>
-        <button class="borne-btn-next" onclick="borneProcessPayment()">Valider le paiement</button>
-      </div>
+    <!-- Step 6 : RETIRÉ — écran de saisie carte bancaire (Phase C : Stripe à venir).
+         Les inputs cachés ci-dessous sont conservés pour ne pas casser les références JS existantes.
+         Quand Stripe sera intégré, on réactivera cet écran avec un VRAI paiement. -->
+    <div id="borne-step-card" class="borne-step" style="display:none">
+      <input type="hidden" id="cardNumber" value="" />
+      <input type="hidden" id="cardExpiry" value="" />
+      <input type="hidden" id="cardCvc" value="" />
+      <input type="hidden" id="cardName" value="" />
+      <div id="borneCardAmount" style="display:none">0,00 €</div>
     </div>
 
     <!-- Step 7 : Confirmation impactante -->
@@ -21047,8 +21171,16 @@ function borneStep(name) {
   if (name === 'clientinfo') setupClientInfoStep();
   if (name === 'menu') refreshBorneCartBar();
   if (name === 'paychoice') {
-    const sub = document.getElementById('paychoiceSub');
-    if (sub) sub.textContent = 'Total : ' + fmt(borneCart.reduce((s, i) => s + i.price * i.qty, 0));
+    // ★ V3 : calcule le total avec promo pizza, et l'affiche dans plusieurs endroits
+    const subtotal = borneCart.reduce((s, i) => s + i.price * i.qty, 0);
+    const promo = (typeof _pizzaPromoDiscount === 'function') ? _pizzaPromoDiscount(borneCart) : { discount: 0 };
+    const total = Math.max(0, subtotal - (promo.discount || 0));
+    // Sub-titre = Vérifiez avant de valider (statique en HTML, on garde)
+    const amtEl = document.getElementById('paychoiceAmount');
+    if (amtEl) amtEl.textContent = fmt(total);
+    // Bouton "Valider" : afficher le montant aussi
+    const validateBtn = document.getElementById('paychoiceValidateBtn');
+    if (validateBtn) validateBtn.innerHTML = `Valider · <strong>${fmt(total)}</strong> →`;
   }
   if (name === 'done') {
     startBorneDoneTimer();
@@ -23482,25 +23614,20 @@ function bornePrevPayChoice() {
 }
 
 function borneChoosePay(method) {
+  // ★ V3 : seul "caisse" (paiement au comptoir) est supporté.
+  // L'option "en_ligne" (paiement par carte sur la borne) sera disponible
+  // quand Stripe sera intégré en Phase C.
   if (method === 'en_ligne') {
-    const amt = document.getElementById('borneCardAmount');
-    if (amt) amt.textContent = fmt(borneCart.reduce((s, i) => s + i.price * i.qty, 0));
-    borneStep('card');
-  } else {
-    saveBorneOrder('en_attente', false);
+    // Garde-fou : si jamais quelqu'un appelle encore cette méthode, on tombe en paiement caisse
+    toast('Le paiement par carte sur la borne sera bientôt disponible. Paiement au comptoir.', true);
   }
+  saveBorneOrder('en_attente', false);
 }
 
+// ★ Conservé pour compat (le bouton "Valider le paiement" n'existe plus mais des appels JS peuvent rester)
 function borneProcessPayment() {
-  const num = document.getElementById('cardNumber').value.replace(/\s/g, '');
-  const exp = document.getElementById('cardExpiry').value;
-  const cvc = document.getElementById('cardCvc').value;
-  const nm = document.getElementById('cardName').value.trim();
-  if (num.length < 13) { toast(t('err_card'), true); return; }
-  if (!/^\d{2}\s*\/\s*\d{2}$/.test(exp)) { toast(t('err_expiry'), true); return; }
-  if (cvc.length !== 3) { toast(t('err_cvc'), true); return; }
-  if (!nm) { toast(t('err_holder'), true); return; }
-  saveBorneOrder('en_ligne', true);
+  // Plus utilisée — redirige vers le flux normal
+  saveBorneOrder('en_attente', false);
 }
 
 function saveBorneOrder(method, paid) {
