@@ -275,6 +275,66 @@ input,textarea { -webkit-user-select:auto; user-select:auto; }
 }
 .home-quick-btn--primary .home-quick-btn-text { font-weight: 800; }
 
+/* Bouton classement sur l'accueil — large, accrocheur, doré */
+.home-leaderboard-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(212,160,86,0.08), rgba(31,26,20,0.6));
+  border: 1px solid rgba(255,215,0,0.35);
+  border-radius: 16px;
+  color: var(--cream);
+  cursor: pointer;
+  font-family: inherit;
+  margin-bottom: 14px;
+  text-align: left;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 6px 20px rgba(255,215,0,0.08);
+}
+.home-leaderboard-btn::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(255,215,0,0.18), transparent 70%);
+  pointer-events: none;
+}
+.home-leaderboard-btn:active {
+  transform: scale(0.985);
+  box-shadow: 0 3px 10px rgba(255,215,0,0.12);
+}
+.home-leaderboard-trophy {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(255,215,0,0.4));
+}
+.home-leaderboard-text { flex: 1; min-width: 0; }
+.home-leaderboard-title {
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 2px;
+}
+.home-leaderboard-sub {
+  font-size: 11.5px;
+  color: var(--cream-dim);
+  line-height: 1.35;
+}
+.home-leaderboard-arrow {
+  font-size: 22px;
+  color: rgba(212,160,86,0.6);
+  line-height: 1;
+  flex-shrink: 0;
+  font-weight: 400;
+}
+
 
 .level-badge { display:inline-flex; gap:4px; padding:4px 10px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; background:rgba(212,160,86,0.15); color:var(--amber); border:1px solid rgba(212,160,86,0.3); margin-top:6px; }
 .level-badge.bronze { color:#cd9b6f; }
@@ -2023,7 +2083,7 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
       </div>
     </div>
 
-    <!-- Actions rapides : 2 boutons gros -->
+    <!-- Actions rapides : 2 boutons gros + classement -->
     <div class="home-quick-actions">
       <button class="home-quick-btn home-quick-btn--primary" onclick="switchPage('order')">
         <span class="home-quick-btn-icon">🛒</span>
@@ -2034,6 +2094,16 @@ details[open] .favs-summary-arrow { transform:rotate(180deg); }
         <span class="home-quick-btn-text">Mes commandes</span>
       </button>
     </div>
+
+    <!-- 🏆 CLASSEMENT : large bouton avec effet "trophée doré" -->
+    <button class="home-leaderboard-btn" onclick="openLeaderboardModal()">
+      <span class="home-leaderboard-trophy">🏆</span>
+      <div class="home-leaderboard-text">
+        <div class="home-leaderboard-title">Classement des clients</div>
+        <div class="home-leaderboard-sub" id="homeLeaderboardSub">Découvrez le top 3 de la communauté</div>
+      </div>
+      <span class="home-leaderboard-arrow">›</span>
+    </button>
 
     <div id="notifBlock" class="notif-card">
       <span class="notif-icon">🔔</span>
@@ -4585,6 +4655,16 @@ function updateHomeUI() {
   }
   const level = getLevel(points);
   $('cardLevelBadge').innerHTML = `<span class="level-badge ${level.class}">${level.icon} ${level.name}</span>`;
+
+  // ★ Sous-titre dynamique du bouton classement Accueil
+  const lbSub = document.getElementById('homeLeaderboardSub');
+  if (lbSub) {
+    if (currentInfo.inLeaderboard) {
+      lbSub.textContent = 'Voyez le top 3 et votre position';
+    } else {
+      lbSub.textContent = '🔒 Vous y êtes en Anonyme';
+    }
+  }
 
   // ★ Affiche photo OU QR sur la carte fidélité selon préférence
   const qrEl = document.querySelector('.loyalty-card-qr');
