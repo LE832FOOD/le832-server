@@ -27866,7 +27866,13 @@ let _voiceAudioCtx = null;
 // Bip sonore court (Web Audio API, pas de fichier MP3 nécessaire)
 function _voicePlayBeep() {
   try {
-    if (!_voiceAudioCtx) _voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (!_voiceAudioCtx) {
+      _voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    // ★ Safari : l'AudioContext peut être suspendu, on doit le reprendre
+    if (_voiceAudioCtx.state === 'suspended') {
+      _voiceAudioCtx.resume().catch(e => console.warn('audio resume failed', e));
+    }
     const now = _voiceAudioCtx.currentTime;
     // 2 bips rapides type téléphone
     [0, 0.18].forEach(delay => {
@@ -27882,6 +27888,26 @@ function _voicePlayBeep() {
       osc.stop(now + delay + 0.16);
     });
   } catch (e) { console.warn('audio beep failed', e); }
+}
+
+// ★ Débloque l'audio Safari au premier clic/touch utilisateur
+function _voiceUnlockAudio() {
+  try {
+    if (!_voiceAudioCtx) {
+      _voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (_voiceAudioCtx.state === 'suspended') {
+      _voiceAudioCtx.resume();
+    }
+    // Joue un son silencieux pour vraiment débloquer
+    const osc = _voiceAudioCtx.createOscillator();
+    const gain = _voiceAudioCtx.createGain();
+    osc.connect(gain); gain.connect(_voiceAudioCtx.destination);
+    gain.gain.value = 0; // silencieux
+    osc.start();
+    osc.stop(_voiceAudioCtx.currentTime + 0.01);
+    console.log('✓ Audio Safari débloqué (état:', _voiceAudioCtx.state, ')');
+  } catch (e) { console.warn('audio unlock failed', e); }
 }
 
 // Flash visuel + son quand une nouvelle commande arrive
@@ -28098,6 +28124,16 @@ setTimeout(() => {
   _getVoiceOrders().forEach(o => _voiceLastSeenIds.add(o.id));
   // ★ Débloque les notifs après 3 secondes (le temps que le state initial se charge)
   setTimeout(() => { _voiceInitDone = true; }, 3000);
+  // ★ Débloque l'audio Safari au premier clic/touch utilisateur (une seule fois)
+  const unlockOnce = () => {
+    _voiceUnlockAudio();
+    document.removeEventListener('click', unlockOnce);
+    document.removeEventListener('touchstart', unlockOnce);
+    document.removeEventListener('keydown', unlockOnce);
+  };
+  document.addEventListener('click', unlockOnce, { once: false });
+  document.addEventListener('touchstart', unlockOnce, { once: false });
+  document.addEventListener('keydown', unlockOnce, { once: false });
   // Refresh régulier de la durée affichée + détection nouvelles arrivées
   setInterval(() => {
     if (currentTab === 'voice') renderVoiceTab();
