@@ -8626,6 +8626,136 @@
     line-height: 1;
   }
 
+  /* ★ KDS v2 : groupement par catégorie + chips options */
+  .kds-cat-group {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+  }
+  .kds-cat-group:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+  .kds-cat-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed rgba(255, 248, 231, 0.18);
+  }
+  .kds-cat-icon {
+    font-size: 16px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  }
+  .kds-cat-name {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--kds-cat-color, var(--cream-dim, #a39481));
+  }
+  .kds-cat-count {
+    margin-left: auto;
+    background: var(--kds-cat-color, var(--amber, #d4a056));
+    color: #14110d;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 100px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  /* Item v2 dans groupe */
+  .kds-item-v2 {
+    border-bottom: none !important;
+    padding: 4px 0 !important;
+    grid-template-columns: 50px 1fr !important;
+    gap: 10px !important;
+  }
+  .kds-qty-v2 {
+    font-size: 26px !important;
+    min-width: 50px !important;
+  }
+  .kds-item-body {
+    padding-top: 2px;
+  }
+  .kds-name-v2 {
+    font-size: 18px !important;
+    padding-top: 0 !important;
+    margin-bottom: 4px;
+  }
+  /* Chips options dans KDS (cohérent avec panier borne, mais plus contrasté) */
+  .kds-item-opts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 4px 0 2px;
+  }
+  .kds-opt-chip {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 100px;
+    line-height: 1.3;
+    background: rgba(212, 160, 86, 0.15);
+    color: #e8b568;
+    border: 1px solid rgba(212, 160, 86, 0.35);
+  }
+  .kds-opt-chip--extra {
+    background: rgba(149, 184, 94, 0.18);
+    color: #b0d479;
+    border-color: rgba(149, 184, 94, 0.4);
+  }
+  .kds-opt-chip--removed {
+    background: rgba(229, 82, 82, 0.15);
+    color: #f08585;
+    border-color: rgba(229, 82, 82, 0.4);
+    text-decoration: line-through;
+    text-decoration-color: rgba(229, 82, 82, 0.7);
+  }
+  .kds-opt-chip--sauce {
+    background: rgba(212, 160, 86, 0.2);
+    color: #e8b568;
+    border-color: rgba(212, 160, 86, 0.45);
+  }
+  .kds-opt-chip--size,
+  .kds-opt-chip--base {
+    background: rgba(107, 155, 209, 0.18);
+    color: #8eb4d6;
+    border-color: rgba(107, 155, 209, 0.4);
+  }
+  .kds-opt-chip--meat {
+    background: rgba(184, 85, 58, 0.18);
+    color: #d18672;
+    border-color: rgba(184, 85, 58, 0.4);
+  }
+  .kds-opt-chip--drink {
+    background: rgba(156, 127, 209, 0.18);
+    color: #b39de1;
+    border-color: rgba(156, 127, 209, 0.4);
+  }
+  .kds-opt-chip--menu {
+    background: linear-gradient(135deg, rgba(212,160,86,0.25), rgba(232,181,104,0.15));
+    color: #e8b568;
+    border-color: rgba(232, 181, 104, 0.5);
+    font-weight: 800;
+  }
+  /* Commentaire client : très visible */
+  .kds-item-comment {
+    background: rgba(212, 160, 86, 0.2);
+    color: var(--amber-bright, #e8b568);
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
+    font-weight: 700;
+    border-left: 3px solid var(--amber, #d4a056);
+    line-height: 1.4;
+  }
+
   /* === FOOTER : actions === */
   .kds-card-foot {
     display: flex;
@@ -33914,18 +34044,84 @@ function renderKDS() {
       payBadge = '<div class="kds-paybadge unpaid">À régler à la livraison</div>';
     }
 
-    const itemsHtml = o.items.filter(i => !isHiddenForKds(i)).map(i => {
-      const customLabel = i.customizationLabel || i.optionsLabel || '';
-      const customLine = customLabel ? `<div style="color:var(--amber);font-size:12px;font-style:italic;margin-top:4px;line-height:1.4;font-weight:500">${customLabel}</div>` : '';
-      const commentLine = i.comment ? `<div style="background:rgba(212,160,86,0.18);color:var(--amber);font-size:12px;padding:5px 8px;border-radius:5px;margin-top:5px;font-weight:700;border-left:3px solid var(--amber)">✏ ${i.comment}</div>` : '';
-      // Ajouter un emoji distinctif pour chaque item (aide à scanner rapidement la commande)
-      const itemIcon = productIcon({ name: i.name, id: i.id });
-      return `
-      <div class="kds-item">
-        <div class="kds-qty">${i.qty}×</div>
-        <div class="kds-name"><span class="kds-item-icon">${itemIcon}</span>${i.name}${customLine}${commentLine}</div>
-      </div>`;
-    }).join('');
+    // ★ Items groupés par catégorie pour la cuisine
+    // Helper : transforme le label de personnalisation en chips colorés (cohérent avec panier borne)
+    const optsToChips = (label) => {
+      if (!label) return '';
+      const parts = label.split(' · ').filter(p => p.trim());
+      const chipsHtml = parts.map(part => {
+        const lower = part.toLowerCase();
+        let kind = 'default';
+        if (lower.startsWith('+')) kind = 'extra';
+        else if (lower.startsWith('sans ')) kind = 'removed';
+        else if (lower.startsWith('sauce ')) kind = 'sauce';
+        else if (lower.startsWith('taille ') || lower.startsWith('pain ')) kind = 'size';
+        else if (lower.startsWith('viande') || lower.startsWith('viandes ')) kind = 'meat';
+        else if (lower.startsWith('boisson') || lower.startsWith('boissons ')) kind = 'drink';
+        else if (lower.startsWith('base ')) kind = 'base';
+        else if (lower.startsWith('formule') || lower === 'en menu' || lower.startsWith('plat ')) kind = 'menu';
+        return `<span class="kds-opt-chip kds-opt-chip--${kind}">${escapeHtml(part)}</span>`;
+      }).join('');
+      return `<div class="kds-item-opts">${chipsHtml}</div>`;
+    };
+
+    // ★ Regroupement par catégorie
+    const visibleItems = o.items.filter(i => !isHiddenForKds(i));
+    const itemsByCat = {};
+    const catOrder = [];
+    visibleItems.forEach(i => {
+      const cat = categoryOf(i.id) || 'Autres';
+      if (!itemsByCat[cat]) {
+        itemsByCat[cat] = [];
+        catOrder.push(cat);
+      }
+      itemsByCat[cat].push(i);
+    });
+
+    // Mapping catégorie → emoji + couleur
+    const catMeta = (catName) => {
+      const c = (catName || '').toLowerCase();
+      if (c.includes('pizza')) return { icon: '🍕', color: '#c97d4a' };
+      if (c.includes('tacos') || c.includes('bowl')) return { icon: '🌮', color: '#95b85e' };
+      if (c.includes('burger')) return { icon: '🍔', color: '#e8b568' };
+      if (c.includes('panini') || c.includes('sandwich')) return { icon: '🥪', color: '#e8b568' };
+      if (c.includes('frite')) return { icon: '🍟', color: '#d4a056' };
+      if (c.includes('salad')) return { icon: '🥗', color: '#95b85e' };
+      if (c.includes('enfant') || c.includes('kid')) return { icon: '🧒', color: '#9c7fd1' };
+      if (c.includes('viand')) return { icon: '🍖', color: '#b8553a' };
+      return { icon: '🍴', color: '#a39481' };
+    };
+
+    let itemsHtml = '';
+    catOrder.forEach(cat => {
+      const meta = catMeta(cat);
+      const catItems = itemsByCat[cat];
+      // Total items dans la catégorie (somme des qty)
+      const catTotal = catItems.reduce((s, x) => s + x.qty, 0);
+      itemsHtml += `<div class="kds-cat-group" style="--kds-cat-color:${meta.color}">
+        <div class="kds-cat-header">
+          <span class="kds-cat-icon">${meta.icon}</span>
+          <span class="kds-cat-name">${escapeHtml(cat)}</span>
+          <span class="kds-cat-count">${catTotal}</span>
+        </div>`;
+      catItems.forEach(i => {
+        const customLabel = i.customizationLabel || i.optionsLabel || '';
+        const optsHtml = optsToChips(customLabel);
+        const commentLine = i.comment
+          ? `<div class="kds-item-comment">✏ ${escapeHtml(i.comment)}</div>`
+          : '';
+        itemsHtml += `
+          <div class="kds-item kds-item-v2">
+            <div class="kds-qty kds-qty-v2">${i.qty}×</div>
+            <div class="kds-item-body">
+              <div class="kds-name kds-name-v2">${escapeHtml(i.name)}</div>
+              ${optsHtml}
+              ${commentLine}
+            </div>
+          </div>`;
+      });
+      itemsHtml += '</div>';
+    });
 
     // === Cadeaux automatiques pizza : afficher pour la cuisine ===
     let giftsHtml = '';
