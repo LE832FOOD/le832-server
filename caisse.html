@@ -11339,6 +11339,91 @@
   .fleet-gps-status.live { background: rgba(122,154,77,0.2); color: var(--green-bright); }
   .fleet-gps-status.stale { background: rgba(212,160,86,0.15); color: var(--amber); }
   .fleet-gps-status.offline { background: rgba(214,79,79,0.15); color: var(--red); }
+
+  /* ★ Section livreurs actifs en haut de la liste suivi */
+  .fleet-livreurs-section {
+    background: linear-gradient(135deg, rgba(212,160,86,0.06), rgba(212,160,86,0.02));
+    border: 1px solid rgba(212,160,86,0.2);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 14px;
+  }
+  .fleet-livreurs-title {
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .fleet-livreur-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--surface);
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .fleet-livreur-row:last-child { margin-bottom: 0; }
+  .fleet-livreur-row:hover {
+    background: var(--surface-2, rgba(255,255,255,0.04));
+    transform: translateX(2px);
+  }
+  .fleet-livreur-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    flex-shrink: 0;
+  }
+  .fleet-livreur-info { flex: 1; min-width: 0; }
+  .fleet-livreur-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cream);
+  }
+  .fleet-livreur-meta {
+    font-size: 11px;
+    color: var(--cream-dim);
+    margin-top: 2px;
+  }
+
+  /* ★ Badge livreur assigné sur les cards de commande */
+  .fleet-card-livreur-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 100px;
+    margin-bottom: 8px;
+    background: rgba(212,160,86,0.15);
+    color: var(--amber-bright, #e8b568);
+    border: 1px solid rgba(212,160,86,0.3);
+  }
+  .fleet-card-livreur-badge--offline {
+    background: rgba(214,79,79,0.1);
+    color: #e69a8a;
+    border-color: rgba(214,79,79,0.3);
+  }
+  .fleet-card-livreur-badge--none {
+    background: rgba(214,79,79,0.15);
+    color: #e69a8a;
+    border-color: rgba(214,79,79,0.4);
+    animation: livreurMissingPulse 2s ease-in-out infinite;
+  }
+  @keyframes livreurMissingPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.65; }
+  }
   /* Mobile: liste collapse */
   @media (max-width: 768px) {
     .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -32299,6 +32384,9 @@ function livTakeOrder(id) {
   o.status = 'en_livraison';
   o.takenAt = nowMs();
   o.takenBy = currentServer ? currentServer.name : 'Livreur';
+  // ★ Multi-livreurs : on identifie le livreur qui prend la commande
+  o.deliveredBy = currentServer ? currentServer.name : 'Livreur';
+  o.deliveredByLivreurId = currentServer ? String(currentServer.id) : null;
   saveState();
   livSelectedOrderId = id;
   renderLivList();
@@ -32591,14 +32679,56 @@ function updateGpsUI() {
 
 function broadcastLivreurPosition() {
   if (!livLastPosition) return;
-  // Stocker dans le state pour synchronisation cross-device
-  state.livreurPosition = {
+  // ★ Multi-livreurs : on identifie chaque livreur par son ID (currentServer.id)
+  // et on stocke sa position dans state.livreurPositions[livreurId]
+  const livreurId = currentServer ? String(currentServer.id) : 'unknown';
+  const livreurName = currentServer ? currentServer.name : 'Livreur';
+  if (!state.livreurPositions) state.livreurPositions = {};
+  state.livreurPositions[livreurId] = {
     lat: livLastPosition.lat,
     lon: livLastPosition.lon,
     ts: livLastPosition.ts,
-    livreurName: currentServer ? currentServer.name : 'Livreur'
+    livreurId: livreurId,
+    livreurName: livreurName
   };
+  // ★ Compatibilité ascendante : on continue à mettre state.livreurPosition au plus récent
+  state.livreurPosition = state.livreurPositions[livreurId];
   saveState();
+}
+
+// ★ Helper : retourne la liste des positions livreurs ACTIVES (< 60 sec)
+function getActiveLivreurPositions() {
+  const positions = state.livreurPositions || {};
+  const now = Date.now();
+  const result = [];
+  // Fallback : si pas de livreurPositions, on regarde l'ancien livreurPosition
+  if (Object.keys(positions).length === 0 && state.livreurPosition) {
+    const p = state.livreurPosition;
+    if (now - p.ts < 60000) {
+      result.push({
+        livreurId: p.livreurId || 'legacy',
+        livreurName: p.livreurName || 'Livreur',
+        lat: p.lat,
+        lon: p.lon,
+        ts: p.ts,
+        ageSec: Math.floor((now - p.ts) / 1000)
+      });
+    }
+    return result;
+  }
+  Object.values(positions).forEach(p => {
+    if (now - p.ts < 60000) {
+      result.push({
+        livreurId: p.livreurId,
+        livreurName: p.livreurName,
+        lat: p.lat,
+        lon: p.lon,
+        ts: p.ts,
+        ageSec: Math.floor((now - p.ts) / 1000)
+      });
+    }
+  });
+  return result;
 }
 
 //
@@ -32805,49 +32935,99 @@ function refreshFleet() {
   if (!state.orders) return;
   // Filtrer commandes en livraison
   const inDelivery = state.orders.filter(o => o.status === 'en_livraison' && o.type === 'livraison');
+  // ★ Récupère TOUS les livreurs actifs (multi-livreurs)
+  const activeLivreurs = getActiveLivreurPositions();
   // Stats header
   const sub = document.getElementById('suiviSub');
   if (sub) {
     const count = inDelivery.length;
-    const livreurOk = state.livreurPosition && (Date.now() - state.livreurPosition.ts < 60000);
-    const livreurName = state.livreurPosition ? state.livreurPosition.livreurName : null;
-    sub.innerHTML = `${count} commande${count > 1 ? 's' : ''} en livraison · GPS livreur ${livreurOk ? '<span style="color:var(--green-bright)">●</span> actif' + (livreurName ? ` (${livreurName})` : '') : '<span style="color:var(--muted)">●</span> inactif'}`;
+    const nLivreurs = activeLivreurs.length;
+    const livreurTxt = nLivreurs === 0
+      ? '<span style="color:var(--muted)">●</span> Aucun livreur actif'
+      : nLivreurs === 1
+        ? `<span style="color:var(--green-bright)">●</span> 1 livreur actif (${activeLivreurs[0].livreurName})`
+        : `<span style="color:var(--green-bright)">●</span> ${nLivreurs} livreurs actifs`;
+    sub.innerHTML = `${count} commande${count > 1 ? 's' : ''} en livraison · ${livreurTxt}`;
   }
   // Liste
-  renderFleetList(inDelivery);
+  renderFleetList(inDelivery, activeLivreurs);
   // Carte
-  updateFleetMap(inDelivery);
+  updateFleetMap(inDelivery, activeLivreurs);
 }
 
-function renderFleetList(orders) {
+function renderFleetList(orders, livreurs) {
+  livreurs = livreurs || [];
   const list = document.getElementById('suiviList');
   const empty = document.getElementById('suiviEmpty');
   if (!list) return;
+
+  // ★ Section "Livreurs actifs" en haut
+  let livreursHtml = '';
+  if (livreurs.length > 0) {
+    const livreurColors = ['#d4a056', '#7e9bbf', '#9c7fd1', '#e68b6b', '#7a9a4d'];
+    livreursHtml = '<div class="fleet-livreurs-section"><div class="fleet-livreurs-title">🛵 Livreurs actifs</div>';
+    livreurs.forEach((liv, idx) => {
+      const color = livreurColors[idx % livreurColors.length];
+      let ageTxt;
+      if (liv.ageSec < 30) ageTxt = "à l'instant";
+      else if (liv.ageSec < 90) ageTxt = `${liv.ageSec}s`;
+      else ageTxt = `${Math.floor(liv.ageSec / 60)}min`;
+      // Compter les commandes assignées à ce livreur
+      const myOrders = orders.filter(o => String(o.deliveredByLivreurId || '') === String(liv.livreurId));
+      const orderCount = myOrders.length;
+      livreursHtml += `<div class="fleet-livreur-row" style="border-left-color:${color}" onclick="centerFleetOnLivreur('${liv.livreurId}')">
+        <div class="fleet-livreur-avatar" style="background:${color}">🛵</div>
+        <div class="fleet-livreur-info">
+          <div class="fleet-livreur-name">${escapeHtml(liv.livreurName)}</div>
+          <div class="fleet-livreur-meta">📡 ${ageTxt} · ${orderCount} commande${orderCount > 1 ? 's' : ''}</div>
+        </div>
+      </div>`;
+    });
+    livreursHtml += '</div>';
+  }
+
   if (orders.length === 0) {
-    list.innerHTML = `<div style="text-align:center;padding:30px 16px;color:var(--cream-dim);font-size:13px">Aucune livraison en cours</div>`;
-    if (empty) empty.style.display = 'flex';
+    list.innerHTML = livreursHtml + `<div style="text-align:center;padding:30px 16px;color:var(--cream-dim);font-size:13px">Aucune livraison en cours</div>`;
+    if (empty) empty.style.display = livreurs.length > 0 ? 'none' : 'flex';
     return;
   }
   if (empty) empty.style.display = 'none';
-  list.innerHTML = orders.map(o => {
+
+  // Helper : map livreurId → infos
+  const livreurMap = {};
+  livreurs.forEach(l => { livreurMap[l.livreurId] = l; });
+
+  const ordersHtml = orders.map(o => {
     const c = o.customer || {};
     const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
     const elapsed = o.takenAt ? Math.floor((Date.now() - o.takenAt) / 60000) : 0;
     let elapsedTxt = '';
     if (elapsed > 0) elapsedTxt = elapsed >= 60 ? `${Math.floor(elapsed / 60)}h ${elapsed % 60}min` : `${elapsed}min`;
+
+    // ★ Livreur assigné à cette commande
+    const assignedLivreurId = o.deliveredByLivreurId || null;
+    const assignedLivreur = assignedLivreurId ? livreurMap[assignedLivreurId] : null;
     let gpsStatus = 'offline', gpsTxt = 'GPS inactif';
-    if (state.livreurPosition && state.livreurPosition.ts) {
-      const ageSec = Math.floor((Date.now() - state.livreurPosition.ts) / 1000);
+    let livreurBadge = '';
+    if (assignedLivreur) {
+      const ageSec = assignedLivreur.ageSec;
       if (ageSec < 30) { gpsStatus = 'live'; gpsTxt = "à l'instant"; }
       else if (ageSec < 90) { gpsStatus = 'live'; gpsTxt = `${ageSec}s`; }
       else if (ageSec < 300) { gpsStatus = 'stale'; gpsTxt = `${Math.floor(ageSec/60)}min`; }
       else { gpsStatus = 'offline'; gpsTxt = `${Math.floor(ageSec/60)}min`; }
+      livreurBadge = `<span class="fleet-card-livreur-badge">🛵 ${escapeHtml(assignedLivreur.livreurName)}</span>`;
+    } else if (o.deliveredBy) {
+      // Livreur attribué mais sans GPS actif
+      livreurBadge = `<span class="fleet-card-livreur-badge fleet-card-livreur-badge--offline">🛵 ${escapeHtml(o.deliveredBy)} · GPS inactif</span>`;
+    } else {
+      livreurBadge = `<span class="fleet-card-livreur-badge fleet-card-livreur-badge--none">⚠ Aucun livreur assigné</span>`;
     }
     return `<div class="fleet-card ${o.id === fleetSelectedOrderId ? 'selected' : ''}" onclick="selectFleetOrder('${o.id}')">
       <div class="fleet-card-head">
         <div class="fleet-card-num">Commande<strong>N°${o.number}</strong></div>
         <div class="fleet-card-status">🚗 En route</div>
       </div>
+      ${livreurBadge}
       <div class="fleet-card-info">
         <strong>${escapeHtml(fullName)}</strong><br>
         ${escapeHtml(c.address || 'Sans adresse')}
@@ -32855,10 +33035,20 @@ function renderFleetList(orders) {
       <div class="fleet-card-meta">
         ${elapsedTxt ? `<span class="fleet-card-meta-item">⏱ ${elapsedTxt}</span>` : ''}
         <span class="fleet-card-meta-item">${fmt(o.total)}</span>
-        <span class="fleet-gps-status ${gpsStatus}">📡 ${gpsTxt}</span>
+        ${assignedLivreur ? `<span class="fleet-gps-status ${gpsStatus}">📡 ${gpsTxt}</span>` : ''}
       </div>
     </div>`;
   }).join('');
+
+  list.innerHTML = livreursHtml + ordersHtml;
+}
+
+// ★ Centre la carte sur un livreur précis
+function centerFleetOnLivreur(livreurId) {
+  if (!fleetMap) return;
+  const livreurs = getActiveLivreurPositions();
+  const liv = livreurs.find(l => String(l.livreurId) === String(livreurId));
+  if (liv) fleetMap.setView([liv.lat, liv.lon], 15);
 }
 
 function selectFleetOrder(orderId) {
@@ -32870,12 +33060,18 @@ function selectFleetOrder(orderId) {
   const c = o.customer || {};
   if (c.lat && c.lon) {
     fleetMap.setView([c.lat, c.lon], 15);
-  } else if (state.livreurPosition) {
-    fleetMap.setView([state.livreurPosition.lat, state.livreurPosition.lon], 15);
+  } else {
+    // Sinon centrer sur le livreur assigné, ou le 1er actif
+    const livreurs = getActiveLivreurPositions();
+    const assigned = o.deliveredByLivreurId
+      ? livreurs.find(l => String(l.livreurId) === String(o.deliveredByLivreurId))
+      : livreurs[0];
+    if (assigned) fleetMap.setView([assigned.lat, assigned.lon], 15);
   }
 }
 
-function updateFleetMap(orders) {
+function updateFleetMap(orders, livreurs) {
+  livreurs = livreurs || [];
   if (!fleetMap) return;
   // Nettoyer markers clients précédents
   fleetMarkers.clients.forEach(m => fleetMap.removeLayer(m));
@@ -32897,23 +33093,40 @@ function updateFleetMap(orders) {
       .bindPopup(`<strong>N°${o.number} — ${fullName}</strong><br>${c.address || ''}`);
     fleetMarkers.clients.push(m);
   });
-  // Marker livreur
-  if (state.livreurPosition) {
-    const pos = [state.livreurPosition.lat, state.livreurPosition.lon];
-    const livreurIcon = L.divIcon({
-      className: '',
-      html: '<div style="background:#d4a056;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 4px 12px rgba(212,160,86,0.5)">🛵</div>',
-      iconSize: [40, 40],
-      iconAnchor: [20, 20]
-    });
-    if (fleetMarkers.livreur) {
-      fleetMarkers.livreur.setLatLng(pos);
-    } else {
-      fleetMarkers.livreur = L.marker(pos, { icon: livreurIcon })
-        .addTo(fleetMap)
-        .bindPopup(`<strong>${state.livreurPosition.livreurName || 'Livreur'}</strong>`);
+  // ★ Markers livreurs : un par livreur actif avec couleur unique
+  if (!fleetMarkers.livreurs) fleetMarkers.livreurs = {};
+  const livreurColors = ['#d4a056', '#7e9bbf', '#9c7fd1', '#e68b6b', '#7a9a4d'];
+  // Set des IDs encore actifs (pour nettoyer les inactifs)
+  const activeIds = new Set(livreurs.map(l => l.livreurId));
+  // Supprimer les markers de livreurs qui ne sont plus actifs
+  Object.keys(fleetMarkers.livreurs).forEach(id => {
+    if (!activeIds.has(id)) {
+      fleetMap.removeLayer(fleetMarkers.livreurs[id]);
+      delete fleetMarkers.livreurs[id];
     }
-  } else if (fleetMarkers.livreur) {
+  });
+  // Ajouter / mettre à jour les markers actifs
+  livreurs.forEach((liv, idx) => {
+    const color = livreurColors[idx % livreurColors.length];
+    const pos = [liv.lat, liv.lon];
+    if (fleetMarkers.livreurs[liv.livreurId]) {
+      // Mise à jour de la position
+      fleetMarkers.livreurs[liv.livreurId].setLatLng(pos);
+    } else {
+      // Nouveau marker
+      const icon = L.divIcon({
+        className: '',
+        html: `<div style="background:${color};width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;border:3px solid white;box-shadow:0 4px 12px ${color}80">🛵</div>`,
+        iconSize: [40, 40],
+        iconAnchor: [20, 20]
+      });
+      fleetMarkers.livreurs[liv.livreurId] = L.marker(pos, { icon: icon })
+        .addTo(fleetMap)
+        .bindPopup(`<strong>${escapeHtml(liv.livreurName)}</strong>`);
+    }
+  });
+  // ★ Compat ascendante : on enlève l'ancien marker single si présent
+  if (fleetMarkers.livreur) {
     fleetMap.removeLayer(fleetMarkers.livreur);
     fleetMarkers.livreur = null;
   }
