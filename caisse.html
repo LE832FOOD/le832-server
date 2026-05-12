@@ -11810,6 +11810,243 @@
     font-size: 12px;
     text-align: center;
   }
+
+  /* ═══ Bouton flottant : Rechercher un client (Ctrl+K) ═══ */
+  .client-palette-fab {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--amber, #d4a056), #c89548);
+    color: #14110d;
+    border: none;
+    cursor: pointer;
+    font-size: 24px;
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(212, 160, 86, 0.4);
+    z-index: 100;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .client-palette-fab:hover {
+    transform: scale(1.08);
+    box-shadow: 0 8px 28px rgba(212, 160, 86, 0.55);
+  }
+  .client-palette-fab:active { transform: scale(0.96); }
+  /* Cacher sur mobile pour ne pas overlapper la nav du bas */
+  @media (max-width: 768px) {
+    .client-palette-fab {
+      bottom: 80px;
+      width: 48px;
+      height: 48px;
+      font-size: 20px;
+    }
+  }
+
+  /* ═══ Palette de recherche client (style Spotlight) ═══ */
+  .client-palette-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 80px 20px 20px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .client-palette-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+  .client-palette {
+    width: 100%;
+    max-width: 560px;
+    background: var(--surface, #1f1a14);
+    border: 1px solid rgba(212, 160, 86, 0.3);
+    border-radius: 14px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: translateY(-8px) scale(0.98);
+    transition: transform 0.18s ease;
+  }
+  .client-palette-overlay.active .client-palette {
+    transform: translateY(0) scale(1);
+  }
+  .client-palette-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(212, 160, 86, 0.15);
+  }
+  .client-palette-search-icon {
+    font-size: 22px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .client-palette-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--cream, #fff8e7);
+    font-size: 18px;
+    outline: none;
+    font-family: inherit;
+  }
+  .client-palette-input::placeholder {
+    color: var(--cream-dim, #a39481);
+  }
+  .client-palette-kbd,
+  .client-palette kbd {
+    background: rgba(212, 160, 86, 0.15);
+    color: var(--amber-bright, #e8b568);
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(212, 160, 86, 0.3);
+    font-weight: 700;
+    font-family: inherit;
+  }
+  .client-palette-info {
+    padding: 10px 18px;
+    font-size: 11px;
+    color: var(--cream-dim, #a39481);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .client-palette-results {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  .client-palette-result {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 18px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    transition: background 0.1s ease, border-left-color 0.1s ease;
+  }
+  .client-palette-result:hover,
+  .client-palette-result.selected {
+    background: rgba(212, 160, 86, 0.10);
+    border-left-color: var(--amber, #d4a056);
+  }
+  .client-palette-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2a231b;
+    color: var(--cream-dim, #a39481);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    border: 1px solid rgba(212, 160, 86, 0.2);
+    flex-shrink: 0;
+  }
+  .client-palette-result.selected .client-palette-avatar {
+    background: linear-gradient(135deg, var(--amber-bright, #e8b568), var(--amber, #d4a056));
+    color: #14110d;
+    border-color: transparent;
+  }
+  .client-palette-avatar--mensuel {
+    background: rgba(156, 127, 209, 0.15) !important;
+    color: #b39de1 !important;
+    border-color: rgba(156, 127, 209, 0.3) !important;
+  }
+  .client-palette-result-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .client-palette-result-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cream, #fff8e7);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .client-palette-result-sub {
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .client-palette-result-points {
+    color: var(--amber-bright, #e8b568);
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .client-palette-result-enter {
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+  }
+  .client-palette-result.selected .client-palette-result-enter {
+    opacity: 1;
+  }
+  /* Tags rapides : VIP, Mensuel */
+  .client-palette-tag {
+    display: inline-block;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 100px;
+    letter-spacing: 0.1em;
+    line-height: 1.3;
+    vertical-align: middle;
+  }
+  .client-palette-tag--vip {
+    background: linear-gradient(135deg, var(--amber, #d4a056), var(--amber-bright, #e8b568));
+    color: #14110d;
+  }
+  .client-palette-tag--mensuel {
+    background: rgba(156, 127, 209, 0.2);
+    color: #b39de1;
+  }
+  .client-palette-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--cream-dim, #a39481);
+  }
+  .client-palette-empty-icon {
+    font-size: 48px;
+    line-height: 1;
+    margin-bottom: 10px;
+    opacity: 0.4;
+  }
+  .client-palette-foot {
+    background: rgba(0, 0, 0, 0.25);
+    padding: 10px 18px;
+    display: flex;
+    gap: 14px;
+    font-size: 11px;
+    color: var(--cream-dim, #6e6258);
+    border-top: 1px solid rgba(212, 160, 86, 0.1);
+  }
+  .client-palette-foot kbd {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--cream-dim, #a39481);
+  }
   /* Mobile: liste collapse */
   @media (max-width: 768px) {
     .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -15199,6 +15436,29 @@
       <span class="bn-label">Plus</span>
     </button>
   </nav>
+
+  <!-- ★ BOUTON FLOTTANT : Rechercher un client (Ctrl+K) -->
+  <button class="client-palette-fab" onclick="openClientPalette()" title="Rechercher un client (Ctrl+K)">
+    🔍
+  </button>
+
+  <!-- ★ PALETTE DE RECHERCHE CLIENT (modale style Spotlight) -->
+  <div id="clientPaletteOverlay" class="client-palette-overlay" onclick="closeClientPalette(event)">
+    <div class="client-palette" onclick="event.stopPropagation()">
+      <div class="client-palette-search">
+        <span class="client-palette-search-icon">🔍</span>
+        <input type="text" id="clientPaletteInput" class="client-palette-input" placeholder="Rechercher par nom, téléphone, adresse…" autocomplete="off" />
+        <kbd class="client-palette-kbd">ESC</kbd>
+      </div>
+      <div class="client-palette-info" id="clientPaletteInfo">Tapez pour rechercher · ↑↓ pour naviguer · ↵ pour sélectionner</div>
+      <div class="client-palette-results" id="clientPaletteResults"></div>
+      <div class="client-palette-foot">
+        <span><kbd>↑</kbd> <kbd>↓</kbd> Naviguer</span>
+        <span><kbd>↵</kbd> Sélectionner</span>
+        <span style="margin-left:auto"><kbd>ESC</kbd> Fermer</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ========== BORNE ========== -->
@@ -27059,6 +27319,272 @@ function relativeDate(ms) {
   if (diff < 30 * day) return Math.floor(diff / (7 * day)) + ' sem.';
   if (diff < 365 * day) return Math.floor(diff / (30 * day)) + ' mois';
   return Math.floor(diff / (365 * day)) + ' an' + (diff > 2 * 365 * day ? 's' : '');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ★ PALETTE DE RECHERCHE CLIENT (style Spotlight, Ctrl+K)
+// ═══════════════════════════════════════════════════════════════
+
+let _clientPaletteIdx = 0;       // index sélectionné
+let _clientPaletteResults = [];  // résultats actuels (objets clients)
+let _clientPaletteDebounceTimer = null;
+
+function openClientPalette() {
+  const overlay = document.getElementById('clientPaletteOverlay');
+  const input = document.getElementById('clientPaletteInput');
+  if (!overlay || !input) return;
+  overlay.classList.add('active');
+  input.value = '';
+  _clientPaletteIdx = 0;
+  _renderClientPaletteResults('');
+  // Focus auto
+  setTimeout(() => input.focus(), 50);
+}
+
+function closeClientPalette(evt) {
+  // Si on a cliqué sur l'overlay (et pas dedans), on ferme
+  if (evt && evt.currentTarget !== evt.target) return;
+  const overlay = document.getElementById('clientPaletteOverlay');
+  if (overlay) overlay.classList.remove('active');
+}
+
+// Recherche avec scoring intelligent
+function _searchClients(query) {
+  const customers = Object.values(state.customers || {});
+  if (!query) {
+    // Vide : retourner les clients récents (par lastSeenAt ou par nombre de cmds)
+    return customers
+      .filter(c => c.firstName || c.lastName || c.phone)
+      .sort((a, b) => {
+        // VIP en premier
+        const aVip = (a.tags || []).includes('VIP') ? 1 : 0;
+        const bVip = (b.tags || []).includes('VIP') ? 1 : 0;
+        if (aVip !== bVip) return bVip - aVip;
+        // Puis par dernière activité
+        const aLast = a.lastSeenAt || a.firstSeenAt || 0;
+        const bLast = b.lastSeenAt || b.firstSeenAt || 0;
+        return bLast - aLast;
+      })
+      .slice(0, 12);
+  }
+
+  const q = query.toLowerCase().trim();
+  const qPhone = (typeof normalizePhone === 'function') ? normalizePhone(q) : q.replace(/\D/g, '');
+
+  const scored = customers.map(c => {
+    let score = 0;
+    const first = (c.firstName || '').toLowerCase();
+    const last = (c.lastName || '').toLowerCase();
+    const fullName = (first + ' ' + last).trim();
+    const reverseName = (last + ' ' + first).trim();
+    const phone = (c.phone || '').toLowerCase();
+    const phoneNorm = (typeof normalizePhone === 'function') ? normalizePhone(c.phone || '') : (c.phone || '').replace(/\D/g, '');
+    const addr = (c.address || '').toLowerCase();
+    const company = (c.companyName || '').toLowerCase();
+
+    // Match nom exact début
+    if (first.startsWith(q)) score += 100;
+    if (last.startsWith(q)) score += 100;
+    if (company.startsWith(q)) score += 95;
+    // Match nom contains
+    if (first.includes(q) && !first.startsWith(q)) score += 40;
+    if (last.includes(q) && !last.startsWith(q)) score += 40;
+    if (company.includes(q) && !company.startsWith(q)) score += 35;
+    // Match nom complet
+    if (fullName.includes(q)) score += 60;
+    if (reverseName.includes(q)) score += 60;
+    // Match téléphone (par chiffres)
+    if (qPhone && qPhone.length >= 2 && phoneNorm.includes(qPhone)) {
+      score += 80;
+      if (phoneNorm.startsWith(qPhone)) score += 30;
+    }
+    // Match adresse
+    if (addr.includes(q)) score += 25;
+
+    // Bonus : client VIP / mensuel / fréquent
+    if (score > 0) {
+      if ((c.tags || []).includes('VIP')) score += 15;
+      if (c.accountType === 'mensuel') score += 12;
+      // Récence (clients récents préférés)
+      const days = c.lastSeenAt ? (Date.now() - c.lastSeenAt) / 86400000 : 365;
+      if (days < 7) score += 8;
+      else if (days < 30) score += 4;
+    }
+    return { customer: c, score: score };
+  });
+
+  return scored
+    .filter(x => x.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 30)
+    .map(x => x.customer);
+}
+
+// Rendu de la liste de résultats
+function _renderClientPaletteResults(query) {
+  const resultsEl = document.getElementById('clientPaletteResults');
+  const infoEl = document.getElementById('clientPaletteInfo');
+  if (!resultsEl) return;
+  _clientPaletteResults = _searchClients(query);
+  _clientPaletteIdx = 0;
+
+  if (_clientPaletteResults.length === 0) {
+    if (infoEl) infoEl.textContent = query ? '0 résultat' : 'Aucun client en base';
+    resultsEl.innerHTML = `
+      <div class="client-palette-empty">
+        <div class="client-palette-empty-icon">${query ? '🔍' : '👥'}</div>
+        <div style="font-weight:700;color:var(--cream);margin-bottom:4px">${query ? 'Aucun client trouvé' : 'Aucun client'}</div>
+        <div style="font-size:12px">${query ? 'Essayez un autre terme' : 'Vos clients apparaîtront ici après leur première commande'}</div>
+      </div>`;
+    return;
+  }
+
+  if (infoEl) {
+    const n = _clientPaletteResults.length;
+    infoEl.textContent = `${n} résultat${n > 1 ? 's' : ''} · ↑↓ pour naviguer · ↵ pour sélectionner`;
+  }
+
+  resultsEl.innerHTML = _clientPaletteResults.map((c, idx) => {
+    const first = c.firstName || '';
+    const last = c.lastName || '';
+    const company = c.companyName || '';
+    const isMensuel = c.accountType === 'mensuel';
+    const isVip = (c.tags || []).includes('VIP');
+    const displayName = isMensuel && company ? company : ((first + ' ' + last).trim() || c.phone || 'Client');
+    const initials = (() => {
+      if (isMensuel && company) {
+        const w = company.trim().split(/\s+/);
+        return w.length >= 2 ? (w[0][0] + w[1][0]).toUpperCase() : company.slice(0, 2).toUpperCase();
+      }
+      const a = (first[0] || '').toUpperCase();
+      const b = (last[0] || '').toUpperCase();
+      return (a + b) || (c.phone || '?').slice(-2);
+    })();
+
+    // Stats
+    const stats = (typeof getCustomerStats === 'function') ? getCustomerStats(c.phone) : { count: 0, total: 0 };
+    const points = c.loyaltyPoints || 0;
+    let subParts = [];
+    if (c.phone) subParts.push(c.phone);
+    if (stats.count > 0) subParts.push(`${stats.count} cmd · CA ${fmt(stats.total)}`);
+    else if (c.address) subParts.push(c.address);
+
+    let tagsHtml = '';
+    if (isVip) tagsHtml += '<span class="client-palette-tag client-palette-tag--vip">VIP</span>';
+    if (isMensuel) tagsHtml += '<span class="client-palette-tag client-palette-tag--mensuel">MENSUEL</span>';
+
+    return `
+      <div class="client-palette-result ${idx === 0 ? 'selected' : ''}" data-idx="${idx}" data-phone="${(c.phone || '').replace(/'/g, '')}" onclick="_clientPaletteSelect(${idx})" onmouseenter="_clientPaletteHover(${idx})">
+        <div class="client-palette-avatar ${isMensuel ? 'client-palette-avatar--mensuel' : ''}">${isMensuel ? '🏢' : initials}</div>
+        <div class="client-palette-result-info">
+          <div class="client-palette-result-name">${escapeHtml(displayName)} ${tagsHtml}</div>
+          <div class="client-palette-result-sub">${escapeHtml(subParts.join(' · '))}</div>
+        </div>
+        ${points > 0 ? `<div class="client-palette-result-points">${points} pts</div>` : ''}
+        <kbd class="client-palette-result-enter">↵</kbd>
+      </div>
+    `;
+  }).join('');
+}
+
+function _clientPaletteHover(idx) {
+  _clientPaletteIdx = idx;
+  document.querySelectorAll('.client-palette-result').forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+
+function _clientPaletteSelect(idx) {
+  if (idx === undefined) idx = _clientPaletteIdx;
+  const c = _clientPaletteResults[idx];
+  if (!c) return;
+  closeClientPalette({ currentTarget: 1, target: 1 });
+
+  // ★ Contexte : si on est sur l'onglet "Nouvelle" (caisse), auto-remplir le formulaire
+  if (currentTab === 'nouvelle' && currentView === 'caisse') {
+    _clientPaletteApplyToCaisse(c);
+  } else {
+    // Sinon : ouvrir le détail client
+    if (typeof showClientDetail === 'function') {
+      showClientDetail(c.phone);
+    }
+  }
+}
+
+// Auto-remplit les champs de la caisse avec les infos du client
+function _clientPaletteApplyToCaisse(c) {
+  const fn = document.getElementById('custFirstName');
+  const ln = document.getElementById('custLastName');
+  const ph = document.getElementById('custPhone');
+  const addr = document.getElementById('custAddress');
+  if (fn) fn.value = c.firstName || '';
+  if (ln) ln.value = c.lastName || '';
+  if (ph) ph.value = c.phone || '';
+  if (addr) addr.value = c.address || '';
+  // Trigger la reconnaissance automatique si dispo
+  if (typeof onCustomerPhoneInput === 'function') {
+    try { onCustomerPhoneInput(); } catch (e) {}
+  }
+  toast(`✓ Client "${(c.firstName || '') + ' ' + (c.lastName || '')}" sélectionné`);
+}
+
+// Init : raccourci clavier Ctrl+K + listeners
+(function _initClientPalette() {
+  // Raccourci Ctrl+K / Cmd+K global
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      // Ignorer si on est en mode borne (kiosk)
+      if (typeof isBorneActive === 'function' && isBorneActive()) return;
+      e.preventDefault();
+      openClientPalette();
+      return;
+    }
+    // Navigation dans la palette
+    const overlay = document.getElementById('clientPaletteOverlay');
+    if (!overlay || !overlay.classList.contains('active')) return;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeClientPalette({ currentTarget: 1, target: 1 });
+      return;
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (_clientPaletteResults.length === 0) return;
+      _clientPaletteIdx = Math.min(_clientPaletteIdx + 1, _clientPaletteResults.length - 1);
+      _clientPaletteUpdateSelection();
+      return;
+    }
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (_clientPaletteResults.length === 0) return;
+      _clientPaletteIdx = Math.max(_clientPaletteIdx - 1, 0);
+      _clientPaletteUpdateSelection();
+      return;
+    }
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      _clientPaletteSelect();
+      return;
+    }
+  });
+
+  // Recherche en input
+  document.addEventListener('input', (e) => {
+    if (e.target && e.target.id === 'clientPaletteInput') {
+      const v = e.target.value;
+      if (_clientPaletteDebounceTimer) clearTimeout(_clientPaletteDebounceTimer);
+      _clientPaletteDebounceTimer = setTimeout(() => _renderClientPaletteResults(v), 80);
+    }
+  });
+})();
+
+function _clientPaletteUpdateSelection() {
+  document.querySelectorAll('.client-palette-result').forEach((el, i) => {
+    el.classList.toggle('selected', i === _clientPaletteIdx);
+  });
+  // Scroll si nécessaire
+  const sel = document.querySelector('.client-palette-result.selected');
+  if (sel) sel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
 function renderClients() {
