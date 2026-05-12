@@ -11424,6 +11424,113 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.65; }
   }
+
+  /* ★ Bouton "Assigner livreur" sur card suivi */
+  .fleet-card-assign-btn {
+    margin-top: 10px;
+    width: 100%;
+    background: linear-gradient(135deg, rgba(212,160,86,0.18), rgba(212,160,86,0.08));
+    color: var(--amber-bright, #e8b568);
+    border: 1px solid var(--amber, #d4a056);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .fleet-card-assign-btn:hover {
+    background: rgba(212,160,86,0.28);
+    transform: translateY(-1px);
+  }
+  .fleet-card-assign-btn:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  /* ★ Liste de livreurs dans modale d'assignation */
+  .assign-livreur-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0 4px;
+  }
+  .assign-livreur-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    background: var(--surface, rgba(31,26,20,0.5));
+    border: 1px solid var(--line, rgba(212,160,86,0.15));
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: var(--cream, #fff8e7);
+    transition: all 0.15s ease;
+  }
+  .assign-livreur-card:hover {
+    border-color: var(--amber, #d4a056);
+    background: rgba(212,160,86,0.06);
+    transform: translateY(-1px);
+  }
+  .assign-livreur-card--current {
+    background: rgba(149,184,94,0.08);
+    border-color: rgba(149,184,94,0.5);
+  }
+  .assign-livreur-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--surface-2, rgba(255,255,255,0.04));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+  .assign-livreur-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .assign-livreur-name {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .assign-livreur-meta {
+    font-size: 11px;
+    color: var(--cream-dim, #a39481);
+  }
+  .assign-livreur-arrow {
+    font-size: 22px;
+    color: var(--cream-dim, #a39481);
+    flex-shrink: 0;
+  }
+  .assign-livreur-current {
+    background: rgba(149,184,94,0.2);
+    color: var(--green-bright, #b0d479);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .livreur-suggested {
+    display: inline-block;
+    margin-left: 6px;
+    background: linear-gradient(135deg, #d4a056, #e8b568);
+    color: #14110d;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+    vertical-align: middle;
+  }
   /* Mobile: liste collapse */
   @media (max-width: 768px) {
     .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -20469,10 +20576,15 @@ function showOrderDetail(id) {
         ${smsBtn ? `<button class="btn" onclick="showSmsModal('${o.id}')" style="grid-column:1/-1">📱 SMS personnalisé</button>` : ''}
       </div>`;
   } else if (o.status === 'en_cours') {
+    // ★ Bouton "Assigner livreur" si commande livraison prête à partir
+    const assignBtn = (o.type === 'livraison')
+      ? `<button class="btn" onclick="showAssignLivreurModal('${o.id}')" style="border-color:var(--amber);color:var(--amber)">🛵 ${o.deliveredBy ? 'Réassigner' : 'Assigner'} livreur</button>`
+      : '';
     actions = `
       <div class="modal-actions-grid">
         <button class="btn" onclick="editOrder('${o.id}')">Modifier</button>
         <button class="btn" onclick="closeModal();showPrintFromOrder('${o.id}')">Imprimer</button>
+        ${assignBtn}
         ${splitBtn}
         ${smsBtn}
         ${pushBtn}
@@ -20480,9 +20592,14 @@ function showOrderDetail(id) {
         <button class="btn btn-primary" style="grid-column:1/-1" onclick="payExistingOrder('${o.id}')">Encaisser</button>
       </div>`;
   } else {
+    // ★ Si commande livraison en cours, permettre de réassigner le livreur
+    const reassignBtn = (o.status === 'en_livraison' && o.type === 'livraison')
+      ? `<button class="btn" onclick="showAssignLivreurModal('${o.id}')" style="border-color:var(--amber);color:var(--amber)">🛵 Réassigner livreur</button>`
+      : '';
     actions = `
       <div class="modal-actions-grid">
         ${trackLivreurBtn}
+        ${reassignBtn}
         <button class="btn" onclick="closeModal();showPrintFromOrder('${o.id}')">Imprimer</button>
         <button class="btn" onclick="askCodeToEditPay('${o.id}')">Modifier paiement</button>
         ${splitBtn}
@@ -31517,6 +31634,22 @@ function connectSync(url) {
           // Détecter les nouvelles commandes borne reçues d'un autre appareil
           try { _caisseDetectNewBorneOrders(); } catch (e) {}
         }
+        // ★ Nouvelle assignation pour un livreur (reçue via sync WS)
+        if (msg.type === 'livreur_new_assignment' && msg.livreurId) {
+          try {
+            // Si je suis le livreur concerné, je m'alerte
+            const myId = currentServer ? String(currentServer.id) : null;
+            if (myId && String(msg.livreurId) === myId) {
+              // Notif sonore + toast (avec vibration si dispo)
+              if (typeof toast === 'function') {
+                toast(`🛵 Nouvelle commande N°${msg.orderNumber} pour ${msg.customer} !`, false, 6000);
+              }
+              try { if (navigator.vibrate) navigator.vibrate([200, 100, 200]); } catch (e) {}
+              // Si vue Livreur active, refresh la liste
+              if (typeof renderLivList === 'function') renderLivList();
+            }
+          } catch (e) { console.error('livreur_new_assignment handler error:', e); }
+        }
         // Demande SMS depuis le serveur (canal SMS configuré pour une étape)
         if (msg.type === 'sms_request' && msg.phone && msg.body) {
           try {
@@ -32731,6 +32864,176 @@ function getActiveLivreurPositions() {
   return result;
 }
 
+// ★ Liste TOUS les serveurs qui peuvent livrer (sauf manager + kitchen)
+// Inclut les livreurs actifs (avec GPS) ET les serveurs disponibles (sans GPS)
+function getAssignableLivreurs() {
+  const servers = state.servers || [];
+  const activePositions = getActiveLivreurPositions();
+  const activeMap = {};
+  activePositions.forEach(p => { activeMap[String(p.livreurId)] = p; });
+
+  // Rôles qui peuvent livrer : 'livreur', 'server' (polyvalent). Pas 'manager' ni 'kitchen'.
+  const livreurs = servers.filter(s => s.role !== 'manager' && s.role !== 'kitchen');
+
+  return livreurs.map(s => {
+    const id = String(s.id);
+    const pos = activeMap[id];
+    return {
+      id: id,
+      name: s.name,
+      role: s.role,
+      hasGps: !!pos,
+      ageSec: pos ? pos.ageSec : null,
+      lat: pos ? pos.lat : null,
+      lon: pos ? pos.lon : null
+    };
+  });
+}
+
+// ★ Assigner une commande à un livreur (depuis la caisse)
+function assignOrderToLivreur(orderId, livreurId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) { toast('Commande introuvable', true); return; }
+  const livreur = (state.servers || []).find(s => String(s.id) === String(livreurId));
+  if (!livreur) { toast('Livreur introuvable', true); return; }
+  // Mise à jour de la commande
+  o.deliveredBy = livreur.name;
+  o.deliveredByLivreurId = String(livreur.id);
+  o.assignedByCaisseAt = nowMs();
+  // Si la commande n'est pas déjà en livraison, on la passe en "en_livraison"
+  if (o.status === 'en_cours' && o.kdsStatus === 'prete') {
+    o.status = 'en_livraison';
+    o.takenAt = nowMs();
+    o.takenBy = livreur.name;
+  }
+  saveState();
+  refreshAll();
+  closeModal();
+  toast(`✓ Commande N°${o.number} assignée à ${livreur.name}`);
+  // Envoyer une notif push au livreur (si serveur connecté + push activé)
+  _pushNotifLivreurNewOrder(livreur, o);
+}
+
+// ★ Désassigner (retirer le livreur, remettre la commande en "prête")
+function unassignOrderFromLivreur(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  if (!confirm(`Retirer l'assignation de la commande N°${o.number} ?`)) return;
+  const prevName = o.deliveredBy || 'Le livreur';
+  delete o.deliveredBy;
+  delete o.deliveredByLivreurId;
+  delete o.assignedByCaisseAt;
+  // Si la commande était en_livraison via assignation, on la repasse en en_cours
+  if (o.status === 'en_livraison') {
+    o.status = 'en_cours';
+    delete o.takenAt;
+    delete o.takenBy;
+  }
+  saveState();
+  refreshAll();
+  closeModal();
+  toast(`${prevName} retiré de la commande N°${o.number}`);
+}
+
+// ★ Envoie une notif push au livreur quand on lui assigne une commande
+// Le saveState() suffit pour que la PWA livreur voit la nouvelle assignation via le sync state.
+// Pour un push notif "vraie" (banner OS), il faudra brancher l'endpoint /api/push côté serveur en Phase D.
+function _pushNotifLivreurNewOrder(livreur, order) {
+  try {
+    // Tentative d'envoi via syncSocket si dispo (pour notif instantanée à la PWA livreur)
+    if (typeof syncSocket !== 'undefined' && syncSocket && syncSocket.readyState === 1) {
+      const customerName = order.customer ? (((order.customer.firstName || '') + ' ' + (order.customer.lastName || '')).trim() || 'Client') : 'Client';
+      syncSocket.send(JSON.stringify({
+        type: 'livreur_new_assignment',
+        livreurId: String(livreur.id),
+        orderId: order.id,
+        orderNumber: order.number,
+        customer: customerName,
+        address: order.customer ? order.customer.address : '',
+        total: order.total
+      }));
+    }
+  } catch (e) {
+    console.warn('Sync notif livreur non envoyée', e);
+  }
+}
+
+// ★ Affiche la modale d'assignation d'une commande à un livreur
+function showAssignLivreurModal(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  const livreurs = getAssignableLivreurs();
+  const isAlreadyAssigned = !!o.deliveredByLivreurId;
+
+  if (livreurs.length === 0) {
+    openModal(`
+      <div class="modal-title">⚠ Aucun livreur disponible</div>
+      <div class="modal-sub">Configurez d'abord des serveurs avec un rôle "Livreur" ou "Serveur" dans les Paramètres → Personnel.</div>
+      <button class="btn modal-close" onclick="closeModal()">Fermer</button>
+    `);
+    return;
+  }
+
+  // Calcul de la distance livreur ↔ client pour suggérer le plus proche
+  const c = o.customer || {};
+  let livreursWithDist = livreurs.map(l => {
+    let dist = null;
+    if (l.hasGps && c.lat && c.lon) {
+      dist = haversineDistance(l.lat, l.lon, c.lat, c.lon);
+    }
+    return { ...l, dist: dist };
+  });
+  // Trier : 1) GPS actif + proche en premier, 2) GPS actif sans dist, 3) sans GPS
+  livreursWithDist.sort((a, b) => {
+    if (a.hasGps && !b.hasGps) return -1;
+    if (!a.hasGps && b.hasGps) return 1;
+    if (a.dist !== null && b.dist !== null) return a.dist - b.dist;
+    if (a.dist !== null) return -1;
+    if (b.dist !== null) return 1;
+    return 0;
+  });
+
+  let livreursHtml = '';
+  livreursWithDist.forEach((l, idx) => {
+    const isCurrent = isAlreadyAssigned && String(o.deliveredByLivreurId) === String(l.id);
+    let metaTxt = '';
+    if (l.hasGps) {
+      const ageMin = Math.floor(l.ageSec / 60);
+      metaTxt = `<span style="color:var(--green-bright);font-size:11px">📡 GPS actif ${l.ageSec < 30 ? "(à l'instant)" : ageMin > 0 ? `(${ageMin}min)` : `(${l.ageSec}s)`}</span>`;
+      if (l.dist !== null) {
+        metaTxt += `<span style="color:var(--amber);font-size:11px;margin-left:8px">📍 ${l.dist.toFixed(1)} km du client</span>`;
+      }
+    } else {
+      metaTxt = '<span style="color:var(--cream-dim);font-size:11px">GPS inactif</span>';
+    }
+    const suggestedBadge = (idx === 0 && l.dist !== null) ? '<span class="livreur-suggested">★ SUGGÉRÉ</span>' : '';
+    livreursHtml += `
+      <button class="assign-livreur-card ${isCurrent ? 'assign-livreur-card--current' : ''}" onclick="assignOrderToLivreur('${orderId}', '${l.id}')">
+        <div class="assign-livreur-icon">🛵</div>
+        <div class="assign-livreur-info">
+          <div class="assign-livreur-name">${escapeHtml(l.name)} ${suggestedBadge}</div>
+          <div class="assign-livreur-meta">${metaTxt}</div>
+        </div>
+        ${isCurrent ? '<div class="assign-livreur-current">✓ Actuel</div>' : '<div class="assign-livreur-arrow">›</div>'}
+      </button>
+    `;
+  });
+
+  const unassignBtn = isAlreadyAssigned
+    ? `<button class="btn btn-cancel" onclick="unassignOrderFromLivreur('${orderId}')" style="width:100%;margin-top:12px">⊘ Retirer l'assignation</button>`
+    : '';
+
+  openModal(`
+    <div class="modal-title">${isAlreadyAssigned ? 'Réassigner' : 'Assigner'} la commande</div>
+    <div class="modal-sub">Commande N°${o.number} · ${escapeHtml(((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client')}<br>${escapeHtml(c.address || 'Sans adresse')}</div>
+    <div class="assign-livreur-list">
+      ${livreursHtml}
+    </div>
+    ${unassignBtn}
+    <button class="btn modal-close" style="width:100%;margin-top:8px" onclick="closeModal()">Annuler</button>
+  `);
+}
+
 //
 // ============================================================
 // ============== TRACKING (vue client) ======================
@@ -33022,6 +33325,10 @@ function renderFleetList(orders, livreurs) {
     } else {
       livreurBadge = `<span class="fleet-card-livreur-badge fleet-card-livreur-badge--none">⚠ Aucun livreur assigné</span>`;
     }
+    // ★ Bouton "Assigner" rapide sur card si pas de livreur assigné
+    const assignBtnHtml = !assignedLivreurId
+      ? `<button class="fleet-card-assign-btn" onclick="event.stopPropagation();showAssignLivreurModal('${o.id}')">🛵 Assigner un livreur</button>`
+      : '';
     return `<div class="fleet-card ${o.id === fleetSelectedOrderId ? 'selected' : ''}" onclick="selectFleetOrder('${o.id}')">
       <div class="fleet-card-head">
         <div class="fleet-card-num">Commande<strong>N°${o.number}</strong></div>
@@ -33037,6 +33344,7 @@ function renderFleetList(orders, livreurs) {
         <span class="fleet-card-meta-item">${fmt(o.total)}</span>
         ${assignedLivreur ? `<span class="fleet-gps-status ${gpsStatus}">📡 ${gpsTxt}</span>` : ''}
       </div>
+      ${assignBtnHtml}
     </div>`;
   }).join('');
 
