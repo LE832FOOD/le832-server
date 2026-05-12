@@ -11531,6 +11531,155 @@
     font-weight: 800;
     vertical-align: middle;
   }
+
+  /* ★ Bouton "Optimiser ma tournée" dans la vue livreur */
+  .liv-optimize-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #d4a056, #c89548);
+    color: #14110d;
+    border: none;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(212, 160, 86, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .liv-optimize-btn:hover {
+    background: linear-gradient(135deg, #e8b568, #d4a056);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(212, 160, 86, 0.4);
+  }
+  .liv-optimize-btn:active {
+    transform: translateY(0) scale(0.98);
+  }
+  .liv-optimize-btn small {
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0.7;
+    letter-spacing: 0.05em;
+  }
+
+  /* ★ Badge "Étape X/N" sur card */
+  .liv-card.in-tour {
+    border-left: 4px solid var(--amber, #d4a056);
+  }
+  .liv-card-step-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #d4a056, #c89548);
+    color: #14110d;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 100px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ★ Modale tournée optimisée */
+  .liv-tour-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    background: linear-gradient(135deg, rgba(212,160,86,0.12), rgba(212,160,86,0.04));
+    border: 1px solid var(--amber, #d4a056);
+    border-radius: 12px;
+    padding: 14px;
+    margin: 14px 0;
+  }
+  .liv-tour-summary-item {
+    text-align: center;
+    padding: 4px;
+  }
+  .liv-tour-summary-val {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--amber-bright, #e8b568);
+    line-height: 1.1;
+  }
+  .liv-tour-summary-lbl {
+    font-size: 10px;
+    color: var(--cream-dim, #a39481);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  .liv-tour-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+  }
+  .liv-tour-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--surface, rgba(31,26,20,0.5));
+    border: 1px solid var(--line, rgba(212,160,86,0.15));
+    border-radius: 12px;
+    padding: 12px 14px;
+  }
+  .liv-tour-step-num {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, var(--amber-bright, #e8b568), var(--amber, #d4a056));
+    color: #14110d;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(212, 160, 86, 0.25);
+  }
+  .liv-tour-step-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .liv-tour-step-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cream, #fff8e7);
+    margin-bottom: 2px;
+  }
+  .liv-tour-step-order {
+    color: var(--amber-bright, #e8b568);
+    font-weight: 700;
+    margin-left: 4px;
+  }
+  .liv-tour-step-addr {
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+    margin-bottom: 4px;
+  }
+  .liv-tour-step-meta {
+    font-size: 11px;
+    color: var(--amber-bright, #e8b568);
+  }
+  .liv-tour-missing {
+    background: rgba(214, 79, 79, 0.1);
+    border: 1px solid rgba(214, 79, 79, 0.3);
+    color: #e69a8a;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-top: 12px;
+    font-size: 12px;
+    text-align: center;
+  }
   /* Mobile: liste collapse */
   @media (max-width: 768px) {
     .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -32334,16 +32483,168 @@ function initLivMap() {
   }).addTo(livMap);
 }
 
+// ★ Optimisation de tournée : algorithme "plus proche voisin" (nearest neighbor)
+// Trouve l'ordre optimal de visite à partir d'un point de départ.
+// Complexité O(n²) — pour n=10 c'est ~100 opérations, instantané.
+function _optimizeTourOrder(orders, startLat, startLon) {
+  // Filtre les commandes avec coordonnées valides
+  const ordered = orders.filter(o => o.customer && o.customer.lat && o.customer.lon).slice();
+  if (ordered.length === 0) return { ordered: [], totalKm: 0, missingGps: orders.filter(o => !o.customer || !o.customer.lat || !o.customer.lon) };
+  const result = [];
+  const missingGps = orders.filter(o => !o.customer || !o.customer.lat || !o.customer.lon);
+  let currentLat = startLat;
+  let currentLon = startLon;
+  let totalKm = 0;
+  while (ordered.length > 0) {
+    // Trouve le plus proche
+    let bestIdx = 0;
+    let bestDist = haversineDistance(currentLat, currentLon, ordered[0].customer.lat, ordered[0].customer.lon);
+    for (let i = 1; i < ordered.length; i++) {
+      const d = haversineDistance(currentLat, currentLon, ordered[i].customer.lat, ordered[i].customer.lon);
+      if (d < bestDist) { bestDist = d; bestIdx = i; }
+    }
+    const next = ordered.splice(bestIdx, 1)[0];
+    result.push({ order: next, distFromPrev: bestDist });
+    totalKm += bestDist;
+    currentLat = next.customer.lat;
+    currentLon = next.customer.lon;
+  }
+  return { ordered: result, totalKm: totalKm, missingGps: missingGps };
+}
+
+// ★ Stocke l'ordre optimisé (clé : livreurId)
+function _saveOptimizedTour(livreurId, orderIds) {
+  if (!state.livreurTours) state.livreurTours = {};
+  state.livreurTours[livreurId] = {
+    orderIds: orderIds,
+    computedAt: nowMs()
+  };
+  saveState();
+}
+
+// ★ Retourne l'ordre stocké pour ce livreur (ou null)
+function _getOptimizedTour(livreurId) {
+  if (!state.livreurTours || !livreurId) return null;
+  const tour = state.livreurTours[livreurId];
+  if (!tour) return null;
+  // Si plus vieux que 30 min, on l'ignore (probablement obsolète)
+  if (nowMs() - tour.computedAt > 30 * 60 * 1000) return null;
+  return tour.orderIds;
+}
+
+// ★ Lance l'optimisation de tournée pour le livreur courant
+function livOptimizeTour() {
+  const livreurId = currentServer ? String(currentServer.id) : null;
+  // Mes commandes en cours / en livraison
+  const myOrders = state.orders.filter(o =>
+    o.type === 'livraison' &&
+    (o.status === 'en_cours' || o.status === 'en_livraison') &&
+    String(o.deliveredByLivreurId || '') === String(livreurId || '')
+  );
+  if (myOrders.length < 2) {
+    toast('Au moins 2 commandes assignées sont nécessaires pour optimiser', true);
+    return;
+  }
+  // Position de départ : GPS du livreur OU restaurant
+  const myPos = state.livreurPositions && livreurId ? state.livreurPositions[livreurId] : null;
+  let startLat, startLon, startName;
+  if (myPos && (nowMs() - myPos.ts < 5 * 60 * 1000)) {
+    startLat = myPos.lat;
+    startLon = myPos.lon;
+    startName = 'Ma position actuelle';
+  } else {
+    const restoCenter = (state.config && state.config.restoCenter)
+      ? state.config.restoCenter
+      : { lat: 48.7244, lon: 4.5840 };
+    startLat = restoCenter.lat;
+    startLon = restoCenter.lon;
+    startName = 'Le restaurant';
+  }
+  const result = _optimizeTourOrder(myOrders, startLat, startLon);
+  if (result.ordered.length === 0) {
+    toast('Aucune commande avec adresse géolocalisée', true);
+    return;
+  }
+  // Sauvegarder l'ordre
+  _saveOptimizedTour(livreurId, result.ordered.map(x => x.order.id));
+  // Afficher la modale de tournée
+  _showOptimizedTourModal(result, startName);
+}
+
+function _showOptimizedTourModal(result, startName) {
+  const totalKm = result.totalKm;
+  const estimMin = Math.ceil(totalKm * 3 + result.ordered.length * 2); // ~20 km/h en ville + 2 min par arrêt
+  let listHtml = '';
+  result.ordered.forEach((item, idx) => {
+    const o = item.order;
+    const c = o.customer || {};
+    const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
+    listHtml += `
+      <div class="liv-tour-step">
+        <div class="liv-tour-step-num">${idx + 1}</div>
+        <div class="liv-tour-step-info">
+          <div class="liv-tour-step-name">${escapeHtml(fullName)} <span class="liv-tour-step-order">N°${o.number}</span></div>
+          <div class="liv-tour-step-addr">${escapeHtml(c.address || 'Sans adresse')}</div>
+          <div class="liv-tour-step-meta">📍 ${item.distFromPrev.toFixed(1)} km depuis ${idx === 0 ? startName : 'l\'étape précédente'}</div>
+        </div>
+      </div>
+    `;
+  });
+  let missingHtml = '';
+  if (result.missingGps.length > 0) {
+    missingHtml = `<div class="liv-tour-missing">⚠ ${result.missingGps.length} commande${result.missingGps.length > 1 ? 's' : ''} sans GPS exclue${result.missingGps.length > 1 ? 's' : ''} de l'optimisation</div>`;
+  }
+
+  openModal(`
+    <div class="modal-title">📍 Tournée optimisée</div>
+    <div class="modal-sub">Départ depuis : ${startName}</div>
+    <div class="liv-tour-summary">
+      <div class="liv-tour-summary-item">
+        <div class="liv-tour-summary-val">${result.ordered.length}</div>
+        <div class="liv-tour-summary-lbl">Arrêts</div>
+      </div>
+      <div class="liv-tour-summary-item">
+        <div class="liv-tour-summary-val">${totalKm.toFixed(1)} km</div>
+        <div class="liv-tour-summary-lbl">Distance</div>
+      </div>
+      <div class="liv-tour-summary-item">
+        <div class="liv-tour-summary-val">~${estimMin} min</div>
+        <div class="liv-tour-summary-lbl">Estimation</div>
+      </div>
+    </div>
+    <div class="liv-tour-list">
+      ${listHtml}
+    </div>
+    ${missingHtml}
+    <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="closeModal();renderLivList()">✓ J'ai compris, démarrer la tournée</button>
+    <button class="btn modal-close" style="width:100%;margin-top:6px" onclick="closeModal()">Fermer</button>
+  `);
+}
+
 function renderLivList() {
   const el = document.getElementById('livList');
   if (!el) return;
-  // Toutes les commandes livraison non encore livrées
+  // ★ ID du livreur actuel pour filtrer ses commandes
+  const myLivreurId = currentServer ? String(currentServer.id) : null;
+  // ★ Tournée optimisée stockée (si pas trop vieille)
+  const optimizedOrder = _getOptimizedTour(myLivreurId);
+  const optimizedRank = {};
+  if (optimizedOrder) {
+    optimizedOrder.forEach((id, idx) => { optimizedRank[id] = idx; });
+  }
+
   const orders = state.orders.filter(o =>
     o.type === 'livraison' &&
     (o.status === 'en_cours' || o.status === 'en_livraison') &&
     o.status !== 'annulee'
   ).sort((a, b) => {
-    // Les "en livraison" en premier
+    // ★ Si tournée optimisée active : on respecte cet ordre
+    if (optimizedOrder) {
+      const ra = optimizedRank[a.id] !== undefined ? optimizedRank[a.id] : 999;
+      const rb = optimizedRank[b.id] !== undefined ? optimizedRank[b.id] : 999;
+      if (ra !== rb) return ra - rb;
+    }
+    // Sinon : les "en livraison" en premier
     if (a.status === 'en_livraison' && b.status !== 'en_livraison') return -1;
     if (b.status === 'en_livraison' && a.status !== 'en_livraison') return 1;
     return a.createdAt - b.createdAt;
@@ -32363,7 +32664,16 @@ function renderLivList() {
     return;
   }
 
-  el.innerHTML = orders.map(o => {
+  // ★ Mes commandes assignées (pour bouton "Optimiser tournée")
+  const myAssignedOrders = orders.filter(o =>
+    String(o.deliveredByLivreurId || '') === String(myLivreurId || '')
+  );
+  const canOptimize = myAssignedOrders.length >= 2;
+  const optimizeBtnHtml = canOptimize
+    ? `<button class="liv-optimize-btn" onclick="livOptimizeTour()">${optimizedOrder ? '🔄 Recalculer ma tournée' : '📍 Optimiser ma tournée'}<small>${myAssignedOrders.length} commandes assignées</small></button>`
+    : '';
+
+  el.innerHTML = optimizeBtnHtml + orders.map((o, listIdx) => {
     const c = o.customer || {};
     const fullName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
     const itemsPreview = o.items.map(i => {
@@ -32373,6 +32683,13 @@ function renderLivList() {
     const isDelivering = o.status === 'en_livraison';
     const isPaid = o.payment && o.payment.paid;
     const hasGPS = c.lat && c.lon;
+    // ★ Badge étape si tournée optimisée active et cette commande en fait partie
+    const tourRank = optimizedRank[o.id];
+    const isInMyTour = tourRank !== undefined && String(o.deliveredByLivreurId || '') === String(myLivreurId || '');
+    const stepBadge = isInMyTour
+      ? `<div class="liv-card-step-badge">Étape ${tourRank + 1}/${optimizedOrder.length}</div>`
+      : '';
+
     let actions = '';
     if (o.status === 'en_cours') {
       actions = `<button class="liv-btn primary full" onclick="livTakeOrder('${o.id}')">🛵 Prendre la commande</button>`;
@@ -32386,7 +32703,8 @@ function renderLivList() {
       `;
     }
     return `
-      <div class="liv-card ${isDelivering ? 'delivering' : ''} ${livSelectedOrderId === o.id ? 'selected' : ''}" onclick="livSelectOrder('${o.id}')">
+      <div class="liv-card ${isDelivering ? 'delivering' : ''} ${livSelectedOrderId === o.id ? 'selected' : ''} ${isInMyTour ? 'in-tour' : ''}" onclick="livSelectOrder('${o.id}')">
+        ${stepBadge}
         <div class="liv-card-head">
           <div class="liv-card-num">N°${o.number}</div>
           <div class="liv-card-time">${timeStr(o.createdAt)}</div>
