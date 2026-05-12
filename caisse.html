@@ -3107,6 +3107,174 @@
     cursor: not-allowed;
   }
 
+  /* ═══ Modale paiement mixte ═══ */
+  .pay-v2-modal--mixed .pay-v2-sub {
+    margin-bottom: 16px;
+  }
+  .mixed-totals {
+    background: linear-gradient(135deg, rgba(212,160,86,0.15), rgba(212,160,86,0.05));
+    border: 2px solid var(--amber, #d4a056);
+    border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mixed-totals-block-right {
+    text-align: right;
+  }
+  .mixed-totals-block--right { text-align: right; }
+  .mixed-totals-lbl {
+    font-size: 10px;
+    color: var(--amber, #8a6f3a);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .mixed-totals-val {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    color: var(--amber, #8a6f3a);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .mixed-totals-val--missing { color: #e55252; }
+  .mixed-totals-val--ok { color: #5d7239; }
+
+  .mixed-payments-list {
+    min-height: 50px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .mixed-empty {
+    text-align: center;
+    padding: 16px 12px;
+    color: var(--cream-dim, #a39481);
+    font-size: 12px;
+    border: 1px dashed var(--line, #e0d5b8);
+    border-radius: 10px;
+    font-style: italic;
+  }
+  .mixed-line {
+    background: var(--bg, #fff);
+    border: 1px solid var(--line, #e0d5b8);
+    border-radius: 10px;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .mixed-line--cb {
+    background: rgba(212,160,86,0.10);
+    border-color: rgba(212,160,86,0.35);
+  }
+  .mixed-line--especes {
+    background: rgba(149,184,94,0.12);
+    border-color: rgba(149,184,94,0.35);
+  }
+  .mixed-line--tr {
+    background: rgba(184, 85, 58, 0.10);
+    border-color: rgba(184, 85, 58, 0.35);
+  }
+  .mixed-line--cheque {
+    background: rgba(156, 127, 209, 0.10);
+    border-color: rgba(156, 127, 209, 0.35);
+  }
+  .mixed-line-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .mixed-line-icon { font-size: 20px; flex-shrink: 0; }
+  .mixed-line-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cream, #2c2419);
+  }
+  .mixed-line-sub {
+    font-size: 11px;
+    color: var(--cream-dim, #6e6258);
+    margin-top: 1px;
+  }
+  .mixed-line-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .mixed-line-amount {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--amber, #8a6f3a);
+    font-variant-numeric: tabular-nums;
+  }
+  .mixed-line-remove {
+    background: rgba(229,82,82,0.12);
+    border: 1px solid rgba(229,82,82,0.35);
+    color: #e55252;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .mixed-line-remove:hover {
+    background: rgba(229,82,82,0.22);
+  }
+  .mixed-line-remove:active {
+    transform: scale(0.92);
+  }
+  /* Grille d'ajout */
+  .mixed-add-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .mixed-add-btn {
+    background: var(--bg, #fff);
+    border: 1px solid var(--line, #e0d5b8);
+    color: var(--cream, #2c2419);
+    padding: 12px 6px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .mixed-add-btn:hover:not(:disabled) {
+    background: rgba(212,160,86,0.05);
+    transform: translateY(-1px);
+  }
+  .mixed-add-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+  .mixed-add-btn--cb { border-color: var(--amber, #d4a056); }
+  .mixed-add-btn--especes { border-color: var(--green, #95b85e); }
+  .mixed-add-icon { font-size: 20px; line-height: 1; }
+  .mixed-add-lbl { font-size: 11px; font-weight: 700; }
+
+  .mixed-ticket-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
   .success-icon {
     width: 72px; height: 72px;
     background: linear-gradient(135deg, rgba(122, 154, 77, 0.15) 0%, rgba(122, 154, 77, 0.06) 100%);
@@ -15954,8 +16122,19 @@ function payLabel(p) {
     cheque: 'Chèque',
     en_ligne: 'CB en ligne',
     en_attente: 'En attente',
-    compte: 'Sur compte mensuel'
+    compte: 'Sur compte mensuel',
+    mixte: 'Paiement mixte'
   }[p] || p;
+}
+
+// ★ Détail du paiement mixte (pour affichage ticket/historique)
+// Exemple : "💵 Esp 10,00 € · 💳 CB 20,00 €"
+function payMixedDetail(payment) {
+  if (!payment || payment.method !== 'mixte' || !Array.isArray(payment.parts)) return '';
+  return payment.parts.map(part => {
+    const meta = (typeof _mixedPaymentMeta === 'function') ? _mixedPaymentMeta(part.method) : { icon: '', label: part.method };
+    return `${meta.icon} ${meta.label.slice(0, 3)} ${fmt(part.amount)}`;
+  }).join(' · ');
 }
 
 //
@@ -18972,6 +19151,14 @@ function showPaymentModal() {
         </button>
       </div>
 
+      <!-- ★ Paiement mixte (Esp+CB, TR+CB, etc.) -->
+      <div class="pay-v2-secondary" style="margin-top:8px">
+        <button class="pay-option-v2 pay-option-v2--small pay-option-v2--mixed" data-method="mixed" style="grid-column:1/-1">
+          <span class="pay-v2-icon-sm">⚌</span>
+          <span>Paiement mixte (plusieurs moyens)</span>
+        </button>
+      </div>
+
       ${monthlyBtn ? `<div class="pay-v2-secondary" style="margin-top:8px">${monthlyBtn}</div>` : ''}
 
       ${cart.length >= 2 ? `
@@ -18993,6 +19180,9 @@ function showPaymentModal() {
       if (method === 'especes-show') {
         // ★ Mode espèces : ouvre la sous-modale avec rendu monnaie
         showCashPaymentModal();
+      } else if (method === 'mixed') {
+        // ★ Paiement mixte : ouvre la modale dédiée
+        showMixedPaymentModal();
       } else {
         completePay(method);
       }
@@ -19110,6 +19300,407 @@ function validateCashPayment() {
   completePay('especes');
 }
 
+// ═══════════════════════════════════════════════════════════════
+// ★ PAIEMENT MIXTE : combinaison de plusieurs moyens de paiement
+// ═══════════════════════════════════════════════════════════════
+
+// Affiche la modale de paiement mixte
+function showMixedPaymentModal() {
+  const total = window._payModalTotal || 0;
+  if (!window._mixedPayments) window._mixedPayments = [];
+  renderMixedPaymentModal(total);
+}
+
+// Construit / re-render la modale (appelé à chaque ajout/suppression)
+function renderMixedPaymentModal(total) {
+  const payments = window._mixedPayments || [];
+  const paid = payments.reduce((s, p) => s + p.amount, 0);
+  const remaining = Math.max(0, total - paid);
+  const isComplete = paid >= total - 0.001;
+
+  // Liste des paiements ajoutés
+  let paymentsHtml = '';
+  if (payments.length === 0) {
+    paymentsHtml = '<div class="mixed-empty">Aucun paiement ajouté · Choisissez un moyen ci-dessous</div>';
+  } else {
+    payments.forEach((p, idx) => {
+      const meta = _mixedPaymentMeta(p.method);
+      let extra = '';
+      if (p.method === 'especes' && p.received && p.received > p.amount) {
+        extra = `<div class="mixed-line-sub">Reçu ${fmt(p.received)} · Rendu ${fmt(p.received - p.amount)}</div>`;
+      } else if (p.method === 'tr' && p.tickets) {
+        extra = `<div class="mixed-line-sub">${p.tickets} ticket${p.tickets > 1 ? 's' : ''} × ${fmt(p.amount / p.tickets)}</div>`;
+      }
+      paymentsHtml += `
+        <div class="mixed-line mixed-line--${p.method}">
+          <div class="mixed-line-info">
+            <span class="mixed-line-icon">${meta.icon}</span>
+            <div>
+              <div class="mixed-line-name">${meta.label}</div>
+              ${extra}
+            </div>
+          </div>
+          <div class="mixed-line-right">
+            <span class="mixed-line-amount">${fmt(p.amount)}</span>
+            <button class="mixed-line-remove" onclick="_mixedRemove(${idx})">✕</button>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  const validateLabel = isComplete
+    ? 'Valider l\'encaissement ✓'
+    : `Manque ${fmt(remaining)}`;
+
+  openModal(`
+    <div class="pay-v2-modal pay-v2-modal--mixed">
+      <div class="pay-v2-title">⚌ Paiement mixte</div>
+      <div class="pay-v2-sub">Combinez plusieurs modes de paiement</div>
+
+      <div class="mixed-totals">
+        <div class="mixed-totals-block">
+          <div class="mixed-totals-lbl">À régler</div>
+          <div class="mixed-totals-val">${fmt(total)}</div>
+        </div>
+        <div class="mixed-totals-block mixed-totals-block--right">
+          <div class="mixed-totals-lbl">${isComplete ? 'Complet' : 'Restant'}</div>
+          <div class="mixed-totals-val ${isComplete ? 'mixed-totals-val--ok' : 'mixed-totals-val--missing'}">${isComplete ? '✓' : fmt(remaining)}</div>
+        </div>
+      </div>
+
+      <div class="mixed-payments-list" id="mixedPaymentsList">
+        ${paymentsHtml}
+      </div>
+
+      <div class="cash-section-lbl">Ajouter un paiement</div>
+      <div class="mixed-add-grid">
+        <button class="mixed-add-btn mixed-add-btn--cb" onclick="_mixedAdd('cb')" ${isComplete ? 'disabled' : ''}>
+          <span class="mixed-add-icon">💳</span>
+          <span class="mixed-add-lbl">Carte</span>
+        </button>
+        <button class="mixed-add-btn mixed-add-btn--especes" onclick="_mixedAdd('especes')" ${isComplete ? 'disabled' : ''}>
+          <span class="mixed-add-icon">💵</span>
+          <span class="mixed-add-lbl">Espèces</span>
+        </button>
+        <button class="mixed-add-btn" onclick="_mixedAdd('tr')" ${isComplete ? 'disabled' : ''}>
+          <span class="mixed-add-icon">🍽️</span>
+          <span class="mixed-add-lbl">TR</span>
+        </button>
+        <button class="mixed-add-btn" onclick="_mixedAdd('cheque')" ${isComplete ? 'disabled' : ''}>
+          <span class="mixed-add-icon">📝</span>
+          <span class="mixed-add-lbl">Chèque</span>
+        </button>
+      </div>
+
+      <div class="pay-v2-actions">
+        <button class="btn" onclick="_mixedCancel()" style="flex:1">← Retour</button>
+        <button class="btn btn-primary" id="mixedValidateBtn" onclick="_mixedValidate()" style="flex:2" ${isComplete ? '' : 'disabled'}>
+          ${validateLabel}
+        </button>
+      </div>
+    </div>
+  `);
+}
+
+// Métadonnées par méthode
+function _mixedPaymentMeta(method) {
+  return ({
+    'cb':       { icon: '💳', label: 'Carte' },
+    'especes':  { icon: '💵', label: 'Espèces' },
+    'tr':       { icon: '🍽️', label: 'Tickets resto' },
+    'cheque':   { icon: '📝', label: 'Chèque' }
+  })[method] || { icon: '💰', label: method };
+}
+
+// Ajouter un paiement : ouvre une sous-saisie selon le mode
+function _mixedAdd(method) {
+  const total = window._payModalTotal || 0;
+  const payments = window._mixedPayments || [];
+  const paid = payments.reduce((s, p) => s + p.amount, 0);
+  const remaining = Math.max(0, total - paid);
+  if (remaining <= 0) return;
+
+  if (method === 'tr') {
+    // Pour TR : demander nombre de tickets et valeur unitaire
+    _mixedAddTickets(remaining);
+  } else if (method === 'especes') {
+    _mixedAddCash(remaining);
+  } else {
+    // CB ou Chèque : demander juste le montant
+    _mixedAddSimple(method, remaining);
+  }
+}
+
+// Sous-modale pour CB / Chèque : juste un montant
+function _mixedAddSimple(method, suggestedAmount) {
+  const meta = _mixedPaymentMeta(method);
+  const total = window._payModalTotal || 0;
+  // Suggestions de boutons rapides : restant, et arrondis classiques
+  const exact = suggestedAmount;
+  const suggested = [exact, 10, 20, 50].filter(v => v <= suggestedAmount + 0.001);
+  // Dédupe
+  const sugs = [...new Set(suggested.map(v => Math.round(v * 100)))].map(v => v / 100).sort((a, b) => a - b);
+  const sugsHtml = sugs.map((v, idx) => `<button class="cash-quick-btn ${v === exact ? 'cash-quick-btn--exact selected' : ''}" data-amount="${v}">${fmt(v)}</button>`).join('');
+
+  openModal(`
+    <div class="pay-v2-modal">
+      <div class="pay-v2-title">${meta.icon} Ajouter ${meta.label}</div>
+      <div class="pay-v2-amount" style="margin-bottom:12px">
+        <div class="pay-v2-amount-lbl">Reste à régler</div>
+        <div class="pay-v2-amount-val">${fmt(suggestedAmount)}</div>
+      </div>
+
+      <div class="cash-section-lbl">Montant en ${meta.label.toLowerCase()}</div>
+      <div class="cash-quick-grid">${sugsHtml}</div>
+      <div class="cash-input-wrap">
+        <label class="cash-input-lbl">Ou saisir un autre montant</label>
+        <input type="text" id="mixedSimpleInput" class="cash-input" value="${fmt(exact)}" placeholder="0,00 €" inputmode="decimal" />
+      </div>
+
+      <div class="pay-v2-actions">
+        <button class="btn" onclick="showMixedPaymentModal()" style="flex:1">← Retour</button>
+        <button class="btn btn-primary" onclick="_mixedAddSimpleConfirm('${method}')" style="flex:2">Ajouter</button>
+      </div>
+    </div>
+  `);
+  setTimeout(() => {
+    document.querySelectorAll('.cash-quick-btn').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.cash-quick-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        const input = document.getElementById('mixedSimpleInput');
+        if (input) input.value = fmt(parseFloat(b.dataset.amount));
+      };
+    });
+  }, 50);
+}
+
+function _mixedAddSimpleConfirm(method) {
+  const input = document.getElementById('mixedSimpleInput');
+  const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const amount = parseFloat(raw) || 0;
+  if (amount <= 0) { toast('Montant invalide', true); return; }
+  // Vérifier qu'on ne dépasse pas le total
+  const total = window._payModalTotal || 0;
+  const payments = window._mixedPayments || [];
+  const paid = payments.reduce((s, p) => s + p.amount, 0);
+  if (paid + amount > total + 0.001) {
+    if (!confirm(`Ce paiement dépasse de ${fmt(paid + amount - total)} le total. Continuer quand même ?`)) return;
+  }
+  payments.push({ method: method, amount: amount });
+  window._mixedPayments = payments;
+  showMixedPaymentModal();
+}
+
+// Sous-modale espèces dans le mixte
+function _mixedAddCash(suggestedAmount) {
+  // Suggestions arrondies pour rendre la monnaie
+  const exact = suggestedAmount;
+  const round5 = Math.ceil(suggestedAmount / 5) * 5;
+  const round10 = Math.ceil(suggestedAmount / 10) * 10;
+  const round20 = Math.ceil(suggestedAmount / 20) * 20;
+  const suggested = [...new Set([exact, round5, round10, round20])]
+    .filter(v => v >= suggestedAmount).sort((a, b) => a - b).slice(0, 4);
+  while (suggested.length < 4) {
+    const candidates = [20, 50, 100, 200].filter(v => v >= suggestedAmount && !suggested.includes(v));
+    if (candidates.length === 0) break;
+    suggested.push(candidates[0]);
+  }
+  const buttonsHtml = suggested.map((v, idx) => {
+    const isExact = idx === 0;
+    return `<button class="cash-quick-btn ${isExact ? 'cash-quick-btn--exact selected' : ''}" data-received="${v}">${fmt(v)}</button>`;
+  }).join('');
+
+  openModal(`
+    <div class="pay-v2-modal">
+      <div class="pay-v2-title">💵 Ajouter Espèces</div>
+      <div class="pay-v2-amount" style="margin-bottom:12px">
+        <div class="pay-v2-amount-lbl">Reste à régler</div>
+        <div class="pay-v2-amount-val">${fmt(suggestedAmount)}</div>
+      </div>
+
+      <div class="cash-section-lbl">Montant reçu en espèces</div>
+      <div class="cash-quick-grid">${buttonsHtml}</div>
+      <div class="cash-input-wrap">
+        <label class="cash-input-lbl">Ou saisir un autre montant</label>
+        <input type="text" id="mixedCashInput" class="cash-input" value="${fmt(exact)}" inputmode="decimal" oninput="_mixedCashChange(${suggestedAmount})" />
+      </div>
+
+      <div class="cash-change-display" id="mixedCashChangeDisplay">
+        <div class="cash-change-lbl">À rendre au client</div>
+        <div class="cash-change-val" id="mixedCashChangeVal">${fmt(0)}</div>
+      </div>
+
+      <div class="pay-v2-actions">
+        <button class="btn" onclick="showMixedPaymentModal()" style="flex:1">← Retour</button>
+        <button class="btn btn-primary" id="mixedCashValidateBtn" onclick="_mixedAddCashConfirm(${suggestedAmount})" style="flex:2">Ajouter</button>
+      </div>
+    </div>
+  `);
+  setTimeout(() => {
+    document.querySelectorAll('.cash-quick-btn').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.cash-quick-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        const input = document.getElementById('mixedCashInput');
+        if (input) input.value = fmt(parseFloat(b.dataset.received));
+        _mixedCashChange(suggestedAmount);
+      };
+    });
+    _mixedCashChange(suggestedAmount);
+  }, 50);
+}
+
+function _mixedCashChange(needAmount) {
+  const input = document.getElementById('mixedCashInput');
+  const valEl = document.getElementById('mixedCashChangeVal');
+  const display = document.getElementById('mixedCashChangeDisplay');
+  const btn = document.getElementById('mixedCashValidateBtn');
+  if (!input || !valEl || !btn) return;
+  const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const received = parseFloat(raw) || 0;
+  if (received < needAmount) {
+    valEl.textContent = `Manque ${fmt(needAmount - received)}`;
+    valEl.style.color = '#fff';
+    if (display) display.classList.add('cash-change-display--insufficient');
+    btn.disabled = true;
+  } else {
+    const change = received - needAmount;
+    valEl.textContent = fmt(change);
+    valEl.style.color = '#fff';
+    if (display) display.classList.remove('cash-change-display--insufficient');
+    btn.disabled = false;
+  }
+}
+
+function _mixedAddCashConfirm(needAmount) {
+  const input = document.getElementById('mixedCashInput');
+  const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const received = parseFloat(raw) || 0;
+  if (received < needAmount) { toast('Montant insuffisant', true); return; }
+  const payments = window._mixedPayments || [];
+  payments.push({
+    method: 'especes',
+    amount: needAmount,
+    received: received,
+    change: received - needAmount
+  });
+  window._mixedPayments = payments;
+  showMixedPaymentModal();
+}
+
+// Sous-modale Tickets resto : nombre × valeur
+function _mixedAddTickets(suggestedAmount) {
+  openModal(`
+    <div class="pay-v2-modal">
+      <div class="pay-v2-title">🍽️ Ajouter Tickets resto</div>
+      <div class="pay-v2-amount" style="margin-bottom:12px">
+        <div class="pay-v2-amount-lbl">Reste à régler</div>
+        <div class="pay-v2-amount-val">${fmt(suggestedAmount)}</div>
+      </div>
+
+      <div class="cash-section-lbl">Nombre de tickets</div>
+      <div class="mixed-ticket-grid">
+        <button class="cash-quick-btn" data-tickets="1">1</button>
+        <button class="cash-quick-btn" data-tickets="2">2</button>
+        <button class="cash-quick-btn" data-tickets="3">3</button>
+        <button class="cash-quick-btn" data-tickets="4">4</button>
+      </div>
+      <div class="cash-input-wrap" style="margin-top:12px">
+        <label class="cash-input-lbl">Valeur unitaire d'un ticket</label>
+        <input type="text" id="mixedTrValueInput" class="cash-input" value="10,00 €" inputmode="decimal" oninput="_mixedTicketsRecompute()" />
+      </div>
+      <div class="cash-input-wrap">
+        <label class="cash-input-lbl">Nombre de tickets</label>
+        <input type="number" id="mixedTrCountInput" class="cash-input" value="1" min="1" max="20" oninput="_mixedTicketsRecompute()" />
+      </div>
+
+      <div class="cash-change-display" id="mixedTrTotalDisplay">
+        <div class="cash-change-lbl">Total tickets resto</div>
+        <div class="cash-change-val" id="mixedTrTotalVal">${fmt(10)}</div>
+      </div>
+
+      <div class="pay-v2-actions">
+        <button class="btn" onclick="showMixedPaymentModal()" style="flex:1">← Retour</button>
+        <button class="btn btn-primary" id="mixedTrValidateBtn" onclick="_mixedAddTicketsConfirm()" style="flex:2">Ajouter</button>
+      </div>
+    </div>
+  `);
+  setTimeout(() => {
+    document.querySelectorAll('.cash-quick-btn[data-tickets]').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.cash-quick-btn[data-tickets]').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        const cInput = document.getElementById('mixedTrCountInput');
+        if (cInput) cInput.value = b.dataset.tickets;
+        _mixedTicketsRecompute();
+      };
+    });
+    _mixedTicketsRecompute();
+  }, 50);
+}
+
+function _mixedTicketsRecompute() {
+  const valInput = document.getElementById('mixedTrValueInput');
+  const cntInput = document.getElementById('mixedTrCountInput');
+  const totEl = document.getElementById('mixedTrTotalVal');
+  if (!valInput || !cntInput || !totEl) return;
+  const raw = (valInput.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const v = parseFloat(raw) || 0;
+  const n = parseInt(cntInput.value) || 0;
+  totEl.textContent = fmt(v * n);
+}
+
+function _mixedAddTicketsConfirm() {
+  const valInput = document.getElementById('mixedTrValueInput');
+  const cntInput = document.getElementById('mixedTrCountInput');
+  const raw = (valInput.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const v = parseFloat(raw) || 0;
+  const n = parseInt(cntInput.value) || 0;
+  if (v <= 0 || n <= 0) { toast('Valeur ou nombre invalide', true); return; }
+  const amount = v * n;
+  const total = window._payModalTotal || 0;
+  const payments = window._mixedPayments || [];
+  const paid = payments.reduce((s, p) => s + p.amount, 0);
+  if (paid + amount > total + 0.001) {
+    if (!confirm(`${n} tickets × ${fmt(v)} = ${fmt(amount)}. Cela dépasse de ${fmt(paid + amount - total)} le total. Continuer ?`)) return;
+  }
+  payments.push({ method: 'tr', amount: amount, tickets: n, ticketValue: v });
+  window._mixedPayments = payments;
+  showMixedPaymentModal();
+}
+
+// Retire un paiement de la liste
+function _mixedRemove(idx) {
+  const payments = window._mixedPayments || [];
+  payments.splice(idx, 1);
+  window._mixedPayments = payments;
+  showMixedPaymentModal();
+}
+
+// Annule le paiement mixte : retour à la modale principale
+function _mixedCancel() {
+  window._mixedPayments = [];
+  showPaymentModal();
+}
+
+// Valide le paiement mixte : enregistre comme une vraie commande
+function _mixedValidate() {
+  const total = window._payModalTotal || 0;
+  const payments = window._mixedPayments || [];
+  const paid = payments.reduce((s, p) => s + p.amount, 0);
+  if (paid < total - 0.001) {
+    toast(`Manque ${fmt(total - paid)}`, true);
+    return;
+  }
+  // Stocke pour completePay : on utilise un "method" spécial 'mixte' et on garde la liste
+  window._lastMixedPayments = payments.slice();
+  // Reset
+  window._mixedPayments = [];
+  completePay('mixte');
+}
+
 // ═══ DIVISER LE TICKET DEPUIS LE PANIER ═══
 // Crée d'abord une commande "en attente de paiement" depuis le panier,
 // puis lance showSplitModal qui réutilise tout le système existant.
@@ -19193,6 +19784,14 @@ function completePay(method) {
   // Mode "Sur compte" : la commande est terminée mais NON payée (sera réglée mensuellement)
   const isOnAccount = method === 'compte';
 
+  // ★ Paiement mixte : récupère les détails
+  const isMixed = method === 'mixte';
+  const mixedPayments = isMixed && window._lastMixedPayments ? window._lastMixedPayments.slice() : null;
+  // Pour le mixte, on enrichit payment avec la liste détaillée
+  const paymentObj = isMixed
+    ? { method: 'mixte', paid: !isOnAccount, parts: mixedPayments }
+    : { method: method, paid: !isOnAccount };
+
   let order;
   if (currentEditingOrderId) {
     order = state.orders.find(o => o.id === currentEditingOrderId);
@@ -19204,7 +19803,7 @@ function completePay(method) {
       order.customer = getCurrentCustomer();
       order.table = getTableNum();
       order.type = currentOrderType;
-      order.payment = { method, paid: !isOnAccount };
+      order.payment = paymentObj;
       order.paymentMethod = method;
       order.paidByMonthlyAccount = false;
       order.status = 'terminee';
@@ -19219,7 +19818,7 @@ function completePay(method) {
       items: JSON.parse(JSON.stringify(cart)),
       customer: getCurrentCustomer(),
       table: getTableNum(),
-      payment: { method, paid: !isOnAccount },
+      payment: paymentObj,
       paymentMethod: method,
       paidByMonthlyAccount: false,
       source: 'caisse',
@@ -19236,6 +19835,8 @@ function completePay(method) {
     decrementStockForOrder(order);
     if (promoSnapshot) incrementPromoUsage(promoSnapshot.code);
   }
+  // Clear le mémo mixte après utilisation
+  if (isMixed) window._lastMixedPayments = null;
   // Sauvegarde du client si livraison + attribution points
   if (currentOrderType === 'livraison') {
     const c = getCurrentCustomer();
@@ -19795,7 +20396,7 @@ function showOrderDetail(id) {
         ? `<div class="order-detail-row"><span class="label">🎁 Promo pizza</span><span class="value" style="color:var(--green)">${o.pizzaPromo.message} (−${fmt(o.pizzaPromo.amount)})</span></div>`
         : `<div class="order-detail-row"><span class="label">🎁 Cadeau</span><span class="value" style="color:var(--green)">${o.pizzaPromo.message}</span></div>`
       ) : ''}
-      <div class="order-detail-row"><span class="label">Paiement</span><span class="value">${payLabel(o.payment.method)}${o.payment.paid ? '' : ' (à régler)'}</span></div>
+      <div class="order-detail-row"><span class="label">Paiement</span><span class="value">${payLabel(o.payment.method)}${o.payment.method === 'mixte' && Array.isArray(o.payment.parts) ? ' · ' + payMixedDetail(o.payment) : ''}${o.payment.paid ? '' : ' (à régler)'}</span></div>
       <div class="order-detail-row"><span class="label">Source</span><span class="value">${
         o.source === 'pwa' ? '📱 App mobile client'
         : o.source === 'borne' ? 'Borne client' + (o.locale && o.locale !== 'fr' ? ' (' + o.locale.toUpperCase() + ')' : '')
