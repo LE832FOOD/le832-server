@@ -1510,10 +1510,8 @@ const server = http.createServer(async (req, res) => {
   // POST /api/voice/check-zone — vérifie si une adresse est dans la zone de livraison
   if (req.method === 'POST' && pathname === '/api/voice/check-zone') {
     if (!checkVapiAuth(req, res)) return;
-    let body;
-    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     let data = {};
-    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     const address = data.address || '';
     if (!address) return jsonRes(res, 200, { ok: false, reason: 'Adresse manquante', deliverable: false });
     const geo = await geocodeAddress(address);
@@ -1546,10 +1544,8 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'POST' && pathname === '/api/voice/order') {
     if (!checkVapiAuth(req, res)) return;
     if (!voiceBotEnabled) return jsonRes(res, 503, { ok: false, reason: 'Bot désactivé' });
-    let body;
-    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     let data = {};
-    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     const { customer, type, items, total, callDuration, slot, callId, note } = data;
     if (!type || !Array.isArray(items) || items.length === 0) {
       return jsonRes(res, 400, { ok: false, reason: 'Données invalides : type ou items manquants' });
@@ -1608,10 +1604,8 @@ const server = http.createServer(async (req, res) => {
   // POST /api/voice/check-stock — vérifie la dispo d'un produit
   if (req.method === 'POST' && pathname === '/api/voice/check-stock') {
     if (!checkVapiAuth(req, res)) return;
-    let body;
-    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     let data = {};
-    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     const { productId, productName } = data;
     const menu = (sharedState && sharedState.menu) || [];
     let product = null;
@@ -1656,10 +1650,8 @@ const server = http.createServer(async (req, res) => {
     return jsonRes(res, 200, { enabled: voiceBotEnabled });
   }
   if (req.method === 'POST' && pathname === '/api/voice/bot-status') {
-    let body;
-    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     let data = {};
-    try { data = JSON.parse(body); } catch (e) {}
+    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     if (typeof data.enabled === 'boolean') voiceBotEnabled = data.enabled;
     return jsonRes(res, 200, { enabled: voiceBotEnabled });
   }
@@ -1667,10 +1659,8 @@ const server = http.createServer(async (req, res) => {
   // POST /api/voice/recognize-customer — reconnaît un client par téléphone
   if (req.method === 'POST' && pathname === '/api/voice/recognize-customer') {
     if (!checkVapiAuth(req, res)) return;
-    let body;
-    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     let data = {};
-    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
     const { phone } = data;
     if (!phone) return jsonRes(res, 200, { ok: false, recognized: false });
     const customers = (sharedState && sharedState.customers) || {};
