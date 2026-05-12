@@ -2121,6 +2121,33 @@
     text-decoration: line-through;
     text-decoration-color: rgba(193, 87, 74, 0.6);
   }
+
+  /* ★ Bouton encaisser rapide sur les cartes de commande en attente */
+  .order-card { position: relative; }
+  .order-card-pay-quick {
+    margin-top: 10px;
+    width: 100%;
+    background: linear-gradient(135deg, #95b85e, #7a9a4d);
+    color: #fff;
+    border: none;
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    box-shadow: 0 3px 10px rgba(149, 184, 94, 0.25);
+  }
+  .order-card-pay-quick:hover {
+    background: linear-gradient(135deg, #a3c66c, #88a854);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 14px rgba(149, 184, 94, 0.35);
+  }
+  .order-card-pay-quick:active {
+    transform: translateY(0) scale(0.98);
+  }
   .order-cancelled-badge {
     position: absolute;
     bottom: 10px;
@@ -20203,6 +20230,12 @@ function buildOrderCard(o) {
     typeExtra = `${o.customer.firstName || ''} ${o.customer.lastName || ''}`.trim();
   }
 
+  // ★ Détection commande à encaisser (non payée et active)
+  const needsPayment = o.status === 'en_cours' && o.payment && !o.payment.paid && !o.cancelled;
+  const payQuickBtn = needsPayment
+    ? `<button class="order-card-pay-quick" data-order-id="${o.id}" title="Encaisser cette commande">💰 Encaisser</button>`
+    : '';
+
   card.innerHTML = `
     ${o.cancelled ? '<div class="order-cancelled-badge">⊘ ANNULÉ</div>' : ''}
     <div class="order-card-head">
@@ -20210,14 +20243,23 @@ function buildOrderCard(o) {
       <div class="order-time">${timeStr(o.createdAt)}</div>
     </div>
     <span class="order-type-tag ${o.type}">${typeLabel(o.type)}${typeExtra ? ' · ' + typeExtra : ''}</span>
-    <span class="order-source-tag">${o.source === 'borne' ? 'Borne' : 'Caisse'}</span>
+    <span class="order-source-tag">${o.source === 'borne' ? 'Borne' : o.source === 'pwa' ? '📱 PWA' : 'Caisse'}</span>
     <div class="order-items-preview">${itemsPreview}</div>
     <div class="order-card-foot">
       <div class="order-pay">${payLabel(o.payment.method)}${o.payment.paid ? '' : ' · à régler'}</div>
       <div class="order-total">${fmt(o.total)}</div>
     </div>
+    ${payQuickBtn}
   `;
   card.onclick = () => showOrderDetail(o.id);
+  // ★ Le bouton "Encaisser" rapide stoppe la propagation pour ne pas ouvrir le détail
+  const quickBtn = card.querySelector('.order-card-pay-quick');
+  if (quickBtn) {
+    quickBtn.onclick = (e) => {
+      e.stopPropagation();
+      payExistingOrder(o.id);
+    };
+  }
   return card;
 }
 
@@ -20792,27 +20834,162 @@ function payExistingOrder(id) {
   const o = state.orders.find(o => o.id === id);
   if (!o) return;
   closeModal();
+  // ★ Mémorise l'ID de la commande à encaisser + son total pour les sous-modales
+  window._payModalTotal = o.total;
+  window._payOrderId = id;
+  window._mixedPayments = [];
+
+  // Détecter si compte mensuel
+  const customerKey = o.customer && o.customer.phone ? normalizePhone(o.customer.phone) : null;
+  const customerData = customerKey ? state.customers[customerKey] : null;
+  const isMonthlyCustomer = customerData && customerData.accountType === 'mensuel';
+  const monthlyBtn = isMonthlyCustomer
+    ? `<button class="pay-option-v2 pay-option-monthly" data-method="compte" title="Sur compte mensuel">
+         <div class="pay-v2-icon">🏢</div>
+         <div class="pay-v2-label">Sur compte<br><small style="font-size:9px;opacity:0.8;font-weight:400">${customerData.companyName || customerData.firstName || 'mensuel'}</small></div>
+       </button>`
+    : '';
+
+  // Info source (PWA / borne / téléphone)
+  const sourceLbl = o.source === 'pwa' ? '📱 Commande PWA'
+    : o.source === 'borne' ? '🖥 Commande borne'
+    : '📞 Commande téléphone';
+
   openModal(`
-    <div class="modal-title">Encaissement</div>
-    <div class="modal-sub">Commande N°${o.number}</div>
-    <div class="modal-total">
-      <div class="modal-total-label">Montant à régler</div>
-      <div class="modal-total-amount">${fmt(o.total)}</div>
+    <div class="pay-v2-modal">
+      <div class="pay-v2-title">Encaisser N°${o.number}</div>
+      <div class="pay-v2-sub">${sourceLbl}${isMonthlyCustomer ? ' · 🏢 Compte mensuel' : ''}</div>
+
+      <div class="pay-v2-amount">
+        <div class="pay-v2-amount-lbl">Montant</div>
+        <div class="pay-v2-amount-val">${fmt(o.total)}</div>
+      </div>
+
+      <div class="pay-v2-main">
+        <button class="pay-option-v2 pay-option-v2--cb" data-method="cb">
+          <div class="pay-v2-icon">💳</div>
+          <div class="pay-v2-label">Carte</div>
+        </button>
+        <button class="pay-option-v2 pay-option-v2--especes" data-method="especes-show">
+          <div class="pay-v2-icon">💵</div>
+          <div class="pay-v2-label">Espèces</div>
+        </button>
+      </div>
+
+      <div class="pay-v2-secondary">
+        <button class="pay-option-v2 pay-option-v2--small" data-method="tr">
+          <span class="pay-v2-icon-sm">🍽️</span>
+          <span>Tickets resto</span>
+        </button>
+        <button class="pay-option-v2 pay-option-v2--small" data-method="cheque">
+          <span class="pay-v2-icon-sm">📝</span>
+          <span>Chèque</span>
+        </button>
+      </div>
+
+      <div class="pay-v2-secondary" style="margin-top:8px">
+        <button class="pay-option-v2 pay-option-v2--small pay-option-v2--mixed" data-method="mixed" style="grid-column:1/-1">
+          <span class="pay-v2-icon-sm">⚌</span>
+          <span>Paiement mixte (plusieurs moyens)</span>
+        </button>
+      </div>
+
+      ${monthlyBtn ? `<div class="pay-v2-secondary" style="margin-top:8px">${monthlyBtn}</div>` : ''}
+
+      <button class="pay-v2-cancel" onclick="closeModal()">Annuler</button>
     </div>
-    <div class="pay-options">
-      <button class="pay-option" onclick="closeOrderWith('${o.id}','cb')"><div class="pay-icon">💳</div><div class="pay-label">Carte</div></button>
-      <button class="pay-option" onclick="closeOrderWith('${o.id}','especes')"><div class="pay-icon">💵</div><div class="pay-label">Espèces</div></button>
-      <button class="pay-option" onclick="closeOrderWith('${o.id}','tr')"><div class="pay-icon">🍽️</div><div class="pay-label">Tickets resto</div></button>
-      <button class="pay-option" onclick="closeOrderWith('${o.id}','cheque')"><div class="pay-icon">📝</div><div class="pay-label">Chèque</div></button>
-    </div>
-    <button class="btn modal-close" onclick="closeModal()">Annuler</button>
   `);
+
+  document.querySelectorAll('#modalContent .pay-option-v2').forEach(b => {
+    b.onclick = () => {
+      const method = b.dataset.method;
+      if (method === 'especes-show') {
+        // Branchement vers le rendu monnaie, mais ciblé sur la commande existante
+        showCashPaymentModalForOrder(id);
+      } else if (method === 'mixed') {
+        showMixedPaymentModalForOrder(id);
+      } else {
+        closeOrderWith(id, method);
+      }
+    };
+  });
+}
+
+// ★ Sous-modale Espèces pour une commande existante (recycle showCashPaymentModal mais valide avec closeOrderWith)
+function showCashPaymentModalForOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  window._payModalTotal = o.total;
+  // On utilise la même UI que showCashPaymentModal
+  showCashPaymentModal();
+  // Remplacer le bouton "Valider" pour qu'il valide la commande existante au lieu de créer une nouvelle commande
+  setTimeout(() => {
+    const btn = document.getElementById('cashValidateBtn');
+    if (btn) {
+      btn.onclick = () => {
+        const input = document.getElementById('cashReceivedInput');
+        const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+        const received = parseFloat(raw) || 0;
+        if (received < o.total) { toast('Le montant reçu doit couvrir le total', true); return; }
+        window._lastCashChange = { received: received, change: received - o.total };
+        closeOrderWith(orderId, 'especes');
+      };
+    }
+    // Et le bouton "Retour" ramène à payExistingOrder
+    const backBtn = document.querySelector('.pay-v2-actions .btn');
+    if (backBtn && backBtn.textContent.indexOf('Retour') !== -1) {
+      backBtn.onclick = () => payExistingOrder(orderId);
+    }
+  }, 100);
+}
+
+// ★ Sous-modale Mixte pour une commande existante
+function showMixedPaymentModalForOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  window._payModalTotal = o.total;
+  window._payOrderId = orderId;
+  if (!window._mixedPayments) window._mixedPayments = [];
+  // Ouvre la modale standard
+  showMixedPaymentModal();
+  // Remplace le bouton Valider et le Retour pour pointer vers la commande existante
+  setTimeout(() => {
+    const valBtn = document.getElementById('mixedValidateBtn');
+    if (valBtn) {
+      valBtn.onclick = () => {
+        const payments = window._mixedPayments || [];
+        const paid = payments.reduce((s, p) => s + p.amount, 0);
+        if (paid < o.total - 0.001) {
+          toast(`Manque ${fmt(o.total - paid)}`, true);
+          return;
+        }
+        // Stocke les détails pour closeOrderWith
+        window._lastMixedPayments = payments.slice();
+        window._mixedPayments = [];
+        closeOrderWith(orderId, 'mixte');
+      };
+    }
+    // Le bouton Retour doit revenir à payExistingOrder (et non showPaymentModal qui est pour nouvelle commande)
+    const backBtn = document.querySelector('.pay-v2-actions .btn:first-child');
+    if (backBtn && backBtn.textContent.indexOf('Retour') !== -1) {
+      backBtn.onclick = () => {
+        window._mixedPayments = [];
+        payExistingOrder(orderId);
+      };
+    }
+  }, 100);
 }
 
 function closeOrderWith(id, method) {
   const o = state.orders.find(o => o.id === id);
   if (!o) return;
-  o.payment = { method, paid: true };
+  // ★ Gérer le paiement mixte avec parts détaillées
+  const isMixed = method === 'mixte';
+  const mixedPayments = isMixed && window._lastMixedPayments ? window._lastMixedPayments.slice() : null;
+  o.payment = isMixed
+    ? { method: 'mixte', paid: true, parts: mixedPayments }
+    : { method: method, paid: true };
+  o.paymentMethod = method;
   o.status = 'terminee';
   o.closedAt = nowMs();
   // Attribuer les points fidélité si pas déjà fait et que le client est livraison
@@ -20821,6 +20998,8 @@ function closeOrderWith(id, method) {
     o.loyaltyAwarded = true;
     o.loyaltyEarned = earned;
   }
+  // Clear mémos
+  if (isMixed) window._lastMixedPayments = null;
   saveState();
   closeModal();
   refreshAll();
