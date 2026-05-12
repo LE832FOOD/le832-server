@@ -12047,6 +12047,237 @@
     font-size: 10px;
     color: var(--cream-dim, #a39481);
   }
+
+  /* ═══ Bot téléphonique : nav + toggle + cards ═══ */
+  .nav-btn-voice {
+    position: relative;
+  }
+  .nav-badge-alert {
+    background: linear-gradient(135deg, #d4a056, #b8553a);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(212, 160, 86, 0.5);
+    animation: voiceBadgePulse 1.6s ease-in-out infinite;
+  }
+  @keyframes voiceBadgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  .bot-toggle {
+    background: rgba(126, 155, 191, 0.1);
+    border: 1px solid rgba(126, 155, 191, 0.3);
+    color: var(--cream-dim, #a39481);
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+  .bot-toggle.on {
+    background: rgba(149, 184, 94, 0.12);
+    border-color: rgba(149, 184, 94, 0.4);
+    color: var(--green-bright, #b0d479);
+  }
+  .bot-toggle.off {
+    background: rgba(214, 79, 79, 0.10);
+    border-color: rgba(214, 79, 79, 0.35);
+    color: #e69a8a;
+  }
+  .bot-toggle:hover { filter: brightness(1.15); }
+  .bot-toggle-icon { font-size: 16px; line-height: 1; }
+  .bot-toggle-label { flex: 1; text-align: left; font-weight: 600; }
+  .bot-toggle-status {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 100px;
+    background: rgba(255,255,255,0.1);
+    letter-spacing: 0.1em;
+  }
+  .bot-toggle.on .bot-toggle-status { background: rgba(149,184,94,0.2); }
+  .bot-toggle.off .bot-toggle-status { background: rgba(214,79,79,0.2); }
+
+  .voice-info-banner {
+    background: linear-gradient(135deg, rgba(126,155,191,0.12), rgba(126,155,191,0.04));
+    border: 1px solid rgba(126,155,191,0.3);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 0 14px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+    line-height: 1.5;
+  }
+  .voice-info-icon { font-size: 22px; flex-shrink: 0; }
+
+  /* Card commande téléphone à valider */
+  .voice-card {
+    background: var(--surface, rgba(31,26,20,0.5));
+    border: 1px solid rgba(212, 160, 86, 0.35);
+    border-left: 4px solid var(--amber, #d4a056);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 0 14px 10px;
+    position: relative;
+  }
+  .voice-card-fresh {
+    animation: voiceCardFlash 1.5s ease-out;
+    box-shadow: 0 0 0 0 rgba(212, 160, 86, 0.6);
+  }
+  @keyframes voiceCardFlash {
+    0% { box-shadow: 0 0 0 0 rgba(212, 160, 86, 0.8); }
+    70% { box-shadow: 0 0 0 12px rgba(212, 160, 86, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(212, 160, 86, 0); }
+  }
+  .voice-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .voice-card-num {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--amber-bright, #e8b568);
+  }
+  .voice-card-time {
+    font-size: 11px;
+    color: var(--cream-dim, #a39481);
+  }
+  .voice-card-tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 100px;
+    letter-spacing: 0.12em;
+    margin-right: 6px;
+    text-transform: uppercase;
+  }
+  .voice-card-tag--type {
+    background: rgba(149,184,94,0.15);
+    color: #b0d479;
+  }
+  .voice-card-tag--source {
+    background: rgba(212,160,86,0.18);
+    color: #e8b568;
+  }
+  .voice-card-tag--duration {
+    background: rgba(126,155,191,0.15);
+    color: #8eb4d6;
+  }
+  .voice-card-customer {
+    background: rgba(212,160,86,0.06);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 10px 0;
+    border-left: 2px solid var(--amber, #d4a056);
+  }
+  .voice-card-customer-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cream, #fff8e7);
+  }
+  .voice-card-customer-meta {
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+    margin-top: 3px;
+  }
+  .voice-card-items {
+    margin: 10px 0;
+  }
+  .voice-card-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed rgba(255,248,231,0.08);
+    font-size: 13px;
+  }
+  .voice-card-item:last-child { border-bottom: none; }
+  .voice-card-item-name {
+    color: var(--cream, #fff8e7);
+  }
+  .voice-card-item-qty {
+    color: var(--amber, #d4a056);
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .voice-card-item-custom {
+    font-size: 11px;
+    color: var(--amber, #d4a056);
+    font-style: italic;
+    margin-top: 2px;
+  }
+  .voice-card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,248,231,0.08);
+    margin-bottom: 12px;
+  }
+  .voice-card-total {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--amber-bright, #e8b568);
+  }
+  .voice-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+  }
+  .voice-action-btn {
+    padding: 11px 8px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+    letter-spacing: 0.05em;
+  }
+  .voice-action-btn--validate {
+    background: linear-gradient(135deg, #95b85e, #7a9a4d);
+    color: #fff;
+  }
+  .voice-action-btn--validate:hover { background: linear-gradient(135deg, #a3c66c, #88a854); transform: translateY(-1px); }
+  .voice-action-btn--refuse {
+    background: rgba(214,79,79,0.1);
+    color: #e69a8a;
+    border-color: rgba(214,79,79,0.35);
+  }
+  .voice-action-btn--refuse:hover { background: rgba(214,79,79,0.2); }
+  .voice-action-btn--callback {
+    background: rgba(126,155,191,0.12);
+    color: #8eb4d6;
+    border-color: rgba(126,155,191,0.35);
+  }
+  .voice-action-btn--callback:hover { background: rgba(126,155,191,0.22); }
+
+  /* Flash écran quand nouvelle commande bot reçue */
+  @keyframes voiceScreenFlash {
+    0% { box-shadow: inset 0 0 0 0 rgba(212, 160, 86, 0); }
+    20% { box-shadow: inset 0 0 80px 30px rgba(212, 160, 86, 0.4); }
+    100% { box-shadow: inset 0 0 0 0 rgba(212, 160, 86, 0); }
+  }
+  body.voice-screen-flash::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    animation: voiceScreenFlash 2s ease-out;
+  }
   /* Mobile: liste collapse */
   @media (max-width: 768px) {
     .fleet-main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
@@ -14361,6 +14592,10 @@
     </div>
     <nav class="sidebar-nav">
       <button class="nav-btn active" data-tab="nouvelle">Nouvelle commande</button>
+      <button class="nav-btn nav-btn-voice" data-tab="voice" id="navVoice">
+        🤖 Téléphone
+        <span class="nav-badge nav-badge-alert" id="badge-voice" style="display:none">0</span>
+      </button>
       <button class="nav-btn" data-tab="encours">En cours <span class="nav-badge" id="badge-encours" style="display:none">0</span></button>
       <button class="nav-btn" data-tab="suivi">🛵 Suivi livreurs</button>
       <button class="nav-btn" data-tab="terminees">Terminées</button>
@@ -14374,6 +14609,11 @@
     <div class="sidebar-foot">
       <div class="sidebar-clock" id="sidebar-clock">--:--</div>
       <div class="sidebar-date" id="sidebar-date">—</div>
+      <button class="bot-toggle" onclick="toggleVoiceBot()" id="botToggleBtn" title="Activer/désactiver le bot téléphonique">
+        <span class="bot-toggle-icon">🤖</span>
+        <span class="bot-toggle-label">Bot téléphone</span>
+        <span class="bot-toggle-status" id="botToggleStatus">…</span>
+      </button>
       <button class="chat-btn" onclick="openChat()" id="chatBtn">
         💬 Chat équipe
         <span class="chat-btn-badge" id="chatBtnBadge" style="display:none">0</span>
@@ -14485,6 +14725,21 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ★ TAB: COMMANDES TÉLÉPHONE À VALIDER (bot Vapi) -->
+    <section id="tab-voice" class="tab-content">
+      <div class="list-tab">
+        <div class="list-header">
+          <div class="list-title">🤖 Commandes téléphone à valider</div>
+          <div class="list-count" id="voiceCount">0 commande</div>
+        </div>
+        <div class="voice-info-banner" id="voiceInfoBanner">
+          <span class="voice-info-icon">📞</span>
+          <span class="voice-info-text">Les commandes prises par le bot téléphonique apparaissent ici. Validez ou refusez chaque commande avant qu'elle soit envoyée en cuisine.</span>
+        </div>
+        <div id="voiceList"></div>
       </div>
     </section>
 
@@ -22755,6 +23010,7 @@ function refreshAll() {
 
   // === Caisse : rafraîchir l'onglet actif ===
   if (currentTab === 'nouvelle') renderProducts();
+  if (currentTab === 'voice') renderVoiceTab();
   if (currentTab === 'encours') renderEncours();
   if (currentTab === 'suivi') renderSuivi();
   if (currentTab === 'terminees') renderTerminees();
@@ -22763,6 +23019,17 @@ function refreshAll() {
   if (currentTab === 'clients') renderClients();
   if (currentTab === 'compta') renderCompta();
   if (currentTab === 'parametres') renderSettings();
+
+  // ★ Toujours mettre à jour le badge voice + détecter nouvelles
+  try {
+    const orders = _getVoiceOrders();
+    const badge = document.getElementById('badge-voice');
+    if (badge) {
+      if (orders.length > 0) { badge.style.display = 'inline-flex'; badge.textContent = orders.length; }
+      else badge.style.display = 'none';
+    }
+    _voiceDetectNewOrders();
+  } catch (e) {}
 
   // === KDS / Livreur / Vitrine : rafraîchir si la vue est active ===
   // Important : sans cela, les vues ne se mettent pas à jour quand un autre
@@ -27586,6 +27853,255 @@ function _clientPaletteUpdateSelection() {
   const sel = document.querySelector('.client-palette-result.selected');
   if (sel) sel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
+
+// ═══════════════════════════════════════════════════════════════
+// ★ BOT TÉLÉPHONIQUE — Panneau de validation des commandes vocales
+// ═══════════════════════════════════════════════════════════════
+
+let voiceBotEnabled = true; // Synchro depuis /api/voice/bot-status
+let _voiceLastSeenIds = new Set(); // pour détecter les nouvelles arrivées
+let _voiceAudioCtx = null;
+
+// Bip sonore court (Web Audio API, pas de fichier MP3 nécessaire)
+function _voicePlayBeep() {
+  try {
+    if (!_voiceAudioCtx) _voiceAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = _voiceAudioCtx.currentTime;
+    // 2 bips rapides type téléphone
+    [0, 0.18].forEach(delay => {
+      const osc = _voiceAudioCtx.createOscillator();
+      const gain = _voiceAudioCtx.createGain();
+      osc.connect(gain); gain.connect(_voiceAudioCtx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.15, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.15);
+      osc.start(now + delay);
+      osc.stop(now + delay + 0.16);
+    });
+  } catch (e) { console.warn('audio beep failed', e); }
+}
+
+// Flash visuel + son quand une nouvelle commande arrive
+function _voiceNotifyNew(order) {
+  try { _voicePlayBeep(); } catch (e) {}
+  document.body.classList.remove('voice-screen-flash');
+  // Force reflow puis ré-applique pour relancer l'animation
+  void document.body.offsetWidth;
+  document.body.classList.add('voice-screen-flash');
+  setTimeout(() => document.body.classList.remove('voice-screen-flash'), 2200);
+  if (typeof toast === 'function') {
+    toast(`🤖 Nouvelle commande téléphone N°${order.number}`, false, 5000);
+  }
+}
+
+// Liste des commandes en attente de validation
+function _getVoiceOrders() {
+  return (state.orders || []).filter(o =>
+    o.source === 'voice' &&
+    o.awaitingValidation === true &&
+    o.status !== 'annulee'
+  ).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+}
+
+function renderVoiceTab() {
+  const list = document.getElementById('voiceList');
+  const count = document.getElementById('voiceCount');
+  if (!list) return;
+  const orders = _getVoiceOrders();
+  if (count) count.textContent = orders.length + ' commande' + (orders.length > 1 ? 's' : '');
+
+  // Mise à jour badge sidebar
+  const badge = document.getElementById('badge-voice');
+  if (badge) {
+    if (orders.length > 0) {
+      badge.style.display = 'inline-flex';
+      badge.textContent = orders.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  if (orders.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:40px 16px;color:var(--cream-dim, #a39481)">
+        <div style="font-size:48px;opacity:0.4;margin-bottom:12px">🤖</div>
+        <div style="font-weight:700;color:var(--cream, #fff8e7);margin-bottom:4px">Aucune commande téléphone en attente</div>
+        <div style="font-size:12px;line-height:1.5">Les commandes prises par le bot apparaissent ici en temps réel.</div>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = orders.map(o => {
+    const c = o.customer || {};
+    const customerName = ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || 'Client';
+    const typeLbl = (typeof typeLabel === 'function') ? typeLabel(o.type) : o.type;
+    const itemsHtml = (o.items || []).map(i => {
+      const custom = i.customizationLabel || i.optionsLabel || '';
+      const customHtml = custom ? `<div class="voice-card-item-custom">${escapeHtml(custom)}</div>` : '';
+      const commentHtml = i.comment ? `<div class="voice-card-item-custom" style="color:#e8b568">✏ ${escapeHtml(i.comment)}</div>` : '';
+      return `<div class="voice-card-item">
+        <div>
+          <span class="voice-card-item-qty">${i.qty}×</span><span class="voice-card-item-name">${escapeHtml(i.name)}</span>
+          ${customHtml}${commentHtml}
+        </div>
+        <div style="color:var(--amber, #d4a056);font-weight:700">${fmt((i.price || 0) * (i.qty || 1))}</div>
+      </div>`;
+    }).join('');
+
+    const duration = o.voiceCallDuration ? `${Math.round(o.voiceCallDuration)}s` : '';
+    const elapsedSec = Math.floor((Date.now() - (o.createdAt || Date.now())) / 1000);
+    const elapsedTxt = elapsedSec < 60 ? `il y a ${elapsedSec}s` :
+                      elapsedSec < 3600 ? `il y a ${Math.floor(elapsedSec / 60)} min` :
+                      `il y a ${Math.floor(elapsedSec / 3600)}h`;
+
+    const addressLine = (o.type === 'livraison' && c.address)
+      ? `<div class="voice-card-customer-meta">📍 ${escapeHtml(c.address)}</div>`
+      : '';
+    const slotLine = o.slot
+      ? `<div class="voice-card-customer-meta">⏰ Heure souhaitée : <strong style="color:var(--amber,#d4a056)">${escapeHtml(o.slot)}</strong></div>`
+      : '';
+    const noteLine = o.note
+      ? `<div class="voice-card-customer-meta" style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.06);font-style:italic">💬 ${escapeHtml(o.note)}</div>`
+      : '';
+
+    const isFresh = elapsedSec < 8;
+
+    return `<div class="voice-card ${isFresh ? 'voice-card-fresh' : ''}">
+      <div class="voice-card-head">
+        <div class="voice-card-num">N°${o.number}</div>
+        <div class="voice-card-time">${elapsedTxt}</div>
+      </div>
+      <div>
+        <span class="voice-card-tag voice-card-tag--source">🤖 BOT</span>
+        <span class="voice-card-tag voice-card-tag--type">${typeLbl.toUpperCase()}</span>
+        ${duration ? `<span class="voice-card-tag voice-card-tag--duration">${duration}</span>` : ''}
+      </div>
+      <div class="voice-card-customer">
+        <div class="voice-card-customer-name">${escapeHtml(customerName)}</div>
+        ${c.phone ? `<div class="voice-card-customer-meta">📞 <a href="tel:${escapeHtml(c.phone)}" style="color:var(--amber,#d4a056);text-decoration:none">${escapeHtml(c.phone)}</a></div>` : ''}
+        ${addressLine}
+        ${slotLine}
+        ${noteLine}
+      </div>
+      <div class="voice-card-items">${itemsHtml}</div>
+      <div class="voice-card-foot">
+        <div style="color:var(--cream-dim,#a39481);font-size:11px">Total</div>
+        <div class="voice-card-total">${fmt(o.total || 0)}</div>
+      </div>
+      <div class="voice-card-actions">
+        <button class="voice-action-btn voice-action-btn--refuse" onclick="voiceRefuseOrder('${o.id}')">✗ Refuser</button>
+        ${c.phone ? `<button class="voice-action-btn voice-action-btn--callback" onclick="window.location.href='tel:${escapeHtml(c.phone)}'">📞 Rappeler</button>` : '<button class="voice-action-btn voice-action-btn--callback" disabled style="opacity:0.4">—</button>'}
+        <button class="voice-action-btn voice-action-btn--validate" onclick="voiceValidateOrder('${o.id}')">✓ Valider</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function voiceValidateOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  if (!confirm(`Valider la commande téléphone N°${o.number} pour ${(o.customer && o.customer.firstName) || 'ce client'} ?\n\nElle passera en cuisine.`)) return;
+  o.awaitingValidation = false;
+  o.status = 'en_cours';
+  o.validatedAt = Date.now();
+  o.validatedBy = currentServer ? currentServer.name : null;
+  saveState();
+  renderVoiceTab();
+  refreshAll();
+  toast(`✓ Commande N°${o.number} validée et envoyée en cuisine`);
+}
+
+function voiceRefuseOrder(orderId) {
+  const o = state.orders.find(x => x.id === orderId);
+  if (!o) return;
+  const reason = prompt(`Refuser la commande téléphone N°${o.number} ?\n\nMotif (optionnel) :`, '');
+  if (reason === null) return; // annulé
+  o.awaitingValidation = false;
+  o.status = 'annulee';
+  o.cancelled = true;
+  o.cancelReason = reason || 'Refusée par la caisse';
+  o.cancelledBy = currentServer ? currentServer.name : 'Caisse';
+  o.cancelledAt = Date.now();
+  saveState();
+  renderVoiceTab();
+  refreshAll();
+  toast(`Commande N°${o.number} refusée`);
+}
+
+// Toggle bot ON/OFF (sync avec serveur)
+async function toggleVoiceBot() {
+  const newState = !voiceBotEnabled;
+  try {
+    const resp = await fetch('/api/voice/bot-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled: newState })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      voiceBotEnabled = !!data.enabled;
+      _updateBotToggleUI();
+      toast(voiceBotEnabled ? '🤖 Bot téléphonique activé' : '🤖 Bot téléphonique désactivé');
+    } else {
+      toast('Erreur de communication avec le bot', true);
+    }
+  } catch (e) {
+    toast('Bot inaccessible (serveur déconnecté ?)', true);
+  }
+}
+
+function _updateBotToggleUI() {
+  const btn = document.getElementById('botToggleBtn');
+  const status = document.getElementById('botToggleStatus');
+  if (!btn) return;
+  btn.classList.toggle('on', voiceBotEnabled);
+  btn.classList.toggle('off', !voiceBotEnabled);
+  if (status) status.textContent = voiceBotEnabled ? 'ON' : 'OFF';
+}
+
+// Sync initial du statut du bot depuis le serveur
+async function _syncVoiceBotStatus() {
+  try {
+    const resp = await fetch('/api/voice/bot-status');
+    if (resp.ok) {
+      const data = await resp.json();
+      voiceBotEnabled = !!data.enabled;
+      _updateBotToggleUI();
+    }
+  } catch (e) {
+    // Ignore : serveur peut-être pas dispo
+  }
+}
+
+// Détecte les nouvelles commandes voice à chaque refresh (pour flash + son)
+function _voiceDetectNewOrders() {
+  const orders = _getVoiceOrders();
+  orders.forEach(o => {
+    if (!_voiceLastSeenIds.has(o.id)) {
+      _voiceLastSeenIds.add(o.id);
+      // Seulement notifier si la commande est récente (< 30s)
+      const age = Date.now() - (o.createdAt || 0);
+      if (age < 30000 && _voiceLastSeenIds.size > 1) {
+        // size > 1 pour éviter la notif au tout 1er load
+        _voiceNotifyNew(o);
+      }
+    }
+  });
+}
+
+// Init au chargement
+setTimeout(() => {
+  _syncVoiceBotStatus();
+  // Init _voiceLastSeenIds avec les commandes existantes (pour éviter notif au load)
+  _getVoiceOrders().forEach(o => _voiceLastSeenIds.add(o.id));
+  // Refresh régulier de la durée affichée + détection nouvelles arrivées
+  setInterval(() => {
+    if (currentTab === 'voice') renderVoiceTab();
+    _voiceDetectNewOrders();
+  }, 3000);
+}, 1000);
 
 function renderClients() {
   const customers = Object.values(state.customers || {});

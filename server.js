@@ -36,6 +36,62 @@ const PORT = process.env.PORT || 8080;
 const STATE_FILE = path.join(__dirname, 'flamme_state.json');
 const SUBS_FILE = path.join(__dirname, 'flamme_subscriptions.json');
 
+// ═══════════════════════════════════════════════════════════════════
+// ★ BOT TÉLÉPHONIQUE VAPI.AI — Config et helpers
+// ═══════════════════════════════════════════════════════════════════
+const RESTO_LOCATION = {
+  lat: 48.7244,    // Vitry-le-François (TODO: à confirmer adresse exacte)
+  lon: 4.5840,
+  name: 'Le 832 FOOD',
+  address: '51300 Vitry-le-François'
+};
+const DELIVERY_MAX_KM = 15;
+const VAPI_WEBHOOK_SECRET = process.env.VAPI_WEBHOOK_SECRET || '';
+let voiceBotEnabled = true;
+
+function checkVapiAuth(req, res) {
+  if (!VAPI_WEBHOOK_SECRET) return true; // pas d'auth en dev
+  const provided = req.headers['x-vapi-secret'] || req.headers['x-vapi-signature'] || '';
+  if (provided !== VAPI_WEBHOOK_SECRET) {
+    res.writeHead(401, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Unauthorized' }));
+    return false;
+  }
+  return true;
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function geocodeAddress(address) {
+  try {
+    const q = encodeURIComponent(address + ', France');
+    const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=fr`;
+    // Node 18+ a fetch natif. Pour Node < 18, il faudrait require('node-fetch') ou https.
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'Le832-VoiceBot/1.0 (contact@le832.fr)' }
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    if (!Array.isArray(data) || data.length === 0) return null;
+    return {
+      lat: parseFloat(data[0].lat),
+      lon: parseFloat(data[0].lon),
+      displayName: data[0].display_name
+    };
+  } catch (e) {
+    console.error('Geocode error:', e && e.message);
+    return null;
+  }
+}
+
 const VAPID = {
   publicKey:  process.env.VAPID_PUBLIC  || 'BJr4xIN3n05AHBGoadYFLb666sMan7qZ27kDt1iKb5_aKsuokCH3JPNKdDVMn1ReF-YBZjK6-GrsUbxphm7coNw',
   privateKey: process.env.VAPID_PRIVATE || 'tZu-C9HaZ62J1iVIJjSOkPlh4Au9sOThoqBo_u7wLPU',
@@ -1415,6 +1471,225 @@ const server = http.createServer(async (req, res) => {
       }
     }
     return jsonRes(res, 200, { ok: true });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // ★ BOT TÉLÉPHONIQUE VAPI.AI — Endpoints /api/voice/*
+  // ═══════════════════════════════════════════════════════════════════
+
+  // POST /api/voice/menu — récupère le menu pour le bot
+  if (req.method === 'POST' && pathname === '/api/voice/menu') {
+    if (!checkVapiAuth(req, res)) return;
+    if (!voiceBotEnabled) return jsonRes(res, 200, { result: 'Bot désactivé', items: [] });
+    const menu = (sharedState && sharedState.menu) ? sharedState.menu : [];
+    const items = menu
+      .filter(p => !p.outOfStock && p.visible !== false)
+      .map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category || '',
+        price: p.price,
+        description: p.description || '',
+        hasOptions: !!(p.options && Object.keys(p.options).length > 0)
+      }));
+    const grouped = {};
+    items.forEach(p => {
+      const c = p.category || 'Autres';
+      if (!grouped[c]) grouped[c] = [];
+      grouped[c].push({ id: p.id, name: p.name, price: p.price, hasOptions: p.hasOptions });
+    });
+    return jsonRes(res, 200, {
+      result: 'Menu transmis',
+      categories: Object.keys(grouped),
+      items: items,
+      grouped: grouped,
+      totalProducts: items.length
+    });
+  }
+
+  // POST /api/voice/check-zone — vérifie si une adresse est dans la zone de livraison
+  if (req.method === 'POST' && pathname === '/api/voice/check-zone') {
+    if (!checkVapiAuth(req, res)) return;
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let data = {};
+    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    const address = data.address || '';
+    if (!address) return jsonRes(res, 200, { ok: false, reason: 'Adresse manquante', deliverable: false });
+    const geo = await geocodeAddress(address);
+    if (!geo) {
+      return jsonRes(res, 200, {
+        ok: false,
+        deliverable: false,
+        reason: "Je n'arrive pas à trouver cette adresse. Pourriez-vous la répéter ou préciser la ville ?",
+        address: address
+      });
+    }
+    const distKm = haversineKm(RESTO_LOCATION.lat, RESTO_LOCATION.lon, geo.lat, geo.lon);
+    const distRounded = Math.round(distKm * 10) / 10;
+    const deliverable = distKm <= DELIVERY_MAX_KM;
+    return jsonRes(res, 200, {
+      ok: true,
+      address: address,
+      geocoded: geo.displayName,
+      distanceKm: distRounded,
+      maxKm: DELIVERY_MAX_KM,
+      deliverable: deliverable,
+      reason: deliverable
+        ? `Adresse à ${distRounded} km, dans notre zone de livraison.`
+        : `Cette adresse est à ${distRounded} km, hors de notre zone de livraison de ${DELIVERY_MAX_KM} km. Je peux vous proposer la commande à emporter.`,
+      coords: { lat: geo.lat, lon: geo.lon }
+    });
+  }
+
+  // POST /api/voice/order — crée une commande à valider depuis le bot
+  if (req.method === 'POST' && pathname === '/api/voice/order') {
+    if (!checkVapiAuth(req, res)) return;
+    if (!voiceBotEnabled) return jsonRes(res, 503, { ok: false, reason: 'Bot désactivé' });
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let data = {};
+    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    const { customer, type, items, total, callDuration, slot, callId, note } = data;
+    if (!type || !Array.isArray(items) || items.length === 0) {
+      return jsonRes(res, 400, { ok: false, reason: 'Données invalides : type ou items manquants' });
+    }
+    if (type === 'livraison' && (!customer || !customer.address)) {
+      return jsonRes(res, 400, { ok: false, reason: 'Adresse requise pour livraison' });
+    }
+    // Crée la commande
+    if (!sharedState.orders) sharedState.orders = [];
+    if (typeof sharedState.counter !== 'number') sharedState.counter = 1;
+    const number = sharedState.counter++;
+    const order = {
+      id: 'voice_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      number: number,
+      source: 'voice',
+      awaitingValidation: true,
+      voiceCallId: callId || null,
+      voiceCallDuration: callDuration || null,
+      type: type,
+      status: 'en_attente',
+      items: items.map(i => ({
+        id: i.id,
+        name: i.name,
+        qty: i.qty || 1,
+        price: i.price || 0,
+        customizationLabel: i.customization || i.customizationLabel || '',
+        comment: i.comment || ''
+      })),
+      customer: customer || {},
+      total: typeof total === 'number' ? total : items.reduce((s, i) => s + (i.price || 0) * (i.qty || 1), 0),
+      slot: slot || null,
+      note: note || '',
+      payment: { method: 'en_attente', paid: false },
+      createdAt: Date.now()
+    };
+    sharedState.orders.unshift(order);
+    // Persist state
+    try { fs.writeFileSync(STATE_FILE, JSON.stringify(sharedState, null, 2)); } catch (e) {}
+    // Broadcast WS : envoyer le nouvel état complet aux caisses
+    try {
+      const payload = JSON.stringify({ type: 'state', data: sharedState });
+      wss.clients.forEach(client => {
+        if (client.readyState === 1) {
+          try { client.send(payload); } catch (e) {}
+        }
+      });
+    } catch (e) {}
+    return jsonRes(res, 200, {
+      ok: true,
+      orderId: order.id,
+      orderNumber: order.number,
+      message: `Commande N°${order.number} enregistrée, elle sera confirmée par le restaurant.`
+    });
+  }
+
+  // POST /api/voice/check-stock — vérifie la dispo d'un produit
+  if (req.method === 'POST' && pathname === '/api/voice/check-stock') {
+    if (!checkVapiAuth(req, res)) return;
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let data = {};
+    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    const { productId, productName } = data;
+    const menu = (sharedState && sharedState.menu) || [];
+    let product = null;
+    if (productId) product = menu.find(p => p.id === productId);
+    else if (productName) {
+      const q = productName.toLowerCase();
+      product = menu.find(p => (p.name || '').toLowerCase() === q)
+             || menu.find(p => (p.name || '').toLowerCase().includes(q));
+    }
+    if (!product) return jsonRes(res, 200, { ok: false, available: false, reason: 'Je ne trouve pas ce produit dans notre menu.' });
+    const available = !product.outOfStock && product.visible !== false;
+    return jsonRes(res, 200, {
+      ok: true,
+      productId: product.id,
+      productName: product.name,
+      price: product.price,
+      available: available,
+      reason: available ? `${product.name} est disponible.` : `Je suis désolée, ${product.name} n'est plus disponible.`
+    });
+  }
+
+  // POST /api/voice/hours — horaires actuels
+  if (req.method === 'POST' && pathname === '/api/voice/hours') {
+    if (!checkVapiAuth(req, res)) return;
+    const cfg = (sharedState && sharedState.config) ? sharedState.config : {};
+    const now = new Date();
+    const dayMap = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    return jsonRes(res, 200, {
+      today: dayMap[now.getDay()],
+      currentTime: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+      midi: { start: cfg.midiStart || '11:30', end: cfg.midiEnd || '14:30' },
+      soir: { start: cfg.soirStart || '18:30', end: cfg.soirEnd || '22:30' },
+      isOpenNow: !!cfg.restoOpen,
+      message: cfg.restoOpen
+        ? 'Nous sommes actuellement ouverts.'
+        : 'Le restaurant est actuellement fermé, mais je peux prendre votre commande pour le prochain service.'
+    });
+  }
+
+  // GET/POST /api/voice/bot-status — toggle ON/OFF
+  if (req.method === 'GET' && pathname === '/api/voice/bot-status') {
+    return jsonRes(res, 200, { enabled: voiceBotEnabled });
+  }
+  if (req.method === 'POST' && pathname === '/api/voice/bot-status') {
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let data = {};
+    try { data = JSON.parse(body); } catch (e) {}
+    if (typeof data.enabled === 'boolean') voiceBotEnabled = data.enabled;
+    return jsonRes(res, 200, { enabled: voiceBotEnabled });
+  }
+
+  // POST /api/voice/recognize-customer — reconnaît un client par téléphone
+  if (req.method === 'POST' && pathname === '/api/voice/recognize-customer') {
+    if (!checkVapiAuth(req, res)) return;
+    let body;
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let data = {};
+    try { data = JSON.parse(body); } catch (e) { return jsonRes(res, 400, { error: 'invalid json' }); }
+    const { phone } = data;
+    if (!phone) return jsonRes(res, 200, { ok: false, recognized: false });
+    const customers = (sharedState && sharedState.customers) || {};
+    const norm = String(phone).replace(/\D/g, '').slice(-10);
+    let found = null;
+    Object.values(customers).forEach(c => {
+      const cNorm = String(c.phone || '').replace(/\D/g, '').slice(-10);
+      if (cNorm === norm) found = c;
+    });
+    if (!found) return jsonRes(res, 200, { ok: true, recognized: false });
+    return jsonRes(res, 200, {
+      ok: true,
+      recognized: true,
+      firstName: found.firstName || '',
+      lastName: found.lastName || '',
+      address: found.address || '',
+      loyaltyPoints: found.loyaltyPoints || 0,
+      message: `Bonjour ${found.firstName || ''}, content de vous entendre.`
+    });
   }
 
   res.writeHead(404, { 'Content-Type': 'text/plain' });
