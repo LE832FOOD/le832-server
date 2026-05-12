@@ -2843,6 +2843,270 @@
     margin-top: 6px;
   }
 
+  /* ═══ Modale d'encaissement V2 — design simplifié ═══ */
+  .pay-v2-modal {
+    padding: 0;
+  }
+  .pay-v2-title {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .pay-v2-sub {
+    font-size: 12px;
+    text-align: center;
+    color: var(--cream-dim, #6e6258);
+    margin-bottom: 14px;
+  }
+  /* Montant en évidence */
+  .pay-v2-amount {
+    background: linear-gradient(135deg, rgba(212,160,86,0.15), rgba(212,160,86,0.05));
+    border: 2px solid var(--amber, #d4a056);
+    border-radius: 14px;
+    padding: 14px 22px;
+    text-align: center;
+    margin: 0 0 16px;
+    box-shadow: 0 4px 14px rgba(212,160,86,0.15);
+  }
+  .pay-v2-amount-lbl {
+    font-size: 10px;
+    color: var(--amber, #8a6f3a);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .pay-v2-amount-val {
+    font-family: 'Fraunces', serif;
+    font-size: 38px;
+    font-weight: 600;
+    color: var(--amber-bright, #8a6f3a);
+    line-height: 1.05;
+  }
+  /* 2 gros boutons : Carte / Espèces */
+  .pay-v2-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .pay-option-v2 {
+    background: var(--bg, #fff);
+    border: 2px solid var(--line, #e0d5b8);
+    color: var(--cream, #2c2419);
+    padding: 18px 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s var(--ease-out, cubic-bezier(0.4, 0, 0.2, 1));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .pay-option-v2--cb {
+    border-color: var(--amber, #d4a056);
+  }
+  .pay-option-v2--cb:hover {
+    background: rgba(212,160,86,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(212,160,86,0.18);
+  }
+  .pay-option-v2--especes {
+    border-color: var(--green, #95b85e);
+  }
+  .pay-option-v2--especes:hover {
+    background: rgba(149,184,94,0.06);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(149,184,94,0.18);
+  }
+  .pay-option-v2:active { transform: translateY(0) scale(0.98); }
+  .pay-v2-icon {
+    font-size: 28px;
+    line-height: 1;
+  }
+  .pay-v2-label {
+    font-size: 14px;
+    font-weight: 700;
+  }
+  /* 2 petits boutons : Tickets / Chèque */
+  .pay-v2-secondary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .pay-option-v2--small {
+    flex-direction: row;
+    padding: 12px;
+    font-size: 13px;
+    color: var(--cream-dim, #6e6258);
+    border-color: var(--line, #e0d5b8);
+  }
+  .pay-option-v2--small:hover {
+    background: rgba(212,160,86,0.05);
+    border-color: var(--amber, #d4a056);
+    color: var(--cream, #2c2419);
+  }
+  .pay-v2-icon-sm {
+    font-size: 18px;
+  }
+  /* Bouton "Sur compte" mensuel (occupe toute la largeur) */
+  .pay-option-monthly {
+    grid-column: 1 / -1;
+    border-color: #9c7fd1 !important;
+    color: #9c7fd1 !important;
+    background: rgba(156, 127, 209, 0.05) !important;
+  }
+  .pay-option-monthly:hover {
+    background: rgba(156, 127, 209, 0.12) !important;
+  }
+  /* Diviser le ticket */
+  .pay-v2-split {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line, #e0d5b8);
+  }
+  .pay-v2-split-hint {
+    font-size: 10px;
+    color: var(--muted, #6e6258);
+    margin-top: 6px;
+    line-height: 1.5;
+    text-align: center;
+  }
+  /* Annuler discret */
+  .pay-v2-cancel {
+    width: 100%;
+    margin-top: 12px;
+    background: transparent;
+    border: none;
+    color: var(--cream-dim, #6e6258);
+    padding: 10px;
+    font-size: 12px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pay-v2-cancel:hover {
+    color: var(--cream, #2c2419);
+  }
+
+  /* ═══ Modale paiement espèces (sous-modale) ═══ */
+  .pay-v2-modal--cash .pay-v2-amount--cash {
+    margin-bottom: 14px;
+  }
+  .cash-section-lbl {
+    font-size: 10px;
+    color: var(--cream-dim, #6e6258);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .cash-quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .cash-quick-btn {
+    background: var(--bg, #fff);
+    border: 1px solid var(--green, #95b85e);
+    color: var(--green, #5d7239);
+    padding: 12px 6px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    font-variant-numeric: tabular-nums;
+  }
+  .cash-quick-btn:hover {
+    background: rgba(149,184,94,0.10);
+  }
+  .cash-quick-btn.selected {
+    background: var(--green, #95b85e);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(149,184,94,0.3);
+  }
+  .cash-quick-btn--exact {
+    border-style: dashed;
+  }
+  .cash-input-wrap {
+    margin-bottom: 14px;
+  }
+  .cash-input-lbl {
+    display: block;
+    font-size: 10px;
+    color: var(--cream-dim, #6e6258);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .cash-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1.5px solid var(--line, #e0d5b8);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    background: var(--bg, #fff);
+    color: var(--cream, #2c2419);
+    font-family: 'Fraunces', serif;
+    font-variant-numeric: tabular-nums;
+    transition: all 0.15s ease;
+  }
+  .cash-input:focus {
+    outline: none;
+    border-color: var(--green, #95b85e);
+    box-shadow: 0 0 0 3px rgba(149,184,94,0.12);
+  }
+  /* Affichage du rendu monnaie */
+  .cash-change-display {
+    background: linear-gradient(135deg, var(--green, #95b85e), #7a9a4d);
+    color: #fff;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(149,184,94,0.25);
+  }
+  .cash-change-display--insufficient {
+    background: linear-gradient(135deg, #e55252, #c1574a);
+    box-shadow: 0 4px 12px rgba(229,82,82,0.25);
+  }
+  .cash-change-lbl {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-weight: 700;
+    opacity: 0.95;
+  }
+  .cash-change-val {
+    font-family: 'Fraunces', serif;
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .pay-v2-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .pay-v2-actions .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
   .success-icon {
     width: 72px; height: 72px;
     background: linear-gradient(135deg, rgba(122, 154, 77, 0.15) 0%, rgba(122, 154, 77, 0.06) 100%);
@@ -18663,42 +18927,187 @@ function showPaymentModal() {
 
   // Bouton "Sur compte" : ajouté SEULEMENT si c'est un client mensuel
   const monthlyBtn = isMonthlyCustomer
-    ? `<button class="pay-option pay-option-monthly" data-method="compte">
-         <div class="pay-icon">🏢</div>
-         <div class="pay-label">Sur compte<br><small style="font-size:9px;opacity:0.8">${customerData.companyName || customerData.firstName || 'mensuel'}</small></div>
+    ? `<button class="pay-option-v2 pay-option-monthly" data-method="compte" title="Sur compte mensuel">
+         <div class="pay-v2-icon">🏢</div>
+         <div class="pay-v2-label">Sur compte<br><small style="font-size:9px;opacity:0.8;font-weight:400">${customerData.companyName || customerData.firstName || 'mensuel'}</small></div>
        </button>`
     : '';
 
+  // ★ Mémorise le total dans la modale pour le mode espèces
+  window._payModalTotal = total;
+  window._payModalIsMonthly = isMonthlyCustomer;
+
   openModal(`
-    <div class="modal-title">Encaissement</div>
-    <div class="modal-sub">${isMonthlyCustomer ? '🏢 Compte mensuel détecté · ' : ''}Choisissez le mode de paiement</div>
-    <div class="modal-total">
-      <div class="modal-total-label">Montant à régler</div>
-      <div class="modal-total-amount">${fmt(total)}</div>
-    </div>
-    <div class="pay-options">
-      ${monthlyBtn}
-      <button class="pay-option" data-method="cb"><div class="pay-icon">💳</div><div class="pay-label">Carte</div></button>
-      <button class="pay-option" data-method="especes"><div class="pay-icon">💵</div><div class="pay-label">Espèces</div></button>
-      <button class="pay-option" data-method="tr"><div class="pay-icon">🍽️</div><div class="pay-label">Tickets resto</div></button>
-      <button class="pay-option" data-method="cheque"><div class="pay-icon">📝</div><div class="pay-label">Chèque</div></button>
-    </div>
-    ${cart.length >= 2 ? `
-      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line)">
-        <button class="btn" onclick="splitFromCart()" style="width:100%;border-color:var(--amber);color:var(--amber);background:linear-gradient(135deg, rgba(212,160,86,0.10), rgba(212,160,86,0.02))">
-          <span class="btn-icon">⊟</span><span>Diviser le ticket en plusieurs fiches</span>
-        </button>
-        <div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5;text-align:center">
-          Permet à plusieurs clients de payer séparément (ex : 2 personnes au restaurant qui partagent l'addition)
-        </div>
+    <div class="pay-v2-modal">
+      <div class="pay-v2-title">Encaissement</div>
+      ${isMonthlyCustomer ? '<div class="pay-v2-sub" style="color:#9c7fd1">🏢 Compte mensuel détecté</div>' : ''}
+
+      <!-- Montant en évidence -->
+      <div class="pay-v2-amount">
+        <div class="pay-v2-amount-lbl">Montant</div>
+        <div class="pay-v2-amount-val">${fmt(total)}</div>
       </div>
-    ` : ''}
-    <button class="btn modal-close" style="margin-top:14px" onclick="closeModal()">Annuler</button>
+
+      <!-- Choix principal : Carte / Espèces -->
+      <div class="pay-v2-main">
+        <button class="pay-option-v2 pay-option-v2--cb" data-method="cb">
+          <div class="pay-v2-icon">💳</div>
+          <div class="pay-v2-label">Carte</div>
+        </button>
+        <button class="pay-option-v2 pay-option-v2--especes" data-method="especes-show">
+          <div class="pay-v2-icon">💵</div>
+          <div class="pay-v2-label">Espèces</div>
+        </button>
+      </div>
+
+      <!-- Choix secondaire : Tickets resto / Chèque -->
+      <div class="pay-v2-secondary">
+        <button class="pay-option-v2 pay-option-v2--small" data-method="tr">
+          <span class="pay-v2-icon-sm">🍽️</span>
+          <span>Tickets resto</span>
+        </button>
+        <button class="pay-option-v2 pay-option-v2--small" data-method="cheque">
+          <span class="pay-v2-icon-sm">📝</span>
+          <span>Chèque</span>
+        </button>
+      </div>
+
+      ${monthlyBtn ? `<div class="pay-v2-secondary" style="margin-top:8px">${monthlyBtn}</div>` : ''}
+
+      ${cart.length >= 2 ? `
+        <div class="pay-v2-split">
+          <button class="btn" onclick="splitFromCart()" style="width:100%;border-color:var(--amber);color:var(--amber);background:linear-gradient(135deg, rgba(212,160,86,0.10), rgba(212,160,86,0.02))">
+            <span class="btn-icon">⊟</span><span>Diviser le ticket</span>
+          </button>
+          <div class="pay-v2-split-hint">Pour plusieurs clients qui paient séparément</div>
+        </div>
+      ` : ''}
+
+      <button class="pay-v2-cancel" onclick="closeModal()">Annuler</button>
+    </div>
   `);
 
-  document.querySelectorAll('#modalContent .pay-option').forEach(b => {
-    b.onclick = () => completePay(b.dataset.method);
+  document.querySelectorAll('#modalContent .pay-option-v2').forEach(b => {
+    b.onclick = () => {
+      const method = b.dataset.method;
+      if (method === 'especes-show') {
+        // ★ Mode espèces : ouvre la sous-modale avec rendu monnaie
+        showCashPaymentModal();
+      } else {
+        completePay(method);
+      }
+    };
   });
+}
+
+// ★ NOUVEAU : Modale spéciale espèces avec rendu de monnaie
+function showCashPaymentModal() {
+  const total = window._payModalTotal || 0;
+  // Calcul des montants suggérés : montant exact + arrondis vers le haut
+  const exact = total;
+  const round5 = Math.ceil(total / 5) * 5;
+  const round10 = Math.ceil(total / 10) * 10;
+  const round20 = Math.ceil(total / 20) * 20;
+  // Sélection des 4 boutons suggérés (sans doublons, ascendants)
+  const suggested = [...new Set([exact, round5, round10, round20, total < 50 ? 50 : 100])]
+    .filter(v => v >= total).sort((a, b) => a - b).slice(0, 4);
+  // Si pas assez de boutons, on rajoute des billets standards
+  while (suggested.length < 4) {
+    const candidates = [20, 50, 100, 200].filter(v => v >= total && !suggested.includes(v));
+    if (candidates.length === 0) break;
+    suggested.push(candidates[0]);
+  }
+
+  const buttonsHtml = suggested.map((v, idx) => {
+    const isExact = idx === 0;
+    return `<button class="cash-quick-btn ${isExact ? 'cash-quick-btn--exact' : ''}" data-received="${v}">${fmt(v)}</button>`;
+  }).join('');
+
+  openModal(`
+    <div class="pay-v2-modal pay-v2-modal--cash">
+      <div class="pay-v2-title">💵 Paiement espèces</div>
+
+      <div class="pay-v2-amount pay-v2-amount--cash">
+        <div class="pay-v2-amount-lbl">Montant à régler</div>
+        <div class="pay-v2-amount-val">${fmt(total)}</div>
+      </div>
+
+      <div class="cash-section-lbl">Montant reçu</div>
+      <div class="cash-quick-grid">
+        ${buttonsHtml}
+      </div>
+      <div class="cash-input-wrap">
+        <label class="cash-input-lbl">Ou saisir un autre montant</label>
+        <input type="text" id="cashReceivedInput" class="cash-input" placeholder="0,00 €" inputmode="decimal" oninput="updateCashChange()" />
+      </div>
+
+      <div class="cash-change-display" id="cashChangeDisplay">
+        <div class="cash-change-lbl">À rendre au client</div>
+        <div class="cash-change-val" id="cashChangeVal">—</div>
+      </div>
+
+      <div class="pay-v2-actions">
+        <button class="btn" onclick="showPaymentModal()" style="flex:1">← Retour</button>
+        <button class="btn btn-primary" id="cashValidateBtn" onclick="validateCashPayment()" style="flex:2" disabled>Valider l'encaissement ✓</button>
+      </div>
+    </div>
+  `);
+
+  // Active les boutons rapides
+  setTimeout(() => {
+    document.querySelectorAll('.cash-quick-btn').forEach(b => {
+      b.onclick = () => {
+        document.querySelectorAll('.cash-quick-btn').forEach(x => x.classList.remove('selected'));
+        b.classList.add('selected');
+        const input = document.getElementById('cashReceivedInput');
+        if (input) input.value = fmt(parseFloat(b.dataset.received));
+        updateCashChange();
+      };
+    });
+    // Focus auto sur l'input
+    const input = document.getElementById('cashReceivedInput');
+    if (input) input.focus();
+  }, 50);
+}
+
+// ★ Met à jour le rendu de monnaie en temps réel
+function updateCashChange() {
+  const total = window._payModalTotal || 0;
+  const input = document.getElementById('cashReceivedInput');
+  const display = document.getElementById('cashChangeDisplay');
+  const valEl = document.getElementById('cashChangeVal');
+  const btn = document.getElementById('cashValidateBtn');
+  if (!input || !valEl || !btn) return;
+  // Parse le montant saisi (gère "12,50" et "12.50")
+  const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const received = parseFloat(raw) || 0;
+  if (received < total) {
+    valEl.textContent = `Manque ${fmt(total - received)}`;
+    valEl.style.color = '#e55252';
+    if (display) display.classList.add('cash-change-display--insufficient');
+    btn.disabled = true;
+  } else {
+    const change = received - total;
+    valEl.textContent = fmt(change);
+    valEl.style.color = '#5d7239';
+    if (display) display.classList.remove('cash-change-display--insufficient');
+    btn.disabled = false;
+  }
+}
+
+// ★ Valide le paiement espèces
+function validateCashPayment() {
+  const total = window._payModalTotal || 0;
+  const input = document.getElementById('cashReceivedInput');
+  const raw = (input.value || '').replace(/[^\d.,]/g, '').replace(',', '.');
+  const received = parseFloat(raw) || 0;
+  if (received < total) {
+    toast('Le montant reçu doit couvrir le total', true);
+    return;
+  }
+  // On garde le montant reçu / rendu pour potentielle impression sur le ticket
+  window._lastCashChange = { received: received, change: received - total };
+  completePay('especes');
 }
 
 // ═══ DIVISER LE TICKET DEPUIS LE PANIER ═══
