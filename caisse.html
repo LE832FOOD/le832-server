@@ -27860,6 +27860,7 @@ function _clientPaletteUpdateSelection() {
 
 let voiceBotEnabled = true; // Synchro depuis /api/voice/bot-status
 let _voiceLastSeenIds = new Set(); // pour détecter les nouvelles arrivées
+let _voiceInitDone = false; // ★ devient true après le chargement initial, débloque les notifs
 let _voiceAudioCtx = null;
 
 // Bip sonore court (Web Audio API, pas de fichier MP3 nécessaire)
@@ -28081,10 +28082,9 @@ function _voiceDetectNewOrders() {
   orders.forEach(o => {
     if (!_voiceLastSeenIds.has(o.id)) {
       _voiceLastSeenIds.add(o.id);
-      // Seulement notifier si la commande est récente (< 30s)
+      // Notif seulement si init terminé ET commande récente (< 60s)
       const age = Date.now() - (o.createdAt || 0);
-      if (age < 30000 && _voiceLastSeenIds.size > 1) {
-        // size > 1 pour éviter la notif au tout 1er load
+      if (_voiceInitDone && age < 60000) {
         _voiceNotifyNew(o);
       }
     }
@@ -28096,6 +28096,8 @@ setTimeout(() => {
   _syncVoiceBotStatus();
   // Init _voiceLastSeenIds avec les commandes existantes (pour éviter notif au load)
   _getVoiceOrders().forEach(o => _voiceLastSeenIds.add(o.id));
+  // ★ Débloque les notifs après 3 secondes (le temps que le state initial se charge)
+  setTimeout(() => { _voiceInitDone = true; }, 3000);
   // Refresh régulier de la durée affichée + détection nouvelles arrivées
   setInterval(() => {
     if (currentTab === 'voice') renderVoiceTab();
