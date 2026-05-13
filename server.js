@@ -92,6 +92,46 @@ async function geocodeAddress(address) {
   }
 }
 
+// ★ Extrait les arguments du tool call depuis le format Vapi (toolCalls[0].function.arguments)
+// Vapi envoie : { message: { toolCallList: [...], toolCalls: [...], type, ... } }
+// Chaque toolCall a : { id, function: { name, arguments: {...} } }
+function vapiExtract(body) {
+  // Cas 1 : format Vapi standard (webhook)
+  if (body && body.message) {
+    const msg = body.message;
+    const calls = msg.toolCallList || msg.toolCalls || (msg.toolWithToolCallList || []).map(t => t.toolCall) || [];
+    if (calls.length > 0 && calls[0].function) {
+      const fn = calls[0].function;
+      const args = (typeof fn.arguments === 'string') ? JSON.parse(fn.arguments || '{}') : (fn.arguments || {});
+      return {
+        toolCallId: calls[0].id || null,
+        functionName: fn.name || null,
+        args: args,
+        // Infos d'appel utiles (numéro client, etc.)
+        customerNumber: msg.call && msg.call.customer ? msg.call.customer.number : null,
+        callId: msg.call ? msg.call.id : null
+      };
+    }
+  }
+  // Cas 2 : appel direct (curl de test) — on traite le body comme args
+  return { toolCallId: null, functionName: null, args: body || {}, customerNumber: null, callId: null };
+}
+
+// ★ Formate la réponse au format attendu par Vapi
+// Vapi attend : { results: [{ toolCallId, result }] }
+function vapiResponse(toolCallId, result) {
+  if (!toolCallId) {
+    // Appel direct (test) : on renvoie le résultat tel quel
+    return result;
+  }
+  return {
+    results: [{
+      toolCallId: toolCallId,
+      result: typeof result === 'string' ? result : JSON.stringify(result)
+    }]
+  };
+}
+
 const VAPID = {
   publicKey:  process.env.VAPID_PUBLIC  || 'BJr4xIN3n05AHBGoadYFLb666sMan7qZ27kDt1iKb5_aKsuokCH3JPNKdDVMn1ReF-YBZjK6-GrsUbxphm7coNw',
   privateKey: process.env.VAPID_PRIVATE || 'tZu-C9HaZ62J1iVIJjSOkPlh4Au9sOThoqBo_u7wLPU',
@@ -1480,7 +1520,11 @@ const server = http.createServer(async (req, res) => {
   // POST /api/voice/menu — récupère le menu pour le bot
   if (req.method === 'POST' && pathname === '/api/voice/menu') {
     if (!checkVapiAuth(req, res)) return;
-    if (!voiceBotEnabled) return jsonRes(res, 200, { result: 'Bot désactivé', items: [] });
+    // ★ Parse Vapi format pour récupérer le toolCallId
+    let menuBody = {};
+    try { menuBody = await readBody(req); } catch (e) {}
+    const menuCtx = vapiExtract(menuBody);
+    if (!voiceBotEnabled) return jsonRes(res, 200, vapiResponse(menuCtx.toolCallId, { result: 'Bot désactivé', items: [] }));
     const menu = (sharedState && sharedState.menu) ? sharedState.menu : [];
     const items = menu
       .filter(p => !p.outOfStock && p.visible !== false)
@@ -1498,35 +1542,37 @@ const server = http.createServer(async (req, res) => {
       if (!grouped[c]) grouped[c] = [];
       grouped[c].push({ id: p.id, name: p.name, price: p.price, hasOptions: p.hasOptions });
     });
-    return jsonRes(res, 200, {
+    return jsonRes(res, 200, vapiResponse(menuCtx.toolCallId, {
       result: 'Menu transmis',
       categories: Object.keys(grouped),
       items: items,
       grouped: grouped,
       totalProducts: items.length
-    });
+    }));
   }
 
   // POST /api/voice/check-zone — vérifie si une adresse est dans la zone de livraison
   if (req.method === 'POST' && pathname === '/api/voice/check-zone') {
     if (!checkVapiAuth(req, res)) return;
-    let data = {};
-    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let body = {};
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    const ctx = vapiExtract(body);
+    const data = ctx.args;
     const address = data.address || '';
-    if (!address) return jsonRes(res, 200, { ok: false, reason: 'Adresse manquante', deliverable: false });
+    if (!address) return jsonRes(res, 200, vapiResponse(ctx.toolCallId, { ok: false, reason: 'Adresse manquante', deliverable: false }));
     const geo = await geocodeAddress(address);
     if (!geo) {
-      return jsonRes(res, 200, {
+      return jsonRes(res, 200, vapiResponse(ctx.toolCallId, {
         ok: false,
         deliverable: false,
         reason: "Je n'arrive pas à trouver cette adresse. Pourriez-vous la répéter ou préciser la ville ?",
         address: address
-      });
+      }));
     }
     const distKm = haversineKm(RESTO_LOCATION.lat, RESTO_LOCATION.lon, geo.lat, geo.lon);
     const distRounded = Math.round(distKm * 10) / 10;
     const deliverable = distKm <= DELIVERY_MAX_KM;
-    return jsonRes(res, 200, {
+    return jsonRes(res, 200, vapiResponse(ctx.toolCallId, {
       ok: true,
       address: address,
       geocoded: geo.displayName,
@@ -1537,21 +1583,23 @@ const server = http.createServer(async (req, res) => {
         ? `Adresse à ${distRounded} km, dans notre zone de livraison.`
         : `Cette adresse est à ${distRounded} km, hors de notre zone de livraison de ${DELIVERY_MAX_KM} km. Je peux vous proposer la commande à emporter.`,
       coords: { lat: geo.lat, lon: geo.lon }
-    });
+    }));
   }
 
   // POST /api/voice/order — crée une commande à valider depuis le bot
   if (req.method === 'POST' && pathname === '/api/voice/order') {
     if (!checkVapiAuth(req, res)) return;
-    if (!voiceBotEnabled) return jsonRes(res, 503, { ok: false, reason: 'Bot désactivé' });
-    let data = {};
-    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let body = {};
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    const ctx = vapiExtract(body);
+    const data = ctx.args;
+    if (!voiceBotEnabled) return jsonRes(res, 503, vapiResponse(ctx.toolCallId, { ok: false, reason: 'Bot désactivé' }));
     const { customer, type, items, total, callDuration, slot, callId, note } = data;
     if (!type || !Array.isArray(items) || items.length === 0) {
-      return jsonRes(res, 400, { ok: false, reason: 'Données invalides : type ou items manquants' });
+      return jsonRes(res, 400, vapiResponse(ctx.toolCallId, { ok: false, reason: 'Données invalides : type ou items manquants' }));
     }
     if (type === 'livraison' && (!customer || !customer.address)) {
-      return jsonRes(res, 400, { ok: false, reason: 'Adresse requise pour livraison' });
+      return jsonRes(res, 400, vapiResponse(ctx.toolCallId, { ok: false, reason: 'Adresse requise pour livraison' }));
     }
     // Crée la commande
     if (!sharedState.orders) sharedState.orders = [];
@@ -1634,19 +1682,21 @@ const server = http.createServer(async (req, res) => {
         }
       });
     } catch (e) {}
-    return jsonRes(res, 200, {
+    return jsonRes(res, 200, vapiResponse(ctx.toolCallId, {
       ok: true,
       orderId: order.id,
       orderNumber: order.number,
       message: `Commande N°${order.number} enregistrée, elle sera confirmée par le restaurant.`
-    });
+    }));
   }
 
   // POST /api/voice/check-stock — vérifie la dispo d'un produit
   if (req.method === 'POST' && pathname === '/api/voice/check-stock') {
     if (!checkVapiAuth(req, res)) return;
-    let data = {};
-    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let body = {};
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    const ctx = vapiExtract(body);
+    const data = ctx.args;
     const { productId, productName } = data;
     const menu = (sharedState && sharedState.menu) || [];
     let product = null;
@@ -1656,25 +1706,28 @@ const server = http.createServer(async (req, res) => {
       product = menu.find(p => (p.name || '').toLowerCase() === q)
              || menu.find(p => (p.name || '').toLowerCase().includes(q));
     }
-    if (!product) return jsonRes(res, 200, { ok: false, available: false, reason: 'Je ne trouve pas ce produit dans notre menu.' });
+    if (!product) return jsonRes(res, 200, vapiResponse(ctx.toolCallId, { ok: false, available: false, reason: 'Je ne trouve pas ce produit dans notre menu.' }));
     const available = !product.outOfStock && product.visible !== false;
-    return jsonRes(res, 200, {
+    return jsonRes(res, 200, vapiResponse(ctx.toolCallId, {
       ok: true,
       productId: product.id,
       productName: product.name,
       price: product.price,
       available: available,
       reason: available ? `${product.name} est disponible.` : `Je suis désolée, ${product.name} n'est plus disponible.`
-    });
+    }));
   }
 
   // POST /api/voice/hours — horaires actuels
   if (req.method === 'POST' && pathname === '/api/voice/hours') {
     if (!checkVapiAuth(req, res)) return;
+    let hoursBody = {};
+    try { hoursBody = await readBody(req); } catch (e) {}
+    const hoursCtx = vapiExtract(hoursBody);
     const cfg = (sharedState && sharedState.config) ? sharedState.config : {};
     const now = new Date();
     const dayMap = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-    return jsonRes(res, 200, {
+    return jsonRes(res, 200, vapiResponse(hoursCtx.toolCallId, {
       today: dayMap[now.getDay()],
       currentTime: now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
       midi: { start: cfg.midiStart || '11:30', end: cfg.midiEnd || '14:30' },
@@ -1683,7 +1736,7 @@ const server = http.createServer(async (req, res) => {
       message: cfg.restoOpen
         ? 'Nous sommes actuellement ouverts.'
         : 'Le restaurant est actuellement fermé, mais je peux prendre votre commande pour le prochain service.'
-    });
+    }));
   }
 
   // GET/POST /api/voice/bot-status — toggle ON/OFF
@@ -1700,10 +1753,12 @@ const server = http.createServer(async (req, res) => {
   // POST /api/voice/recognize-customer — reconnaît un client par téléphone
   if (req.method === 'POST' && pathname === '/api/voice/recognize-customer') {
     if (!checkVapiAuth(req, res)) return;
-    let data = {};
-    try { data = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    let body = {};
+    try { body = await readBody(req); } catch (e) { return jsonRes(res, 400, { error: 'invalid body' }); }
+    const ctx = vapiExtract(body);
+    const data = ctx.args;
     const { phone } = data;
-    if (!phone) return jsonRes(res, 200, { ok: false, recognized: false });
+    if (!phone) return jsonRes(res, 200, vapiResponse(ctx.toolCallId, { ok: false, recognized: false }));
     const customers = (sharedState && sharedState.customers) || {};
     const norm = String(phone).replace(/\D/g, '').slice(-10);
     let found = null;
@@ -1711,8 +1766,8 @@ const server = http.createServer(async (req, res) => {
       const cNorm = String(c.phone || '').replace(/\D/g, '').slice(-10);
       if (cNorm === norm) found = c;
     });
-    if (!found) return jsonRes(res, 200, { ok: true, recognized: false });
-    return jsonRes(res, 200, {
+    if (!found) return jsonRes(res, 200, vapiResponse(ctx.toolCallId, { ok: true, recognized: false }));
+    return jsonRes(res, 200, vapiResponse(ctx.toolCallId, {
       ok: true,
       recognized: true,
       firstName: found.firstName || '',
@@ -1720,7 +1775,7 @@ const server = http.createServer(async (req, res) => {
       address: found.address || '',
       loyaltyPoints: found.loyaltyPoints || 0,
       message: `Bonjour ${found.firstName || ''}, content de vous entendre.`
-    });
+    }));
   }
 
   res.writeHead(404, { 'Content-Type': 'text/plain' });
