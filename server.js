@@ -1582,6 +1582,47 @@ const server = http.createServer(async (req, res) => {
       createdAt: Date.now()
     };
     sharedState.orders.unshift(order);
+
+    // ★ Auto-création / mise à jour du client dans la base
+    try {
+      if (customer && customer.phone) {
+        if (!sharedState.customers) sharedState.customers = {};
+        const phoneNorm = String(customer.phone).replace(/\D/g, '').slice(-10);
+        if (phoneNorm) {
+          const existing = sharedState.customers[phoneNorm];
+          if (!existing) {
+            // Nouveau client : on le crée
+            sharedState.customers[phoneNorm] = {
+              phone: customer.phone,
+              phoneNorm: phoneNorm,
+              firstName: customer.firstName || '',
+              lastName: customer.lastName || '',
+              address: customer.address || '',
+              source: 'voice',
+              firstSeenAt: Date.now(),
+              lastSeenAt: Date.now(),
+              orderCount: 1,
+              totalSpent: order.total || 0,
+              loyaltyPoints: 0,
+              tags: [],
+              notes: 'Client créé automatiquement via bot téléphonique'
+            };
+            console.log('✓ Nouveau client créé via bot vocal:', customer.firstName, customer.lastName, '(' + customer.phone + ')');
+          } else {
+            // Client existant : on met à jour les infos
+            existing.lastSeenAt = Date.now();
+            existing.orderCount = (existing.orderCount || 0) + 1;
+            existing.totalSpent = (existing.totalSpent || 0) + (order.total || 0);
+            // Compléter les infos si manquantes
+            if (!existing.firstName && customer.firstName) existing.firstName = customer.firstName;
+            if (!existing.lastName && customer.lastName) existing.lastName = customer.lastName;
+            if (!existing.address && customer.address) existing.address = customer.address;
+            console.log('✓ Client existant mis à jour via bot vocal:', existing.firstName, '(' + customer.phone + ')');
+          }
+        }
+      }
+    } catch (e) { console.error('Erreur auto-création client:', e); }
+
     // Persist state
     try { fs.writeFileSync(STATE_FILE, JSON.stringify(sharedState, null, 2)); } catch (e) {}
     // Broadcast WS : envoyer le nouvel état complet aux caisses
