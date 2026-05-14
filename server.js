@@ -1517,37 +1517,42 @@ const server = http.createServer(async (req, res) => {
   // ★ BOT TÉLÉPHONIQUE VAPI.AI — Endpoints /api/voice/*
   // ═══════════════════════════════════════════════════════════════════
 
-  // POST /api/voice/menu — récupère le menu pour le bot
+  // POST /api/voice/menu — récupère le menu pour le bot (version compacte, optimisée pour Vapi)
   if (req.method === 'POST' && pathname === '/api/voice/menu') {
     if (!checkVapiAuth(req, res)) return;
-    // ★ Parse Vapi format pour récupérer le toolCallId
     let menuBody = {};
     try { menuBody = await readBody(req); } catch (e) {}
     const menuCtx = vapiExtract(menuBody);
-    if (!voiceBotEnabled) return jsonRes(res, 200, vapiResponse(menuCtx.toolCallId, { result: 'Bot désactivé', items: [] }));
+    if (!voiceBotEnabled) return jsonRes(res, 200, vapiResponse(menuCtx.toolCallId, { result: 'Bot désactivé' }));
+
     const menu = (sharedState && sharedState.menu) ? sharedState.menu : [];
-    const items = menu
-      .filter(p => !p.outOfStock && p.visible !== false)
-      .map(p => ({
-        id: p.id,
-        name: p.name,
-        category: p.category || '',
-        price: p.price,
-        description: p.description || '',
-        hasOptions: !!(p.options && Object.keys(p.options).length > 0)
-      }));
-    const grouped = {};
-    items.forEach(p => {
-      const c = p.category || 'Autres';
-      if (!grouped[c]) grouped[c] = [];
-      grouped[c].push({ id: p.id, name: p.name, price: p.price, hasOptions: p.hasOptions });
+
+    // ★ FORMAT COMPACT : juste un texte simple groupé par catégorie
+    // → réduit la taille de 90% par rapport à la version JSON complète
+    // → plus rapide à lire par le LLM, moins de risque de timeout/502
+    const groupedByCat = {};
+    menu.forEach(p => {
+      if (p.outOfStock || p.visible === false) return;
+      const cat = p.category || 'Autres';
+      if (!groupedByCat[cat]) groupedByCat[cat] = [];
+      // Juste le nom et le prix, format court
+      groupedByCat[cat].push(`${p.name} (${(p.price || 0).toFixed(2)}€)`);
     });
+
+    // Construire le texte du menu sous forme de string lisible
+    let menuText = '';
+    Object.keys(groupedByCat).forEach(cat => {
+      menuText += `\n=== ${cat.toUpperCase()} ===\n`;
+      menuText += groupedByCat[cat].join(', ');
+      menuText += '\n';
+    });
+
+    const totalProducts = Object.values(groupedByCat).reduce((s, arr) => s + arr.length, 0);
+
     return jsonRes(res, 200, vapiResponse(menuCtx.toolCallId, {
-      result: 'Menu transmis',
-      categories: Object.keys(grouped),
-      items: items,
-      grouped: grouped,
-      totalProducts: items.length
+      menu: menuText.trim(),
+      totalProducts: totalProducts,
+      categories: Object.keys(groupedByCat)
     }));
   }
 
