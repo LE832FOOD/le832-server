@@ -18141,9 +18141,18 @@ function switchTab(tab) {
   refreshAll();
   // Mettre à jour le bouton flottant panier (visible uniquement sur l'onglet Nouvelle commande)
   if (typeof _refreshCartFab === 'function') _refreshCartFab();
-  // Bug 5 : à l'entrée sur "Nouvelle commande", afficher la landing si rien en cours
-  if (tab === 'nouvelle' && typeof showTypeLanding === 'function') {
-    showTypeLanding();
+  // Bug 5 : à l'entrée sur "Nouvelle commande", afficher la landing UNIQUEMENT si :
+  //  - le type n'a pas encore été choisi pour ce ticket
+  //  - le panier est vide et on n'édite pas une commande existante
+  // Sinon on garde la layout menu visible (l'utilisateur reprend où il en était).
+  if (tab === 'nouvelle') {
+    const noTypeChosenYet = !_orderTypeAskedForCurrentTicket;
+    const isFreshTicket = cart.length === 0 && !currentEditingOrderId;
+    if (noTypeChosenYet && isFreshTicket && typeof showTypeLanding === 'function') {
+      showTypeLanding();
+    } else if (typeof hideTypeLanding === 'function') {
+      hideTypeLanding();
+    }
   }
 }
 
@@ -19133,17 +19142,19 @@ function _resetOrderTypeFlag() {
 
 // === Bug 5 : Landing page "Nouvelle commande" =========================
 // Affiche la page d'accueil avec les 3 cartes de type (cache la layout menu).
-// Conditions d'affichage :
-//   - cart vide ET pas en édition d'une commande existante
-//   - sinon, on garde la layout menu (l'utilisateur est en plein workflow)
+// Conditions pour AFFICHER la landing :
+//   - panier vide ET pas en édition d'une commande existante
+//   - ET le type de service n'a pas déjà été choisi pour ce ticket
+// Sinon, on garde la layout menu (utilisateur en plein workflow ou type déjà fixé).
 function showTypeLanding() {
   const landing = document.getElementById('typeLanding');
   const layout = document.getElementById('nouvelleLayout');
   if (!landing || !layout) return;
-  // Si une commande est en cours d'édition ou panier non vide, on ne revient pas à la landing
   const hasWork = (typeof cart !== 'undefined' && cart.length > 0) ||
                   (typeof currentEditingOrderId !== 'undefined' && currentEditingOrderId);
-  if (hasWork) {
+  const typeAlreadyChosen = (typeof _orderTypeAskedForCurrentTicket !== 'undefined') &&
+                            _orderTypeAskedForCurrentTicket;
+  if (hasWork || typeAlreadyChosen) {
     landing.classList.remove('show');
     layout.style.display = '';
     return;
@@ -20013,6 +20024,7 @@ function clearCart() {
     if (el) el.value = '';
   });
   clearCustomerRecognition();
+  if (typeof _resetOrderTypeFlag === 'function') _resetOrderTypeFlag();
   renderTicket();
 }
 
@@ -20093,8 +20105,11 @@ function renderTicket() {
   const tableNum = (tableNumEl ? tableNumEl.value : '') || '–';
   const itemCount = cart.reduce((s, i) => s + i.qty, 0);
 
-  // Reset du flag "type demandé" quand le panier est vide (nouveau ticket)
-  if (cart.length === 0 && !currentEditingOrderId) _resetOrderTypeFlag();
+  // Note : on NE reset PLUS le flag _orderTypeAskedForCurrentTicket ici, car
+  // renderTicket() est appelé après chaque sélection de type sur la landing
+  // (via updateTicketUI), ce qui re-déclenchait la modale au prochain clic produit.
+  // Le reset est désormais fait explicitement aux moments adéquats : afterPaymentDone,
+  // logout, sendToKitchen, et toute action qui "termine" un ticket.
 
   // Met à jour le bouton flottant panier mobile
   if (typeof _refreshCartFab === 'function') _refreshCartFab();
@@ -20572,6 +20587,7 @@ function sendToKitchen() {
     if (el) el.value = '';
   });
   clearCustomerRecognition();
+  if (typeof _resetOrderTypeFlag === 'function') _resetOrderTypeFlag();
   renderTicket();
   switchTab('encours');
   toast('Commande envoyée en cuisine');
@@ -22749,10 +22765,15 @@ function startNewOrderForTable(t) {
   cart = [];
   currentEditingOrderId = null;
   currentOrderType = 'sur_place';
+  // L'utilisateur a cliqué une table → le type "sur place" est implicite.
+  // On marque le flag pour éviter de redemander, et on cache la landing.
+  _orderTypeAskedForCurrentTicket = true;
   document.querySelectorAll('.order-type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === 'sur_place'));
   const tn = document.getElementById('tableNum');
   if (tn) tn.value = t;
   switchTab('nouvelle');
+  // Important : cacher la landing après switchTab (qui aurait pu la réafficher)
+  if (typeof hideTypeLanding === 'function') hideTypeLanding();
   updateTicketUI();
   toast('Nouvelle commande pour la table ' + t);
 }
