@@ -16815,6 +16815,8 @@ let currentEditingOrderId = null; // si on modifie une commande en cours
 let encoursFilter = 'all';
 let termineesFilter = 'all';
 let comptaPeriod = 'today';
+// Bug fix plateau : conserve l'index de formule choisi pendant un re-render de modal
+let _pendingFormulaIdx = null;
 
 // État de la borne
 let borneOrderType = null;
@@ -16848,6 +16850,19 @@ const RESTAURANT_EXTRAS = [
   { label: 'Bacon', price: 1.50 },
   { label: 'Poulet', price: 1.50 }
 ];
+// Variante pour sandwichs/burgers/paninis avec l'option "Maxi"
+const SANDWICH_EXTRAS = [
+  { label: 'Maxi (portion +)', price: 2.00 },
+  { label: 'Cheddar', price: 1.00 },
+  { label: 'Boursin', price: 1.00 },
+  { label: 'Chèvre', price: 1.00 },
+  { label: 'Mozzarella', price: 1.00 },
+  { label: 'Œuf', price: 1.00 },
+  { label: 'Dinde', price: 1.50 },
+  { label: 'Escalope', price: 1.50 },
+  { label: 'Bacon', price: 1.50 },
+  { label: 'Poulet', price: 1.50 }
+];
 const RESTAURANT_BREADS = [
   { label: 'Classique', price: 0 },
   { label: 'Tortilla', price: 0 },
@@ -16860,7 +16875,7 @@ const TACOS_VIANDES = [
   { label: 'Steak', price: 0 },
   { label: 'Escalope', price: 0 },
   { label: 'Poulet', price: 0 },
-  { label: 'Tenders', price: 0 },
+  { label: 'Tenders', price: 1.00 },
   { label: '1/2 Nuggets', price: 0 },
   { label: 'Cordon bleu', price: 0 }
 ];
@@ -16973,17 +16988,21 @@ const SANDWICH_CONFIG = {
   ],
   bread: RESTAURANT_BREADS,
   sauces: RESTAURANT_SAUCES,
-  extras: RESTAURANT_EXTRAS,
-  removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
+  extras: SANDWICH_EXTRAS,  // ★ inclut "Maxi"
+  removable: ['Salade', 'Tomate', 'Oignons', 'Cornichons', 'Sauce'],
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
 
-// 🥙 PANINIS — Viande / Sauce / Suppléments / Boisson / Note
+// 🥙 PANINIS — Menu / Viande / Sauce / Suppléments / Boisson / Note
 const PANINI_CONFIG = {
+  menu: [
+    { label: 'Sans menu', price: 0 },
+    { label: 'Menu (frites + boisson)', price: 3.00 }
+  ],
   meat: PANINI_VIANDES,
   sauces: RESTAURANT_SAUCES,
-  extras: RESTAURANT_EXTRAS,
+  extras: SANDWICH_EXTRAS,
   drinks: RESTAURANT_DRINKS,
   comment: true
 };
@@ -16997,12 +17016,13 @@ const ZAPWICH_CONFIG = {
   comment: true
 };
 
-// 🍔 BURGERS — Sauce / Suppléments / Sans / Note
-// (les menus burgers ont déjà une boisson, donc pas de champ "drinks")
+// 🍔 BURGERS — Sauce / Suppléments / Sans / Boisson / Note
+// Les menus burgers ont déjà une boisson incluse — on demande quelle boisson.
 const BURGER_CONFIG = {
   sauces: RESTAURANT_SAUCES,
-  extras: RESTAURANT_EXTRAS,
-  removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
+  extras: SANDWICH_EXTRAS,  // ★ inclut "Maxi"
+  removable: ['Salade', 'Tomate', 'Oignons', 'Cornichons', 'Sauce'],
+  drinks: RESTAURANT_DRINKS,
   comment: true
 };
 
@@ -17060,7 +17080,7 @@ const GRATIN_CONFIG = {
   comment: true
 };
 
-// 👦 MENU ENFANT — Choix du plat (Cheeseburger / Nuggets / Panini) → si Panini, choix viande / Sauce / Sans / Note
+// 👦 MENU ENFANT — Choix du plat (Cheeseburger / Nuggets / Panini) → si Panini, choix viande / Sauce / Note
 const MENU_ENFANT_CONFIG = {
   kidsMenu: [
     { label: 'Cheeseburger', price: 0 },
@@ -17070,7 +17090,7 @@ const MENU_ENFANT_CONFIG = {
   // Si "Panini" sélectionné, ce champ devient pertinent
   meatIfPanini: PANINI_VIANDES,
   sauces: RESTAURANT_SAUCES,
-  removable: ['Oignons', 'Cornichons', 'Salade', 'Tomate', 'Sauce'],
+  noRemovable: true,  // pas de "À retirer" sur le menu enfant
   comment: true
 };
 
@@ -17102,14 +17122,43 @@ const BROCHETTE_CONFIG = {
   // petitAccompCount / grandAccompCount sera défini par produit
   extras: [{ label: 'Pain Naan', price: 1.00 }],
   drinks: RESTAURANT_DRINKS,
+  noRemovable: true,  // pas de "À retirer" pour les brochettes
   comment: true
 };
 
-// === Poulet Braisé : choix d'accompagnements (selon produit) + boisson ===
+// === Poulet Braisé : marinade + accompagnements + boisson ===
 const POULET_CONFIG = {
+  bread: [
+    { label: 'BBQ sucrée', price: 0 },
+    { label: 'Citron et herbes douces', price: 0 },
+    { label: 'Medium hot', price: 0 },
+    { label: 'Extra hot explosif', price: 0 }
+  ],
   accompagnements: ACCOMPAGNEMENTS,
   // petitAccompCount / grandAccompCount sera défini par produit
   drinks: RESTAURANT_DRINKS,
+  noRemovable: true,  // pas de section "À retirer" pour les poulets/plateaux
+  comment: true
+};
+
+// 🍗 BOX / FINGERS — 1 sauce obligatoire (radio) + commentaire
+// On utilise le champ "bread" comme sélecteur radio. breadKind:'sauce' force
+// l'affichage "Sauce" plutôt que "Choix du pain" ou "Choix de la marinade".
+const BOX_SAUCES = [
+  { label: 'Mayonnaise', price: 0 },
+  { label: 'Ketchup', price: 0 },
+  { label: 'Barbecue', price: 0 },
+  { label: 'Algérienne', price: 0 },
+  { label: 'Harissa', price: 0 },
+  { label: 'Samouraï', price: 0 },
+  { label: 'Andalouse', price: 0 },
+  { label: 'Cheddar', price: 0 },
+  { label: 'Basilic', price: 0 }
+];
+const BOX_CONFIG = {
+  bread: BOX_SAUCES,            // radio "Sauce" (1 choix obligatoire)
+  breadKind: 'sauce',           // override : affiche "Sauce" au lieu de "Pain"/"Taille"/"Marinade"
+  noRemovable: true,            // pas de "À retirer"
   comment: true
 };
 
@@ -17176,34 +17225,55 @@ function _extractRemovableIngredients(desc) {
   return unique;
 }
 
-// Retourne une COPIE de la config avec `removable` extrait de la description du produit.
-// Si la description ne contient aucun ingrédient utile, on garde le `removable` d'origine.
-function _resolveRemovableFromDesc(cfg, desc) {
-  if (!cfg || !desc) return cfg;
+// Retourne une COPIE de la config avec `removable` enrichie depuis la description.
+// IMPORTANT : on MERGE avec le `removable` d'origine (au lieu de le remplacer) pour
+// conserver les "à retirer" génériques (Salade, Tomate, Oignons, etc.) même quand
+// la description évoque d'autres ingrédients.
+// Si `noRemovable: true` sur la config OU `noCustomization: true` sur le produit,
+// on ne touche pas (la section "À retirer" ne sera pas affichée).
+function _resolveRemovableFromDesc(cfg, desc, product) {
+  if (!cfg) return cfg;
+  // Respect des flags d'opt-out
+  if (cfg.noRemovable) return cfg;
+  if (product && product.noCustomization) return cfg;
+  if (product && product.noRemovable) return cfg;
+  if (!desc) return cfg;
   const extracted = _extractRemovableIngredients(desc);
   if (extracted.length === 0) return cfg;
-  // Cloner la config pour ne pas modifier l'original
-  return Object.assign({}, cfg, { removable: extracted });
+  // Fusion : on garde l'ordre — original d'abord, puis extraits non doublonnés
+  const original = Array.isArray(cfg.removable) ? cfg.removable.slice() : [];
+  const seen = new Set(original.map(x => String(x).toLowerCase()));
+  const merged = original.slice();
+  extracted.forEach(it => {
+    const key = String(it).toLowerCase();
+    if (!seen.has(key)) { seen.add(key); merged.push(it); }
+  });
+  return Object.assign({}, cfg, { removable: merged });
 }
 
 const RESTAURANT_MENU = {
   // Une seule catégorie Pizzas : la taille est choisie via le formulaire de personnalisation
   // Prix de base = Junior (29cm). Le supplément taille s'ajoute au moment de la commande.
-  'Pizzas': PIZZAS_BASE.map((p, i) => ({
-    id: 1000 + i,
-    name: p.name,
-    desc: p.desc,
-    price: 11.00,  // Prix Junior par défaut
-    // Chaque pizza a sa propre config avec les ingrédients SPÉCIFIQUES à retirer
-    config: {
-      bread: PIZZA_CONFIG.bread,
-      base: PIZZA_CONFIG.base,
-      extras: PIZZA_CONFIG.extras,
-      removable: _extractRemovableIngredients(p.desc),
-      comment: true
-    }
-  })),
+  // ★ Catégorie fusionnée : Zap'wich en TOUT PREMIER, puis les pizzas
+  'Pizzas': [
+    { id: 1402, name: "Menu Zap'wich", desc: 'Au choix de viande, frites + boisson', price: 8.90, config: ZAPWICH_CONFIG, subCategory: "Zap'wich" },
+    ...PIZZAS_BASE.map((p, i) => ({
+      id: 1000 + i,
+      name: p.name,
+      desc: p.desc,
+      price: 11.00,
+      config: {
+        bread: PIZZA_CONFIG.bread,
+        base: PIZZA_CONFIG.base,
+        extras: PIZZA_CONFIG.extras,
+        removable: _extractRemovableIngredients(p.desc),
+        comment: true
+      },
+      subCategory: 'Pizza'
+    }))
+  ],
 
+  // ★ Catégorie fusionnée : Sandwichs + Burgers + Paninis
   'Sandwichs & Burgers': [
     { id: 1300, name: 'Chicken Curry (menu)', desc: 'Poulet curry, fromage', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
     { id: 1301, name: 'Tandoori (menu)', desc: 'Tandoori, fromage', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
@@ -17213,20 +17283,17 @@ const RESTAURANT_MENU = {
     { id: 1305, name: 'Le Radical (menu)', desc: 'Cordon bleu, 2 steaks 45g, Boursin, cheddar, œuf', price: 9.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
     { id: 1306, name: 'Mix Chicken (menu)', desc: 'Poulet curry, tandoori, cheddar', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
     { id: 1307, name: 'Cordon Bleu (menu)', desc: 'Cordon bleu', price: 8.50, config: SANDWICH_CONFIG, subCategory: 'Sandwich' },
-    { id: 1500, name: 'Doublé 1 (menu)', desc: '1 Burger Potatoes + 1 Cheese + frites + boisson 33cl', price: 12.50, config: BURGER_CONFIG, subCategory: 'Burger' },
-    { id: 1501, name: 'Doublé 2 (menu)', desc: '1 Triple Cheese + 1 Double Cheese + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, subCategory: 'Burger' },
-    { id: 1502, name: 'Doublé 3 (menu)', desc: '1 Cheese + 8 Nuggets + frites + boisson 33cl', price: 9.50, config: BURGER_CONFIG, subCategory: 'Burger' },
-    { id: 1503, name: 'Doublé 4 (menu)', desc: '1 Double Cheese + 8 Nuggets + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, subCategory: 'Burger' }
+    { id: 1500, name: 'Doublé 1 (menu)', desc: '1 Burger Potatoes + 1 Cheese + frites + boisson 33cl', price: 12.50, config: BURGER_CONFIG, drinkCount: 1, subCategory: 'Burger' },
+    { id: 1501, name: 'Doublé 2 (menu)', desc: '1 Triple Cheese + 1 Double Cheese + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, drinkCount: 1, subCategory: 'Burger' },
+    { id: 1502, name: 'Doublé 3 (menu)', desc: '1 Cheese + 8 Nuggets + frites + boisson 33cl', price: 9.50, config: BURGER_CONFIG, drinkCount: 1, subCategory: 'Burger' },
+    { id: 1503, name: 'Doublé 4 (menu)', desc: '1 Double Cheese + 8 Nuggets + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, drinkCount: 1, subCategory: 'Burger' },
+    // Panini (id=1400 conservé) ; le doublon "Panini menu" id=1401 a été supprimé.
+    // La formule est désormais une option dans la fiche produit (PANINI_CONFIG.menu).
+    { id: 1400, name: 'Panini', desc: 'Au choix de viande', price: 5.00, config: PANINI_CONFIG, subCategory: 'Panini' }
   ],
 
-  'Paninis': [
-    { id: 1400, name: 'Panini', desc: 'Au choix de viande', price: 5.00, config: PANINI_CONFIG },
-    { id: 1401, name: 'Panini menu (frites + boisson)', desc: 'Au choix de viande', price: 8.00, config: PANINI_CONFIG }
-  ],
-
-  'Zap\'wichs': [
-    { id: 1402, name: 'Menu Zap\'wichs', desc: 'Au choix de viande, frites + boisson', price: 8.90, config: ZAPWICH_CONFIG }
-  ],
+  // ★ Catégories 'Paninis' et 'Zap'wichs' fusionnées : Panini est dans Sandwichs & Burgers,
+  // Zap'wich est en première position dans Pizzas.
 
   'Tacos & Bowls': [
     { id: 1600, name: 'Tacos 1 viande', desc: 'Choix de la viande, sauce, frites', price: 7.50, config: TACOS_CONFIG_1V, subCategory: 'Tacos' },
@@ -17261,7 +17328,7 @@ const RESTAURANT_MENU = {
       { label: '2 grands accompagnements', grandCount: 2, petitCount: 0, drinkCount: 0 },
       { label: '4 petits accompagnements', grandCount: 0, petitCount: 4, drinkCount: 0 }
     ], subCategory: 'Plateau' },
-    { id: 2201, name: 'Jumbo Plateau (5-7 pers.)', desc: '4 demi-poulets + 5 grands accompagnements + 1 bouteille 1.25L', price: 45.90, config: POULET_CONFIG, grandAccompCount: 5, drinkCount: 1, subCategory: 'Plateau' },
+    { id: 2201, name: 'Jumbo Plateau (5-7 pers.)', desc: '4 demi-poulets + 5 grands accompagnements + 1 bouteille 1.25L offerte', price: 45.90, config: POULET_CONFIG, grandAccompCount: 5, noStandaloneDrink: true, subCategory: 'Plateau' },
     { id: 2202, name: 'Menu Plateau (2-4 pers.)', desc: '2 demi-poulets + 1 grand ou 2 petits accompagnements + 2 boissons', price: 21.90, config: POULET_CONFIG, accompFormulas: [
       { label: '1 grand + 2 boissons', grandCount: 1, petitCount: 0, drinkCount: 2 },
       { label: '2 petits + 2 boissons', grandCount: 0, petitCount: 2, drinkCount: 2 }
@@ -17269,26 +17336,28 @@ const RESTAURANT_MENU = {
   ],
 
   'Box & Fingers': [
-    { id: 2300, name: 'Box Wings', desc: '25 chicken wings + 4 frites + 1 bouteille 1.25L', price: 23.00, noCustomization: true, subCategory: 'Box' },
-    { id: 2301, name: 'Box Tenders', desc: '12 chicken tenders + 4 frites + 1 bouteille 1.25L', price: 20.00, noCustomization: true, subCategory: 'Box' },
-    { id: 2400, name: 'Tenders x5', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2401, name: 'Nuggets x8', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2402, name: 'Bouchées Camembert x8', desc: '', price: 7.00, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2403, name: 'Chicken Wings x8', desc: '', price: 8.00, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2404, name: 'Jalapeños x8', desc: '', price: 6.50, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2405, name: 'Frites', desc: '', price: 2.00, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2406, name: 'Frites cheddar', desc: '', price: 2.50, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2300, name: 'Box Wings', desc: '25 chicken wings + 4 frites + 1 bouteille 1.25L', price: 23.00, config: BOX_CONFIG, subCategory: 'Box' },
+    { id: 2301, name: 'Box Tenders', desc: '12 chicken tenders + 4 frites + 1 bouteille 1.25L', price: 20.00, config: BOX_CONFIG, subCategory: 'Box' },
+    // ★ Nouvelle Box Mixte
+    { id: 2302, name: 'Box Mixte', desc: '12 chicken wings + 6 tenders + 1 bouteille 1.25L', price: 23.00, config: BOX_CONFIG, subCategory: 'Box' },
+    { id: 2400, name: 'Tenders x5', desc: '', price: 7.00, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2401, name: 'Nuggets x8', desc: '', price: 7.00, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2402, name: 'Bouchées Camembert x8', desc: '', price: 7.00, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2403, name: 'Chicken Wings x8', desc: '', price: 8.00, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2404, name: 'Jalapeños x8', desc: '', price: 6.50, config: BOX_CONFIG, subCategory: 'Fingers' },
+    // ★ Frites en 2 tailles
+    { id: 2405, name: 'Frites (Petite)', desc: '', price: 2.50, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2410, name: 'Frites (Grande)', desc: '', price: 3.50, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2406, name: 'Frites cheddar', desc: '', price: 2.50, config: BOX_CONFIG, subCategory: 'Fingers' },
     { id: 2407, name: 'Sauce fromagère', desc: '', price: 2.50, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, noCustomization: true, subCategory: 'Fingers' },
+    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, config: BOX_CONFIG, subCategory: 'Fingers' },
     { id: 2409, name: 'Sauce fromagère bacon', desc: '', price: 3.50, noCustomization: true, subCategory: 'Fingers' }
   ],
 
   'Desserts & Glaces': [
-    { id: 2700, name: 'Tiramisu (fait maison)', desc: '', price: 3.00, noCustomization: true },
-    { id: 2701, name: 'Tarte au choix', desc: '', price: 3.00, noCustomization: true },
-    { id: 2702, name: 'Brownie', desc: '', price: 3.00, noCustomization: true },
-    { id: 2703, name: 'Häagen-Dazs 100ml', desc: '', price: 3.90, noCustomization: true },
-    { id: 2704, name: 'Häagen-Dazs 400ml', desc: '', price: 6.90, noCustomization: true }
+    // ★ Tiramisu maison uniquement, en 2 versions
+    { id: 2700, name: 'Tiramisu caramel spéculos (fait maison)', desc: '', price: 3.00, noCustomization: true },
+    { id: 2705, name: 'Tiramisu nutella spéculos (fait maison)', desc: '', price: 3.00, noCustomization: true }
   ],
 
   'Menu Enfant': [
@@ -17419,17 +17488,35 @@ function _isUsefulCfg(cfg) {
   return false;
 }
 
+// Détecte si la liste "bread" représente des marinades (brochettes, poulet)
+function _breadIsMarinade(breadArr) {
+  if (!Array.isArray(breadArr) || breadArr.length === 0) return false;
+  // Marinades typiques : BBQ, citron, herbes, hot/épicé, harissa, etc.
+  return breadArr.some(b => /\b(bbq|barbecue|citron|herbes|hot\b|harissa|piquant|épic|epic|tikka|tandoor|chimichurr)/i.test(b.label || ''));
+}
 // Détecte si la liste "bread" représente des tailles de pizza (mots-clés cm) plutôt que des pains
 function _breadIsSize(breadArr) {
   if (!Array.isArray(breadArr) || breadArr.length === 0) return false;
+  // Si c'est en fait des marinades, NE PAS considérer comme taille (fix brochettes "Medium hot")
+  if (_breadIsMarinade(breadArr)) return false;
   return breadArr.some(b => /\d+\s*cm|junior|s[ée]nior|m[ée]ga|petit|moyen|grand|small|medium|large/i.test(b.label || ''));
 }
 // Retourne le titre adapté pour la section "bread" selon son contenu
-function _breadSectionTitle(breadArr) {
+// cfg (optionnel) permet d'overrider via cfg.breadKind = 'sauce'|'size'|'marinade'|'bread'
+function _breadSectionTitle(breadArr, cfg) {
+  if (cfg && cfg.breadKind === 'sauce') return 'Sauce';
+  if (cfg && cfg.breadKind === 'size') return 'Choix de la taille';
+  if (cfg && cfg.breadKind === 'marinade') return 'Choix de la marinade';
+  if (cfg && cfg.breadKind === 'bread') return 'Choix du pain';
+  if (_breadIsMarinade(breadArr)) return 'Choix de la marinade';
   return _breadIsSize(breadArr) ? 'Choix de la taille' : 'Choix du pain';
 }
 // Icône de la section "bread" selon son contenu
-function _breadSectionIcon(breadArr) {
+function _breadSectionIcon(breadArr, cfg) {
+  if (cfg && cfg.breadKind === 'sauce') return '🥫';
+  if (cfg && cfg.breadKind === 'marinade') return '🌶️';
+  if (cfg && cfg.breadKind === 'size') return '📏';
+  if (_breadIsMarinade(breadArr)) return '🌶️';
   return _breadIsSize(breadArr) ? '📏' : '🥖';
 }
 
@@ -19165,9 +19252,9 @@ function showCaisseProductDetail(p, mode) {
     cfg = BUILTIN_DEFAULT_PRODUCT_CONFIG;
   }
 
-  // Override : si le produit a une description, extraire les ingrédients SPÉCIFIQUES
-  // pour la liste "À retirer" (au lieu d'une liste générique)
-  cfg = _resolveRemovableFromDesc(cfg, p.desc);
+  // Override : si le produit a une description, on enrichit la liste "À retirer"
+  // (sauf pour les produits noCustomization / noRemovable).
+  cfg = _resolveRemovableFromDesc(cfg, p.desc, p);
 
   // Si aucune personnalisation, ajouter directement
   if (!_isUsefulCfg(cfg)) {
@@ -19194,7 +19281,14 @@ function showCaisseProductDetail(p, mode) {
   };
   if (Array.isArray(cfg.bread) && cfg.bread.length > 0) sel.bread = cfg.bread[0].label;
   // Pré-sélections par défaut sur les nouveaux champs
-  if (Array.isArray(cfg.base) && cfg.base.length > 0) sel.base = cfg.base[0].label;
+  if (Array.isArray(cfg.base) && cfg.base.length > 0) {
+    // Pizza : la base par défaut = celle mentionnée dans la description du produit.
+    // Ex : "Crème fraîche, fromage, ..." → "Crème fraîche" sélectionnée par défaut.
+    //      "Sauce tomate, fromage, ..." → "Sauce tomate" sélectionnée par défaut.
+    const descLower = (p.desc || '').toLowerCase();
+    const matchingBase = cfg.base.find(b => descLower.includes(String(b.label || '').toLowerCase()));
+    sel.base = matchingBase ? matchingBase.label : cfg.base[0].label;
+  }
   if (Array.isArray(cfg.menu) && cfg.menu.length > 0 && !cfg.menu.available) sel.menuChoice = cfg.menu[0].label;
   if (cfg.cheeseSauce === true) sel.cheeseSauce = false; // par défaut "sans"
 
@@ -19442,7 +19536,7 @@ function showCaisseProductDetail(p, mode) {
           ${b.price ? `<span class="pdm-opt-price">+${b.price.toFixed(2).replace('.', ',')} €</span>` : ''}
         </span>
       </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
+    sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread, cfg)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
   }
 
   // ★ ACCOMPAGNEMENTS (Poulet, Brochette, Plateau)
@@ -19455,7 +19549,16 @@ function showCaisseProductDetail(p, mode) {
   let petitAccompCount = 0;
   let drinkCountIncluded = parseInt(p.drinkCount) || 0;
   if (_hasFormulas) {
-    if (sel.accompFormulaIdx == null) sel.accompFormulaIdx = 0;
+    if (sel.accompFormulaIdx == null) {
+      // Restaure la formule choisie avant un re-render (handler accompFormulaIdx)
+      // _pendingFormulaIdx ne survit qu'à un seul appel (consommé ici).
+      if (typeof _pendingFormulaIdx === 'number') {
+        sel.accompFormulaIdx = _pendingFormulaIdx;
+        _pendingFormulaIdx = null;
+      } else {
+        sel.accompFormulaIdx = 0;
+      }
+    }
     const f = p.accompFormulas[sel.accompFormulaIdx] || p.accompFormulas[0];
     grandAccompCount = parseInt(f.grandCount) || 0;
     petitAccompCount = parseInt(f.petitCount) || 0;
@@ -19544,7 +19647,11 @@ function showCaisseProductDetail(p, mode) {
     sections += `<div class="pdm-section" data-kind="removable"><div class="pdm-section-title">À retirer <span class="pdm-section-hint">Facultatif</span></div><div class="pdm-opts">${removeHtml}</div></div>`;
   }
 
-  if (Array.isArray(cfg.drinks) && cfg.drinks.length > 0) {
+  // Bug "boissons non incluses" : on cache la section "Boisson" supplémentaire
+  // quand des boissons sont DÉJÀ incluses dans la formule (drinkCountIncluded > 0).
+  // Sinon on aurait 2 sections "Boisson" et l'utilisateur risque de prendre une boisson en plus payante.
+  const hideStandaloneDrinks = drinkCountIncluded > 0 || p.noStandaloneDrink === true || cfg.noStandaloneDrink === true;
+  if (!hideStandaloneDrinks && Array.isArray(cfg.drinks) && cfg.drinks.length > 0) {
     const drinksHtml = cfg.drinks.map(d =>
       `<button class="pdm-opt" data-section="standaloneDrink" data-val="${d.label.replace(/"/g, '&quot;')}">
         <span class="pdm-opt-text">
@@ -19714,6 +19821,9 @@ function showCaisseProductDetail(p, mode) {
           sel.grandAccomps = [];
           sel.petitAccomps = [];
           sel.includedDrinks = [];
+          // Bug fix : on stash l'index dans une variable globale consommée
+          // au prochain showCaisseProductDetail (et seulement celui-là).
+          _pendingFormulaIdx = parseInt(val);
           // Re-render complet pour mettre à jour les sections
           closeModal();
           setTimeout(() => showCaisseProductDetail(p, mode), 30);
@@ -19792,7 +19902,12 @@ function showCaisseProductDetail(p, mode) {
       if (sel.cheeseSauce === false) labelParts.push('Sans sauce fromagère');
       // Champs existants
       if (sel.bread) {
-        const breadPrefix = _breadIsSize(cfg.bread) ? 'Taille ' : 'Pain ';
+        let breadPrefix;
+        if (cfg.breadKind === 'sauce') breadPrefix = 'Sauce ';
+        else if (cfg.breadKind === 'marinade') breadPrefix = 'Marinade ';
+        else if (_breadIsMarinade(cfg.bread)) breadPrefix = 'Marinade ';
+        else if (_breadIsSize(cfg.bread)) breadPrefix = 'Taille ';
+        else breadPrefix = 'Pain ';
         labelParts.push(breadPrefix + sel.bread);
       }
       if (sel.sauces.length) labelParts.push('Sauce ' + sel.sauces.join(', '));
