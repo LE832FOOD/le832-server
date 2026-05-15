@@ -876,14 +876,162 @@
   }
 
   .order-type-bar {
-    display: flex;
-    gap: 4px;
-    margin-bottom: 18px;
-    background: var(--surface);
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid var(--line-soft);
+    /* Bug 6 : bandeau retiré — sélection désormais sur la page d'accueil "Nouvelle commande" */
+    display: none !important;
   }
+
+  /* ========== Bug 5 : Landing page "Nouvelle commande" ========== */
+  .type-landing {
+    display: none;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: 32px 24px;
+    background: var(--surface-1, transparent);
+  }
+  .type-landing.show { display: flex; align-items: flex-start; justify-content: center; }
+  .type-landing-inner {
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+  .type-landing-head {
+    text-align: center;
+    padding-top: 12px;
+  }
+  .type-landing-title {
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--cream, #fff8e7);
+    margin-bottom: 6px;
+  }
+  .type-landing-sub {
+    font-size: 13px;
+    color: var(--cream-dim, #a39481);
+    letter-spacing: 0.04em;
+  }
+  .type-landing-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .type-landing-card {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 18px 22px;
+    background: var(--surface, #1c1a16);
+    border: 2px solid var(--line-soft, rgba(255,255,255,0.08));
+    border-radius: 16px;
+    cursor: pointer;
+    text-align: left;
+    color: var(--cream, #fff8e7);
+    transition: transform 0.12s ease, border-color 0.15s ease, box-shadow 0.2s ease, background 0.15s ease;
+    font-family: inherit;
+  }
+  .type-landing-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+  }
+  .type-landing-card:active { transform: scale(0.985); }
+  .type-landing-card .tlc-icon {
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.04);
+  }
+  .type-landing-card .tlc-text { flex: 1; min-width: 0; }
+  .type-landing-card .tlc-title {
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 3px;
+  }
+  .type-landing-card .tlc-sub {
+    font-size: 12px;
+    color: var(--cream-dim, #a39481);
+  }
+  .type-landing-card .tlc-arrow {
+    font-size: 24px;
+    font-weight: 300;
+    color: var(--cream-dim, #a39481);
+    flex-shrink: 0;
+    transition: transform 0.15s ease, color 0.15s ease;
+  }
+  .type-landing-card:hover .tlc-arrow { transform: translateX(4px); }
+
+  /* Couleurs par type — cohérent avec les badges .order-type-tag */
+  .type-landing-card--surplace:hover {
+    border-color: rgba(122,154,77,0.55);
+    background: linear-gradient(135deg, rgba(122,154,77,0.10), rgba(122,154,77,0.03));
+  }
+  .type-landing-card--surplace .tlc-icon {
+    background: linear-gradient(135deg, rgba(122,154,77,0.28), rgba(122,154,77,0.10));
+  }
+  .type-landing-card--surplace:hover .tlc-arrow { color: #95b85e; }
+
+  .type-landing-card--emporter:hover {
+    border-color: rgba(212,160,86,0.55);
+    background: linear-gradient(135deg, rgba(212,160,86,0.10), rgba(212,160,86,0.03));
+  }
+  .type-landing-card--emporter .tlc-icon {
+    background: linear-gradient(135deg, rgba(212,160,86,0.28), rgba(212,160,86,0.10));
+  }
+  .type-landing-card--emporter:hover .tlc-arrow { color: #e0a85e; }
+
+  .type-landing-card--livraison:hover {
+    border-color: rgba(184,85,58,0.55);
+    background: linear-gradient(135deg, rgba(184,85,58,0.10), rgba(184,85,58,0.03));
+  }
+  .type-landing-card--livraison .tlc-icon {
+    background: linear-gradient(135deg, rgba(184,85,58,0.28), rgba(184,85,58,0.10));
+  }
+  .type-landing-card--livraison:hover .tlc-arrow { color: #d97757; }
+
+  /* Quand la landing est visible, on cache la layout principale */
+  #tab-nouvelle .type-landing.show ~ .nouvelle-layout { display: none !important; }
+
+  /* Chip de type dans le header du ticket */
+  .type-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 10px 4px 8px;
+    background: var(--surface-2, rgba(255,255,255,0.04));
+    border: 1px solid var(--line-soft, rgba(255,255,255,0.08));
+    border-radius: 999px;
+    color: var(--cream-dim, #a39481);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  }
+  .type-chip:hover {
+    border-color: var(--amber, #d4a056);
+    color: var(--cream, #fff8e7);
+    background: rgba(212,160,86,0.08);
+  }
+  .type-chip .type-chip-icon { font-size: 13px; }
+  .type-chip .type-chip-label {
+    color: var(--cream, #fff8e7);
+    font-weight: 700;
+  }
+  .type-chip .type-chip-edit {
+    color: var(--cream-dim, #a39481);
+    font-size: 10px;
+    margin-left: 2px;
+  }
+  .type-chip:hover .type-chip-edit { color: var(--amber, #d4a056); }
 
   .order-type-btn {
     flex: 1;
@@ -2160,6 +2308,23 @@
     padding: 4px 10px;
     border-radius: 4px;
     border: 1px solid rgba(193, 87, 74, 0.4);
+    z-index: 3;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  /* Bug 4 : badge "Encaissée · en cuisine" pour les commandes payées en attente cuisine */
+  .order-paid-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(122, 154, 77, 0.22);
+    color: #b0d479;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(122, 154, 77, 0.45);
     z-index: 3;
     text-transform: uppercase;
     pointer-events: none;
@@ -14627,7 +14792,43 @@
 
     <!-- TAB: NOUVELLE COMMANDE -->
     <section id="tab-nouvelle" class="tab-content active">
-      <div class="nouvelle-layout">
+      <!-- Bug 5 : page d'accueil "Nouvelle commande" — choix du type avant le menu -->
+      <div class="type-landing" id="typeLanding">
+        <div class="type-landing-inner">
+          <div class="type-landing-head">
+            <div class="type-landing-title">Nouvelle commande</div>
+            <div class="type-landing-sub">Choisissez le type de service</div>
+          </div>
+          <div class="type-landing-cards">
+            <button class="type-landing-card type-landing-card--surplace" type="button" data-type="sur_place">
+              <div class="tlc-icon">🍽️</div>
+              <div class="tlc-text">
+                <div class="tlc-title">Sur place</div>
+                <div class="tlc-sub">Service à table</div>
+              </div>
+              <div class="tlc-arrow">→</div>
+            </button>
+            <button class="type-landing-card type-landing-card--emporter" type="button" data-type="a_emporter">
+              <div class="tlc-icon">🥡</div>
+              <div class="tlc-text">
+                <div class="tlc-title">À emporter</div>
+                <div class="tlc-sub">Le client repart avec sa commande</div>
+              </div>
+              <div class="tlc-arrow">→</div>
+            </button>
+            <button class="type-landing-card type-landing-card--livraison" type="button" data-type="livraison">
+              <div class="tlc-icon">🛵</div>
+              <div class="tlc-text">
+                <div class="tlc-title">Livraison</div>
+                <div class="tlc-sub">Livré à l'adresse du client</div>
+              </div>
+              <div class="tlc-arrow">→</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="nouvelle-layout" id="nouvelleLayout">
         <div class="nouvelle-menu">
           <div class="hh-banner" id="hhBanner">
             <span id="hhBannerText">Happy Hour en cours</span>
@@ -14647,6 +14848,12 @@
               <div style="flex:1;min-width:0">
                 <div class="ticket-title">Commande en cours</div>
                 <div class="ticket-meta" id="ticketMeta">—</div>
+                <!-- Bug 5 : chip cliquable pour revenir à la sélection du type -->
+                <button type="button" class="type-chip" id="typeChip" onclick="onTypeChipClick()" title="Changer le type de commande">
+                  <span class="type-chip-icon" id="typeChipIcon">🍽️</span>
+                  <span class="type-chip-label" id="typeChipLabel">Sur place</span>
+                  <span class="type-chip-edit">✎ Changer</span>
+                </button>
               </div>
               <button class="voice-mic-btn" id="voiceMicBtn" onclick="toggleVoiceOrder()" title="Dictée vocale (Chrome/Edge)" aria-label="Dictée vocale">
                 <span class="voice-mic-icon">🎤</span>
@@ -17229,17 +17436,25 @@ function _breadSectionIcon(breadArr) {
 // ============================================================
 // === PROMOS AUTOMATIQUES PIZZAS (Sénior / Méga) ============
 // ============================================================
-// 2 pizzas Sénior/Méga → 1 bouteille 1.25L AJOUTÉE EN CADEAU (gratuit)
-// 3 pizzas Sénior/Méga → 1 pizza la moins chère DÉDUITE + 1 bouteille AJOUTÉE EN CADEAU
+// Règle (cumul) — basée sur le nombre N de pizzas Sénior/Méga dans le panier :
+//   • freePizzaQty = floor(N / 4)                  → 1 pizza offerte par tranche de 4
+//   • bottleQty    = freePizzaQty > 0
+//                      ? freePizzaQty              → autant de bouteilles que de pizzas offertes
+//                      : (N >= 2 ? 1 : 0)          → palier intermédiaire : 1 bouteille seule
 //
-// IMPORTANT : seules les Sénior/Méga ouvrent le palier (les Junior ne comptent pas
-// pour atteindre les 2 ou 3 pizzas). En revanche, lorsqu'une pizza est offerte
-// (palier 3+), TOUTES les pizzas du panier sont candidates — la moins chère
-// est offerte. Donc si le client a 3 Sénior/Méga + 1 Junior, c'est la Junior
-// qui est offerte.
+// Exemples :
+//   N=2  → 0 pizza offerte, 1 bouteille
+//   N=3  → 0 pizza offerte, 1 bouteille
+//   N=4  → 1 pizza offerte, 1 bouteille (facturer 3 pizzas + 1 bouteille offerte)
+//   N=8  → 2 pizzas offertes, 2 bouteilles (facturer 6 pizzas + 2 bouteilles offertes)
+//   N=12 → 3 pizzas offertes, 3 bouteilles
+//
+// IMPORTANT : seules les Sénior/Méga ouvrent le palier (les Junior ne comptent pas).
+// En revanche, lorsque K pizzas sont offertes (palier 4+), TOUTES les pizzas du
+// panier sont candidates — ce sont les K MOINS CHÈRES qui sont offertes.
 //
 // La bouteille n'est PAS dans le panier client (donc rien à déduire),
-// elle est ajoutée GRATUITEMENT à la commande pour la cuisine/préparation.
+// elle est offerte au comptoir (frigo) — la cuisine ne la voit pas (Bug 1).
 
 // Détecte si un item est une pizza (toutes tailles confondues)
 function _isPizza(item) {
@@ -17282,36 +17497,45 @@ function _allPizzaUnitsSortedByPrice(cartArr) {
 }
 
 // Calcule les promos pizza à appliquer
-// Retourne { freeBottle, freeBottleQty, freePizzaUnitPrice, pizzaCount, message }
+// Retourne { freeBottle, freeBottleQty, freePizzaQty, freePizzaUnitPrice, pizzaCount, message }
+//   - freePizzaUnitPrice = SOMME des prix des K pizzas les moins chères (montant total à déduire)
+//   - freePizzaQty       = K (nombre de pizzas offertes — nouveau)
 function _calculatePizzaPromos(cartArr) {
   // Le PALIER est ouvert par les pizzas Sénior/Méga uniquement
   const seniorMegaCount = _countSeniorMegaPizzas(cartArr);
   // Mais TOUTES les pizzas (Junior incluses) sont candidates pour être offertes
   const allUnits = _allPizzaUnitsSortedByPrice(cartArr);
 
-  const result = {
-    freeBottle: false,
-    freeBottleQty: 0,
-    freePizzaUnitPrice: 0,
-    pizzaCount: seniorMegaCount,  // Compteur visible (pour le banner)
-    message: ''
-  };
-  if (seniorMegaCount >= 3) {
-    // 3+ pizzas Sénior/Méga : la moins chère DE TOUT LE PANIER est déduite
-    // Donc si une Junior est dans le panier, c'est elle (puisque moins chère)
-    result.freeBottle = true;
-    result.freeBottleQty = 1;
-    if (allUnits.length > 0) {
-      result.freePizzaUnitPrice = allUnits[0].unitPrice;
-    }
-    result.message = `Pizza la moins chère offerte + bouteille 1.25L offerte`;
-  } else if (seniorMegaCount >= 2) {
-    // 2 pizzas Sénior/Méga : juste la bouteille en cadeau
-    result.freeBottle = true;
-    result.freeBottleQty = 1;
-    result.message = 'Bouteille 1.25L offerte';
+  // Règle cumulative (Bugs 2 + 3) : 1 tranche = 4 pizzas → 1 pizza offerte + 1 bouteille
+  const freePizzaQty = Math.floor(seniorMegaCount / 4);
+  const bottleQty    = freePizzaQty > 0
+    ? freePizzaQty
+    : (seniorMegaCount >= 2 ? 1 : 0);
+
+  // Somme des prix des K pizzas les moins chères (= montant total déduit)
+  let freePizzaTotal = 0;
+  for (let i = 0; i < freePizzaQty && i < allUnits.length; i++) {
+    freePizzaTotal += allUnits[i].unitPrice;
   }
-  return result;
+
+  // Message d'affichage adapté aux quantités
+  let message = '';
+  if (freePizzaQty > 0 && bottleQty > 0) {
+    const pizzaPart  = freePizzaQty === 1 ? '1 pizza offerte' : `${freePizzaQty} pizzas offertes`;
+    const bottlePart = bottleQty === 1 ? '1 bouteille 1.25L offerte' : `${bottleQty} bouteilles 1.25L offertes`;
+    message = `${pizzaPart} + ${bottlePart}`;
+  } else if (bottleQty > 0) {
+    message = bottleQty === 1 ? 'Bouteille 1.25L offerte' : `${bottleQty} bouteilles 1.25L offertes`;
+  }
+
+  return {
+    freeBottle: bottleQty > 0,
+    freeBottleQty: bottleQty,
+    freePizzaQty: freePizzaQty,            // ← NEW
+    freePizzaUnitPrice: freePizzaTotal,    // gardé : montant total à déduire
+    pizzaCount: seniorMegaCount,
+    message: message
+  };
 }
 
 // SEULE la pizza déduite réduit le total. La bouteille n'est PAS dans le panier
@@ -17321,6 +17545,29 @@ function _pizzaPromoDiscount(cartArr) {
   let discount = 0;
   if (promos.freePizzaUnitPrice > 0) discount += promos.freePizzaUnitPrice;
   return { discount, promos };
+}
+
+// === Workflow encaissé → terminée (Bug 4) =====================
+// Une commande est "terminée" UNIQUEMENT lorsque le paiement est effectif
+// ET que la cuisine a validé la préparation (kdsStatus = 'prete' ou 'servie').
+// Si une seule des 2 conditions est remplie, le ticket reste dans "En cours"
+// avec un badge "💰 Encaissée" si payé.
+//
+// Cas particulier — livraison : la fermeture passe par livMarkDelivered
+// (qui set status='terminee' lui-même). Le helper n'agit pas sur ces commandes.
+function _tryFinalizeOrder(o) {
+  if (!o) return;
+  if (o.cancelled) return;
+  if (o.status === 'terminee') return;       // déjà finalisée
+  if (o.type === 'livraison') return;        // géré par livMarkDelivered
+  const isPaid =
+    (o.payment && (o.payment.paid || o.payment.method === 'compte')) ||
+    o.paidByMonthlyAccount;
+  const isKitchenValidated = o.kdsStatus === 'prete' || o.kdsStatus === 'servie';
+  if (isPaid && isKitchenValidated) {
+    o.status = 'terminee';
+    if (!o.closedAt) o.closedAt = nowMs();
+  }
 }
 
 // === Mapping intelligent emoji ↔ libellé d'option ===
@@ -17807,6 +18054,10 @@ function switchTab(tab) {
   refreshAll();
   // Mettre à jour le bouton flottant panier (visible uniquement sur l'onglet Nouvelle commande)
   if (typeof _refreshCartFab === 'function') _refreshCartFab();
+  // Bug 5 : à l'entrée sur "Nouvelle commande", afficher la landing si rien en cours
+  if (tab === 'nouvelle' && typeof showTypeLanding === 'function') {
+    showTypeLanding();
+  }
 }
 
 // Wrapper utilisé par la bottom-nav et le drawer mobile
@@ -18579,6 +18830,9 @@ function updateTicketUI() {
   // Rafraîchir le résumé du toggle
   refreshCustomerToggleSummary();
 
+  // Bug 5 : mettre à jour le chip de type dans le header du ticket
+  if (typeof updateTypeChip === 'function') updateTypeChip();
+
   renderTicket();
 }
 
@@ -18784,7 +19038,110 @@ function askOrderTypeFirst(onConfirm) {
 // Réinitialise le flag quand un ticket est terminé / vidé
 function _resetOrderTypeFlag() {
   _orderTypeAskedForCurrentTicket = false;
+  // Bug 5 : si on est sur "Nouvelle commande", on revient sur la landing
+  if (typeof currentTab !== 'undefined' && currentTab === 'nouvelle') {
+    showTypeLanding();
+  }
 }
+
+// === Bug 5 : Landing page "Nouvelle commande" =========================
+// Affiche la page d'accueil avec les 3 cartes de type (cache la layout menu).
+// Conditions d'affichage :
+//   - cart vide ET pas en édition d'une commande existante
+//   - sinon, on garde la layout menu (l'utilisateur est en plein workflow)
+function showTypeLanding() {
+  const landing = document.getElementById('typeLanding');
+  const layout = document.getElementById('nouvelleLayout');
+  if (!landing || !layout) return;
+  // Si une commande est en cours d'édition ou panier non vide, on ne revient pas à la landing
+  const hasWork = (typeof cart !== 'undefined' && cart.length > 0) ||
+                  (typeof currentEditingOrderId !== 'undefined' && currentEditingOrderId);
+  if (hasWork) {
+    landing.classList.remove('show');
+    layout.style.display = '';
+    return;
+  }
+  landing.classList.add('show');
+  layout.style.display = 'none';
+}
+
+// Cache la landing et révèle la layout menu (appelé au clic d'une carte de type)
+function hideTypeLanding() {
+  const landing = document.getElementById('typeLanding');
+  const layout = document.getElementById('nouvelleLayout');
+  if (landing) landing.classList.remove('show');
+  if (layout) layout.style.display = '';
+}
+
+// Sélection d'un type depuis la landing → set currentOrderType + affiche le menu
+function selectOrderTypeAndStart(type) {
+  // Synchroniser le bandeau caché (au cas où on l'utilise programmatiquement ailleurs)
+  document.querySelectorAll('.order-type-btn').forEach(b => b.classList.remove('active'));
+  const matchBtn = document.querySelector(`.order-type-btn[data-type="${type}"]`);
+  if (matchBtn) matchBtn.classList.add('active');
+  currentOrderType = type;
+  _orderTypeAskedForCurrentTicket = true;  // évite la modale askOrderTypeFirst au 1er produit
+  if (typeof updateTicketUI === 'function') updateTicketUI();
+  if (typeof updateTypeChip === 'function') updateTypeChip();
+  hideTypeLanding();
+}
+
+// Met à jour le chip "type" dans le header du ticket
+function updateTypeChip() {
+  const icon = document.getElementById('typeChipIcon');
+  const label = document.getElementById('typeChipLabel');
+  if (!icon || !label) return;
+  const map = {
+    sur_place: { icon: '🍽️', label: 'Sur place' },
+    a_emporter: { icon: '🥡', label: 'À emporter' },
+    livraison: { icon: '🛵', label: 'Livraison' }
+  };
+  const cfg = map[currentOrderType] || map.sur_place;
+  icon.textContent = cfg.icon;
+  label.textContent = cfg.label;
+}
+
+// Comportement du chip selon l'état du panier :
+//  - panier vide       → retour à la landing
+//  - panier avec items → modale rapide pour changer le type (préserve le panier)
+function onTypeChipClick() {
+  const hasItems = (typeof cart !== 'undefined' && cart.length > 0) ||
+                   (typeof currentEditingOrderId !== 'undefined' && currentEditingOrderId);
+  if (hasItems) {
+    // Réutilise la modale existante (askOrderTypeFirst) — préserve le panier
+    if (typeof askOrderTypeFirst === 'function') {
+      askOrderTypeFirst(() => { /* rien à faire de plus */ });
+    }
+  } else {
+    showTypeLanding();
+  }
+}
+
+// Listeners sur les 3 cartes de la landing (1 seule fois à l'init)
+(function _initTypeLandingClicks() {
+  function _bindAndShow() {
+    document.querySelectorAll('.type-landing-card').forEach(card => {
+      if (card._typeBound) return;
+      card._typeBound = true;
+      card.addEventListener('click', () => {
+        const type = card.dataset.type;
+        if (type) selectOrderTypeAndStart(type);
+      });
+    });
+    // Au chargement, si on est sur "Nouvelle commande" et le panier est vide, montrer la landing
+    if (typeof currentTab === 'undefined' || currentTab === 'nouvelle' || !currentTab) {
+      // On laisse un petit délai pour que state soit chargé
+      setTimeout(() => {
+        if (typeof showTypeLanding === 'function') showTypeLanding();
+      }, 60);
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _bindAndShow);
+  } else {
+    _bindAndShow();
+  }
+})();
 
 // Affiche le formulaire de personnalisation côté caisse, identique à la borne
 // mode: 'caisse' (par défaut) ou 'borne' — change la classe CSS et la fonction d'ajout au panier
@@ -19650,14 +20007,25 @@ function renderTicket() {
     if (pizzaInfo.pizzaCount >= 1) {
       const banner = document.createElement('div');
       banner.className = 'pizza-promo-banner';
+      const N = pizzaInfo.pizzaCount;
+      const freeQ = pizzaInfo.freePizzaQty || 0;
+      const botQ = pizzaInfo.freeBottleQty || 0;
       let html = '';
-      if (pizzaInfo.pizzaCount === 1) {
+      if (N === 1) {
+        // 1 pizza : 1 de plus → bouteille offerte
         html = `<span class="ppb-icon">🎁</span><span><strong>+1 pizza Sénior/Méga</strong> et une bouteille 1.25L vous est offerte !</span>`;
-      } else if (pizzaInfo.pizzaCount === 2) {
-        html = `<span class="ppb-icon ppb-active">🎁</span><span><strong>Bouteille 1.25L offerte avec votre commande !</strong> Ajoutez 1 pizza pour bénéficier aussi de la 4ème offerte.</span>`;
-      } else {
-        // 3+ pizzas
-        html = `<span class="ppb-icon ppb-active">🎉</span><span><strong>4ème pizza offerte + bouteille 1.25L offerte avec votre commande !</strong></span>`;
+      } else if (freeQ === 0 && botQ > 0) {
+        // 2-3 pizzas : bouteille acquise, motiver pour 4 = pizza offerte
+        const need = 4 - N;
+        html = `<span class="ppb-icon ppb-active">🎁</span><span><strong>Bouteille 1.25L offerte !</strong> Ajoutez ${need} pizza${need > 1 ? 's' : ''} pour avoir aussi la 4ème offerte.</span>`;
+      } else if (freeQ > 0) {
+        // Palier atteint (4+, 8+, 12+...), encourager le palier suivant
+        const nextPalier = (freeQ + 1) * 4;
+        const need = nextPalier - N;
+        const pizzaPart = freeQ === 1 ? '1 pizza offerte' : `${freeQ} pizzas offertes`;
+        const botPart = botQ === 1 ? '1 bouteille 1.25L offerte' : `${botQ} bouteilles 1.25L offertes`;
+        const teaser = need > 0 && need <= 4 ? ` <small style="opacity:0.85;font-weight:500">· +${need} pizza${need > 1 ? 's' : ''} → palier suivant</small>` : '';
+        html = `<span class="ppb-icon ppb-active">🎉</span><span><strong>${pizzaPart} + ${botPart} !</strong>${teaser}</span>`;
       }
       banner.innerHTML = html;
       itemsEl.appendChild(banner);
@@ -20819,15 +21187,18 @@ function completePay(method) {
       order.payment = paymentObj;
       order.paymentMethod = method;
       order.paidByMonthlyAccount = false;
-      order.status = 'terminee';
-      order.closedAt = nowMs();
+      // Bug 4 : le paiement seul ne ferme plus la commande.
+      // La finalisation passe par _tryFinalizeOrder (paiement + validation cuisine).
+      _tryFinalizeOrder(order);
     }
   } else {
     order = {
       id: genId(),
       number: state.counter++,
       type: currentOrderType,
-      status: 'terminee',
+      // Bug 4 : on crée toujours la commande "en cours". Elle passera en "terminée"
+      // uniquement quand le paiement ET la validation cuisine seront tous les 2 OK.
+      status: 'en_cours',
       items: JSON.parse(JSON.stringify(cart)),
       customer: getCurrentCustomer(),
       table: getTableNum(),
@@ -20842,7 +21213,7 @@ function completePay(method) {
       loyaltyAwarded: false,
       total: total,
       createdAt: nowMs(),
-      closedAt: nowMs()
+      closedAt: null
     };
     state.orders.unshift(order);
     decrementStockForOrder(order);
@@ -20905,6 +21276,8 @@ function afterPaymentDone() {
   clearCustomerRecognition();
   renderTicket();
   closeModal();
+  // Bug 5 : revenir à la landing (choix du type) pour la prochaine commande
+  if (typeof _resetOrderTypeFlag === 'function') _resetOrderTypeFlag();
 }
 
 function afterPaymentPrint(orderId) {
@@ -21222,7 +21595,19 @@ function buildOrderCard(o) {
     ? `<button class="order-card-pay-quick" data-order-id="${o.id}" title="Encaisser cette commande">💰 Encaisser</button>`
     : '';
 
+  // ★ Bug 4 : badge "Encaissée" si la commande est payée mais pas encore validée par la cuisine
+  const isPaidWaitingKitchen =
+    o.status === 'en_cours' &&
+    o.payment && o.payment.paid &&
+    !o.cancelled &&
+    o.kdsStatus !== 'prete' && o.kdsStatus !== 'servie' &&
+    o.type !== 'livraison';
+  const paidBadge = isPaidWaitingKitchen
+    ? '<div class="order-paid-badge">💰 Encaissée · en cuisine</div>'
+    : '';
+
   card.innerHTML = `
+    ${paidBadge}
     ${o.cancelled ? '<div class="order-cancelled-badge">⊘ ANNULÉ</div>' : ''}
     <div class="order-card-head">
       <div class="order-num">N°${o.number}</div>
@@ -21986,8 +22371,9 @@ function closeOrderWith(id, method) {
     ? { method: 'mixte', paid: true, parts: mixedPayments }
     : { method: method, paid: true };
   o.paymentMethod = method;
-  o.status = 'terminee';
-  o.closedAt = nowMs();
+  // Bug 4 : le paiement seul ne ferme plus la commande.
+  // _tryFinalizeOrder met status='terminee' uniquement si cuisine déjà validée.
+  _tryFinalizeOrder(o);
   // Attribuer les points fidélité si pas déjà fait et que le client est livraison
   if (o.type === 'livraison' && o.customer && o.customer.phone && !o.loyaltyAwarded) {
     const earned = awardLoyaltyPoints(o.customer.phone, o.total);
@@ -22792,7 +23178,7 @@ function printClient(items, customer, type, table, order) {
     <div class="totals">
       <div><span>Sous-total</span><span>${fmt(subtotal)}</span></div>
       ${promoAmount > 0 ? `<div><span>Promo ${order.promo.code}</span><span>−${fmt(promoAmount)}</span></div>` : ''}
-      ${pizzaPromoAmount > 0 ? `<div><span>★ Pizza offerte</span><span>−${fmt(pizzaPromoAmount)}</span></div>` : ''}
+      ${pizzaPromoAmount > 0 ? `<div><span>★ ${(order.pizzaPromo && order.pizzaPromo.freePizzaQty > 1) ? order.pizzaPromo.freePizzaQty + ' pizzas offertes' : 'Pizza offerte'}</span><span>−${fmt(pizzaPromoAmount)}</span></div>` : ''}
       <div><span>HT</span><span>${fmt(totalHT)}</span></div>
       <div><span>TVA 10 %</span><span>${fmt(tva)}</span></div>
       <div class="grand"><span>TOTAL TTC</span><span>${fmt(totalTTC)}</span></div>
@@ -22861,11 +23247,6 @@ function printKitchen(items, customer, type, table, order) {
           const commentLine = i.comment ? `<div class="item-comment">✏ ${i.comment.toUpperCase()}</div>` : '';
           return `<div class="item"><span class="qty">${i.qty}×</span> ${i.name.toUpperCase()}${customLine}${commentLine}</div>`;
         }).join('')}
-        ${(tk.poste === 'Cuisine' && order && order.pizzaPromo && order.pizzaPromo.freeBottle && order.pizzaPromo.freeBottleQty > 0) ? `
-        <div class="item" style="background:#000;color:#fff;padding:8px;text-align:center">
-          <span class="qty" style="color:#fff">${order.pizzaPromo.freeBottleQty}×</span> 🎁 BOUTEILLE 1.25L
-          <div style="font-size:11px;font-weight:600;margin-top:4px">★ CADEAU PROMO ${order.pizzaPromo.pizzaCount} PIZZAS ★</div>
-        </div>` : ''}
         <div class="footer">— FIN ${tk.poste.toUpperCase()} —</div>
       </div>
     `;
@@ -35203,17 +35584,9 @@ function renderKDS() {
       itemsHtml += '</div>';
     });
 
-    // === Cadeaux automatiques pizza : afficher pour la cuisine ===
+    // === Cadeaux automatiques pizza : NE PAS afficher en cuisine (Bug 1) ===
+    // La promo est uniquement visible côté caisse/client. Cuisine = items normaux uniquement.
     let giftsHtml = '';
-    if (o.pizzaPromo && o.pizzaPromo.freeBottle && o.pizzaPromo.freeBottleQty > 0) {
-      giftsHtml = `
-      <div class="kds-item" style="background:linear-gradient(90deg, rgba(122, 154, 77, 0.18) 0%, rgba(122, 154, 77, 0.08) 100%);border-left:4px solid var(--green);padding-left:12px;margin:6px -16px 0 -16px;padding-right:14px">
-        <div class="kds-qty" style="color:var(--green);background:rgba(122, 154, 77, 0.2)">${o.pizzaPromo.freeBottleQty}×</div>
-        <div class="kds-name" style="color:var(--green)">🎁 Bouteille 1.25L
-          <div style="font-size:11px;font-style:italic;margin-top:3px;color:var(--cream-dim);font-weight:500">CADEAU — Offre ${o.pizzaPromo.pizzaCount} pizzas</div>
-        </div>
-      </div>`;
-    }
 
     let footHtml;
     if (o.kdsStatus === 'prete') {
@@ -35246,8 +35619,12 @@ function kdsReady(orderId) {
   if (!o) return;
   o.kdsStatus = 'prete';
   o.kdsReadyAt = nowMs();
+  // Bug 4 : si la commande est déjà encaissée, la finaliser
+  _tryFinalizeOrder(o);
   saveState();
   renderKDS();
+  // Si on l'a finalisée, rafraîchir les autres onglets (en cours / terminées)
+  if (o.status === 'terminee' && typeof refreshAll === 'function') refreshAll();
 }
 
 function kdsUnready(orderId) {
@@ -35264,8 +35641,11 @@ function kdsServe(orderId) {
   if (!o) return;
   o.kdsStatus = 'servie';
   o.kdsServedAt = nowMs();
+  // Bug 4 : finaliser si déjà encaissée
+  _tryFinalizeOrder(o);
   saveState();
   renderKDS();
+  if (o.status === 'terminee' && typeof refreshAll === 'function') refreshAll();
 }
 
 //
