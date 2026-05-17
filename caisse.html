@@ -16817,6 +16817,8 @@ let termineesFilter = 'all';
 let comptaPeriod = 'today';
 // Bug fix plateau : conserve l'index de formule choisi pendant un re-render de modal
 let _pendingFormulaIdx = null;
+// Bug fix menu : conserve le menuChoice à travers le re-render quand on bascule menu/sans-menu
+let _pendingMenuChoice = null;
 
 // État de la borne
 let borneOrderType = null;
@@ -16963,8 +16965,12 @@ const PIZZA_EXTRAS = [
 // CONFIGURATIONS PAR CATÉGORIE (selon spécifications LE 832 FOOD)
 // ──────────────────────────────────────────────────────────────────
 
-// 🍕 PIZZAS — Taille / Base / Suppléments / Sans / Note
+// 🍕 PIZZAS — Menu (option) / Taille / Base / Suppléments / Sans / Note
 const PIZZA_CONFIG = {
+  menu: [
+    { label: 'Sans menu', price: 0 },
+    { label: 'Menu (frites + boisson)', price: 2.00 }
+  ],
   bread: [
     { label: 'Junior 29cm', price: 0 },
     { label: 'Sénior 33cm', price: 2.00 },
@@ -16976,6 +16982,7 @@ const PIZZA_CONFIG = {
   ],
   extras: PIZZA_EXTRAS,
   removable: PIZZA_INGREDIENTS_REMOVABLE_DEFAULT,
+  noStandaloneDrink: true,  // ★ Jamais de section "Boisson +€". La boisson n'apparaît que si "Menu" coché (via drinkCountIncluded).
   comment: true
 };
 
@@ -17007,7 +17014,8 @@ const PANINI_CONFIG = {
   comment: true
 };
 
-// 🌯 ZAP'WICHS — Viande / Sauce / Suppléments / Boisson / Note
+// 🌯 ZAP'WICHS — Menu (option) / Viande / Sauce / Suppléments / Boisson / Note
+// Note: le produit "Menu Zap'wich" est déjà un menu (frites + boisson inclus dans le prix).
 const ZAPWICH_CONFIG = {
   meat: PANINI_VIANDES,
   sauces: RESTAURANT_SAUCES,
@@ -17256,17 +17264,20 @@ const RESTAURANT_MENU = {
   // Prix de base = Junior (29cm). Le supplément taille s'ajoute au moment de la commande.
   // ★ Catégorie fusionnée : Zap'wich en TOUT PREMIER, puis les pizzas
   'Pizzas': [
-    { id: 1402, name: "Menu Zap'wich", desc: 'Au choix de viande, frites + boisson', price: 8.90, config: ZAPWICH_CONFIG, subCategory: "Zap'wich" },
+    { id: 1402, name: "Menu Zap'wich", desc: 'Au choix de viande, frites + boisson', price: 8.90, config: ZAPWICH_CONFIG, drinkCount: 1, subCategory: "Zap'wich" },
     ...PIZZAS_BASE.map((p, i) => ({
       id: 1000 + i,
       name: p.name,
       desc: p.desc,
       price: 11.00,
       config: {
+        menu: PIZZA_CONFIG.menu,          // ★ Option "Sans menu" / "Menu (frites + boisson) +2€"
         bread: PIZZA_CONFIG.bread,
         base: PIZZA_CONFIG.base,
         extras: PIZZA_CONFIG.extras,
         removable: _extractRemovableIngredients(p.desc),
+        drinks: RESTAURANT_DRINKS,        // ★ Boisson incluse quand "Menu" sélectionné
+        noStandaloneDrink: true,          // ★ Jamais de section "Boisson +€" (la boisson n'est dispo qu'en menu)
         comment: true
       },
       subCategory: 'Pizza'
@@ -17324,12 +17335,12 @@ const RESTAURANT_MENU = {
     { id: 2020, name: 'Poulet entier', desc: '', price: 12.50, config: POULET_CONFIG, subCategory: 'Poulet' },
     { id: 2100, name: 'Brochette + 2 accompagnements', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG, grandAccompCount: 2, subCategory: 'Brochette' },
     { id: 2101, name: 'Brochette + 1 accompagnement + 1 boisson', desc: 'Marinade au choix', price: 14.00, config: BROCHETTE_CONFIG, petitAccompCount: 1, drinkCount: 1, subCategory: 'Brochette' },
-    { id: 2200, name: 'Full Plateau (2-4 pers.)', desc: '2 demi-poulets + 2 grands ou 4 petits accompagnements', price: 21.90, config: POULET_CONFIG, accompFormulas: [
+    { id: 2200, name: 'Full Plateau (2-4 pers.)', desc: '2 demi-poulets + 2 grands ou 4 petits accompagnements', price: 21.90, config: POULET_CONFIG, marinadeCount: 2, accompFormulas: [
       { label: '2 grands accompagnements', grandCount: 2, petitCount: 0, drinkCount: 0 },
       { label: '4 petits accompagnements', grandCount: 0, petitCount: 4, drinkCount: 0 }
     ], subCategory: 'Plateau' },
-    { id: 2201, name: 'Jumbo Plateau (5-7 pers.)', desc: '4 demi-poulets + 5 grands accompagnements + 1 bouteille 1.25L offerte', price: 45.90, config: POULET_CONFIG, grandAccompCount: 5, noStandaloneDrink: true, subCategory: 'Plateau' },
-    { id: 2202, name: 'Menu Plateau (2-4 pers.)', desc: '2 demi-poulets + 1 grand ou 2 petits accompagnements + 2 boissons', price: 21.90, config: POULET_CONFIG, accompFormulas: [
+    { id: 2201, name: 'Jumbo Plateau (5-7 pers.)', desc: '4 demi-poulets + 5 grands accompagnements + 1 bouteille 1.25L incluse', price: 45.90, config: POULET_CONFIG, marinadeCount: 4, grandAccompCount: 5, jumboBottleIncluded: true, noStandaloneDrink: true, subCategory: 'Plateau' },
+    { id: 2202, name: 'Menu Plateau (2-4 pers.)', desc: '2 demi-poulets + 1 grand ou 2 petits accompagnements + 2 boissons', price: 21.90, config: POULET_CONFIG, marinadeCount: 2, accompFormulas: [
       { label: '1 grand + 2 boissons', grandCount: 1, petitCount: 0, drinkCount: 2 },
       { label: '2 petits + 2 boissons', grandCount: 0, petitCount: 2, drinkCount: 2 }
     ], subCategory: 'Plateau' }
@@ -17350,7 +17361,7 @@ const RESTAURANT_MENU = {
     { id: 2410, name: 'Frites (Grande)', desc: '', price: 3.50, config: BOX_CONFIG, subCategory: 'Fingers' },
     { id: 2406, name: 'Frites cheddar', desc: '', price: 2.50, config: BOX_CONFIG, subCategory: 'Fingers' },
     { id: 2407, name: 'Sauce fromagère', desc: '', price: 2.50, noCustomization: true, subCategory: 'Fingers' },
-    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, config: BOX_CONFIG, subCategory: 'Fingers' },
+    { id: 2408, name: 'Cheddar bacon', desc: '', price: 3.00, noCustomization: true, subCategory: 'Fingers' },
     { id: 2409, name: 'Sauce fromagère bacon', desc: '', price: 3.50, noCustomization: true, subCategory: 'Fingers' }
   ],
 
@@ -19281,6 +19292,7 @@ function showCaisseProductDetail(p, mode) {
     petitAccomps: [], grandAccomps: [],
     accompFormulaIdx: null,  // Index de formule choisie si accompFormulas défini sur le produit
     includedDrinks: [],  // Boissons incluses dans le menu (multi-choix selon drinkCount)
+    marinades: [],       // ★ Plateaux : marinades multiples (selon p.marinadeCount)
     // Nouveaux champs (LE 832 FOOD)
     base: null,         // Pizza : Sauce tomate / Crème fraîche
     menuChoice: null,   // Panini : Sans menu / Menu (frites + boisson)
@@ -19290,7 +19302,15 @@ function showCaisseProductDetail(p, mode) {
     kidsMenu: null,     // Menu Enfant : Cheeseburger / Nuggets / Panini
     meatIfPanini: null  // Menu Enfant : viande si Panini choisi
   };
-  if (Array.isArray(cfg.bread) && cfg.bread.length > 0) sel.bread = cfg.bread[0].label;
+  // Pré-sélection bread : SEULEMENT si choix unique (marinadeCount<=1).
+  // Pour multi-marinades (plateaux), on laisse l'utilisateur choisir.
+  const _marinadeCount = parseInt(p.marinadeCount) || 0;
+  if (Array.isArray(cfg.bread) && cfg.bread.length > 0 && _marinadeCount <= 1) sel.bread = cfg.bread[0].label;
+  // ★ Restaure menuChoice si on revient d'un re-render (consommé une seule fois)
+  if (typeof _pendingMenuChoice === 'string') {
+    sel.menuChoice = _pendingMenuChoice;
+    _pendingMenuChoice = null;
+  }
   // Pré-sélections par défaut sur les nouveaux champs
   if (Array.isArray(cfg.base) && cfg.base.length > 0) {
     // Pizza : la base par défaut = celle mentionnée dans la description du produit.
@@ -19540,14 +19560,27 @@ function showCaisseProductDetail(p, mode) {
 
   if (Array.isArray(cfg.bread) && cfg.bread.length > 0) {
     const isSize = _breadIsSize(cfg.bread);
-    const breadHtml = cfg.bread.map(b =>
-      `<button class="pdm-opt ${sel.bread === b.label ? 'selected' : ''}" data-section="bread" data-val="${b.label.replace(/"/g, '&quot;')}" data-is-size="${isSize}">
-        <span class="pdm-opt-text">
-          <span class="pdm-opt-name">${b.label}</span>
-          ${b.price ? `<span class="pdm-opt-price">+${b.price.toFixed(2).replace('.', ',')} €</span>` : ''}
-        </span>
-      </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread, cfg)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
+    // ★ Multi-marinades pour les plateaux : si p.marinadeCount > 1, on passe en multi-select
+    if (_marinadeCount > 1) {
+      const marinadeHtml = cfg.bread.map(b =>
+        `<button class="pdm-opt ${sel.marinades.includes(b.label) ? 'selected' : ''}" data-section="marinades" data-val="${b.label.replace(/"/g, '&quot;')}" data-maxcount="${_marinadeCount}">
+          <span class="pdm-opt-text">
+            <span class="pdm-opt-name">${b.label}</span>
+          </span>
+        </button>`).join('');
+      const hint = `<span class="pdm-section-hint">Choisir ${_marinadeCount}</span>`;
+      sections += `<div class="pdm-section" data-kind="marinades" data-required="true" data-sel-key="marinades" data-required-count="${_marinadeCount}"><div class="pdm-section-title">Choix de la marinade <span class="pdm-required-badge">Requis</span> ${hint}</div><div class="pdm-opts">${marinadeHtml}</div></div>`;
+    } else {
+      // Cas standard (radio - 1 choix)
+      const breadHtml = cfg.bread.map(b =>
+        `<button class="pdm-opt ${sel.bread === b.label ? 'selected' : ''}" data-section="bread" data-val="${b.label.replace(/"/g, '&quot;')}" data-is-size="${isSize}">
+          <span class="pdm-opt-text">
+            <span class="pdm-opt-name">${b.label}</span>
+            ${b.price ? `<span class="pdm-opt-price">+${b.price.toFixed(2).replace('.', ',')} €</span>` : ''}
+          </span>
+        </button>`).join('');
+      sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread, cfg)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
+    }
   }
 
   // ★ ACCOMPAGNEMENTS (Poulet, Brochette, Plateau)
@@ -19559,6 +19592,9 @@ function showCaisseProductDetail(p, mode) {
   let grandAccompCount = 0;
   let petitAccompCount = 0;
   let drinkCountIncluded = parseInt(p.drinkCount) || 0;
+  // ★ Si le client sélectionne "Menu (frites + boisson)" via menuChoice, on active la boisson incluse
+  const _menuChoiceIsMenu = sel.menuChoice && /menu/i.test(sel.menuChoice) && !/sans menu/i.test(sel.menuChoice);
+  if (_menuChoiceIsMenu && drinkCountIncluded === 0) drinkCountIncluded = 1;
   if (_hasFormulas) {
     if (sel.accompFormulaIdx == null) {
       // Restaure la formule choisie avant un re-render (handler accompFormulaIdx)
@@ -19624,6 +19660,17 @@ function showCaisseProductDetail(p, mode) {
       </button>`).join('');
     const hint = drinkCountIncluded === 1 ? '1 boisson incluse' : `${drinkCountIncluded} boissons incluses`;
     sections += `<div class="pdm-section" data-kind="includedDrinks"><div class="pdm-section-title">Boissons incluses <span class="pdm-section-hint">${hint}</span></div><div class="pdm-opts">${includedDrinksHtml}</div></div>`;
+  }
+
+  // ★ Jumbo Plateau : afficher la bouteille 1.25L incluse en lecture seule (info)
+  if (p.jumboBottleIncluded) {
+    sections += `<div class="pdm-section" data-kind="bottleIncluded"><div class="pdm-section-title">Boisson incluse</div><div class="pdm-opts">
+      <button type="button" class="pdm-opt selected" disabled style="cursor:default;opacity:0.95">
+        <span class="pdm-opt-text">
+          <span class="pdm-opt-name">🥤 Coca-Cola 1.25L</span>
+        </span>
+      </button>
+    </div></div>`;
   }
 
   if (Array.isArray(cfg.sauces) && cfg.sauces.length > 0) {
@@ -19748,9 +19795,28 @@ function showCaisseProductDetail(p, mode) {
       btn.onclick = () => {
         const section = btn.dataset.section;
         const val = btn.dataset.val;
+        // ★ menuChoice : géré séparément car il faut re-render pour afficher/cacher la boisson incluse
+        if (section === 'menuChoice') {
+          const previousVal = sel.menuChoice;
+          sel.menuChoice = val;
+          // Si on change entre "Menu" et "Sans menu", il faut re-render
+          const wasMenu = previousVal && /menu/i.test(previousVal) && !/sans menu/i.test(previousVal);
+          const isMenu = val && /menu/i.test(val) && !/sans menu/i.test(val);
+          if (wasMenu !== isMenu) {
+            // Reset les boissons incluses si on quitte le menu
+            if (!isMenu) sel.includedDrinks = [];
+            _pendingMenuChoice = val;
+            closeModal();
+            setTimeout(() => showCaisseProductDetail(p, mode), 30);
+            return;
+          }
+          document.querySelectorAll('[data-section="menuChoice"]').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          return;
+        }
         // Choix unique parmi les types simples
         if (section === 'side' || section === 'drink' || section === 'bread' || section === 'standaloneDrink' ||
-            section === 'menuChoice' || section === 'base' || section === 'meat' || section === 'meatIfPanini') {
+            section === 'base' || section === 'meat' || section === 'meatIfPanini') {
           // Sélection unique : permet aussi de désélectionner en re-cliquant sur l'élément déjà actif
           if (section === 'standaloneDrink' && sel[section] === val) {
             sel[section] = null;
@@ -19807,6 +19873,22 @@ function showCaisseProductDetail(p, mode) {
               return;
             }
             sel[section].push(val);
+            btn.classList.add('selected');
+          }
+        }
+        // ★ Marinades multiples (Plateaux) : toggle avec limite
+        else if (section === 'marinades') {
+          const maxCount = parseInt(btn.dataset.maxcount) || 1;
+          const idx = sel.marinades.indexOf(val);
+          if (idx >= 0) {
+            sel.marinades.splice(idx, 1);
+            btn.classList.remove('selected');
+          } else {
+            if (sel.marinades.length >= maxCount) {
+              toast(`Max ${maxCount} marinade${maxCount > 1 ? 's' : ''}`, true);
+              return;
+            }
+            sel.marinades.push(val);
             btn.classList.add('selected');
           }
         }
@@ -19920,6 +20002,10 @@ function showCaisseProductDetail(p, mode) {
         else if (_breadIsSize(cfg.bread)) breadPrefix = 'Taille ';
         else breadPrefix = 'Pain ';
         labelParts.push(breadPrefix + sel.bread);
+      }
+      // ★ Marinades multiples (plateaux)
+      if (Array.isArray(sel.marinades) && sel.marinades.length) {
+        labelParts.push('Marinades : ' + sel.marinades.join(', '));
       }
       if (sel.sauces.length) labelParts.push('Sauce ' + sel.sauces.join(', '));
       if (sel.extras.length) labelParts.push('+' + sel.extras.join(', +'));
