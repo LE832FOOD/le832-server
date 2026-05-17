@@ -4226,6 +4226,174 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 
+  /* ====================================================================
+     FIDÉLITÉ & PROMOS — Refonte design (hero + cartes premium)
+     ==================================================================== */
+  .fidelity-hero {
+    position: relative;
+    background: linear-gradient(135deg, rgba(212,160,86,0.14) 0%, rgba(212,160,86,0.04) 60%, rgba(149,184,94,0.06) 100%);
+    border: 1px solid rgba(212,160,86,0.22);
+    border-radius: 16px;
+    padding: 28px 30px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .fidelity-hero::before {
+    content: '';
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,160,86,0.20) 0%, rgba(212,160,86,0) 70%);
+    pointer-events: none;
+  }
+  .fidelity-hero-eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: var(--amber, #d4a056);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .fidelity-hero-title {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--cream, #fff8e7);
+    margin-bottom: 6px;
+    line-height: 1.15;
+  }
+  .fidelity-hero-sub {
+    font-size: 13px;
+    color: var(--cream-dim, #a39481);
+    max-width: 560px;
+    line-height: 1.6;
+  }
+
+  /* Carte Fidélité */
+  .fidelity-card {
+    background: var(--surface, #1c1a16);
+    border: 1px solid var(--line-soft, rgba(255,255,255,0.08));
+    border-radius: 14px;
+    padding: 0;
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.25s;
+  }
+  .fidelity-card:hover {
+    border-color: var(--line, rgba(255,255,255,0.16));
+    box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+  }
+  .fidelity-card-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 22px 24px 18px;
+    border-bottom: 1px solid var(--line-soft, rgba(255,255,255,0.07));
+    background: linear-gradient(180deg, rgba(255,255,255,0.015) 0%, transparent 100%);
+  }
+  .fidelity-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.03);
+  }
+  .fidelity-card-head-text { flex: 1; min-width: 0; }
+  .fidelity-card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--cream, #fff8e7);
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
+  .fidelity-card-desc {
+    font-size: 12.5px;
+    color: var(--cream-dim, #a39481);
+    line-height: 1.55;
+  }
+  .fidelity-card-desc strong { color: var(--cream, #fff8e7); font-weight: 600; }
+  .fidelity-card-body { padding: 18px 24px 22px; }
+
+  /* Badge état */
+  .fidelity-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    margin-top: 4px;
+    border: 1px solid;
+  }
+  .fidelity-badge--active {
+    color: #b0d479;
+    background: rgba(122,154,77,0.14);
+    border-color: rgba(122,154,77,0.35);
+  }
+  .fidelity-badge--inactive {
+    color: var(--cream-dim, #a39481);
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
+  }
+  .fidelity-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.04);
+  }
+
+  /* Couleurs sémantiques par carte */
+  .fidelity-card--program .fidelity-card-icon {
+    background: linear-gradient(135deg, rgba(122,154,77,0.28), rgba(122,154,77,0.08));
+    color: #b0d479;
+  }
+  .fidelity-card--promo .fidelity-card-icon {
+    background: linear-gradient(135deg, rgba(212,160,86,0.28), rgba(212,160,86,0.08));
+    color: #e0a85e;
+  }
+  .fidelity-card--milestones .fidelity-card-icon {
+    background: linear-gradient(135deg, rgba(184,85,58,0.28), rgba(184,85,58,0.08));
+    color: #d97757;
+  }
+  .fidelity-card--wheel .fidelity-card-icon {
+    background: linear-gradient(135deg, rgba(186,104,200,0.28), rgba(186,104,200,0.08));
+    color: #d196dc;
+  }
+
+  /* Override pour les .settings-row dans une carte fidélité (déjà stylés ailleurs) */
+  .fidelity-card .settings-row {
+    border-color: var(--line-soft, rgba(255,255,255,0.06));
+  }
+  .fidelity-card .settings-section { padding: 0; margin: 0; background: none; border: none; }
+  .fidelity-card .settings-section:hover { box-shadow: none; }
+  /* Les anciens titres/desc sont remplacés par le card-head — on les cache si présents */
+  .fidelity-card .settings-section > .settings-title:first-child,
+  .fidelity-card .settings-section > .settings-desc:nth-child(2) {
+    display: none;
+  }
+
+  @media (max-width: 720px) {
+    .fidelity-hero { padding: 22px 20px; }
+    .fidelity-hero-title { font-size: 22px; }
+    .fidelity-card-head { padding: 18px 18px 16px; gap: 12px; }
+    .fidelity-card-icon { width: 40px; height: 40px; font-size: 20px; border-radius: 10px; }
+    .fidelity-card-title { font-size: 17px; }
+    .fidelity-card-body { padding: 14px 18px 18px; }
+  }
+
   .settings-title {
     font-family: 'Fraunces', serif;
     font-size: 22px;
@@ -15323,6 +15491,52 @@
           </div>
         </div>
 
+        <!-- ═══════════════════════════════════════════════════════════
+             FIDÉLITÉ & PROMOS — Refonte design 2026
+             ═══════════════════════════════════════════════════════════ -->
+        <div class="fidelity-hero" data-cat="fidelite">
+          <div class="fidelity-hero-eyebrow">★ Engagement client</div>
+          <div class="fidelity-hero-title">Fidélité &amp; Promos</div>
+          <div class="fidelity-hero-sub">Construis une relation durable avec tes clients. Programme de points, codes promo manuels, récompenses automatiques aux paliers de commandes, et roue de la chance dans la PWA — tout est ici.</div>
+        </div>
+
+        <!-- ── Carte 1 : Programme de fidélité (déplacé en tête car c'est le réglage principal) ── -->
+        <div class="fidelity-card fidelity-card--program" data-cat="fidelite">
+          <div class="fidelity-card-head">
+            <div class="fidelity-card-icon">🏅</div>
+            <div class="fidelity-card-head-text">
+              <div class="fidelity-card-title">Programme de fidélité</div>
+              <div class="fidelity-card-desc">Les clients livraison cumulent des <strong>points à chaque paiement</strong>. Une fois le seuil atteint, ils peuvent les utiliser comme réduction sur leur prochaine commande.</div>
+              <div class="fidelity-badge fidelity-badge--inactive" id="fidProgramBadge">Inactif</div>
+            </div>
+          </div>
+          <div class="fidelity-card-body" id="fidProgramSlot"><!-- contenu déplacé ici --></div>
+        </div>
+
+        <!-- ── Carte 2 : Codes promo manuels ── -->
+        <div class="fidelity-card fidelity-card--promo" data-cat="fidelite">
+          <div class="fidelity-card-head">
+            <div class="fidelity-card-icon">🎟️</div>
+            <div class="fidelity-card-head-text">
+              <div class="fidelity-card-title">Codes promo manuels</div>
+              <div class="fidelity-card-desc">Réductions ponctuelles applicables manuellement à un ticket. <strong>Différent du Happy Hour</strong> qui s'applique automatiquement.</div>
+            </div>
+          </div>
+          <div class="fidelity-card-body" id="fidPromosSlot"><!-- contenu déplacé ici --></div>
+        </div>
+
+        <!-- ── Carte 3 : Récompenses automatiques aux paliers ── -->
+        <div class="fidelity-card fidelity-card--milestones" data-cat="fidelite">
+          <div class="fidelity-card-head">
+            <div class="fidelity-card-icon">🏆</div>
+            <div class="fidelity-card-head-text">
+              <div class="fidelity-card-title">Récompenses automatiques aux paliers</div>
+              <div class="fidelity-card-desc">Quand un client atteint un palier de commandes, il reçoit automatiquement un message avec un code promo cadeau. <strong style="color:#95b85e">Push gratuit pour les PWA, SMS sinon.</strong></div>
+              <div class="fidelity-badge fidelity-badge--inactive" id="fidMilestonesBadge">Inactif</div>
+            </div>
+          </div>
+          <div class="fidelity-card-body">
+
         <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🏆 Récompenses fidélité automatiques</div>
           <div class="settings-desc">Quand un client atteint un palier de commandes, il reçoit automatiquement un message avec un code promo cadeau. <strong style="color:#95b85e">Push gratuit pour les clients PWA, SMS pour les autres.</strong> Personnalise tes paliers, montants et durées de validité.</div>
@@ -15352,6 +15566,19 @@
             💡 Le client reçoit le message en <strong>temps réel</strong> dès que sa commande atteint un palier. Le code promo est <strong>automatiquement créé</strong> et associé à son numéro (1 seule utilisation, par lui uniquement).
           </div>
         </div>
+        </div></div><!-- /fidelity-card milestones -->
+
+        <!-- ── Carte 4 : Roue de la chance ── -->
+        <div class="fidelity-card fidelity-card--wheel" data-cat="fidelite">
+          <div class="fidelity-card-head">
+            <div class="fidelity-card-icon">🎰</div>
+            <div class="fidelity-card-head-text">
+              <div class="fidelity-card-title">Roue de la chance (PWA)</div>
+              <div class="fidelity-card-desc">Personnalise les lots et chances de gain de la roue affichée dans la PWA. Le client peut tenter sa chance <strong>une fois par X jours</strong>. Quand il gagne, un code promo unique lui est envoyé automatiquement.</div>
+              <div class="fidelity-badge fidelity-badge--inactive" id="fidWheelBadge">Inactif</div>
+            </div>
+          </div>
+          <div class="fidelity-card-body">
 
         <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🎰 Roue de la chance (PWA)</div>
@@ -15393,6 +15620,7 @@
             💡 <strong style="color:var(--amber)">Conseil</strong> : pour une roue motivante, mets <strong>30-40% de chances de gagner</strong> avec une majorité de petits lots (-10%, -5€) et 1-2 gros lots rares (-25%, menu offert) pour créer l'effet "wow". Les "Encore !" font revenir le client la semaine suivante.
           </div>
         </div>
+        </div></div><!-- /fidelity-card wheel -->
 
         <div class="settings-section" data-cat="communication">
           <div class="settings-title">📨 Newsletter mensuelle</div>
@@ -17271,13 +17499,12 @@ const RESTAURANT_MENU = {
       desc: p.desc,
       price: 11.00,
       config: {
-        menu: PIZZA_CONFIG.menu,          // ★ Option "Sans menu" / "Menu (frites + boisson) +2€"
+        // Pas de formule menu pour les pizzas (juste taille/base/extras)
         bread: PIZZA_CONFIG.bread,
         base: PIZZA_CONFIG.base,
         extras: PIZZA_CONFIG.extras,
         removable: _extractRemovableIngredients(p.desc),
-        drinks: RESTAURANT_DRINKS,        // ★ Boisson incluse quand "Menu" sélectionné
-        noStandaloneDrink: true,          // ★ Jamais de section "Boisson +€" (la boisson n'est dispo qu'en menu)
+        noStandaloneDrink: true,          // Pas de section "Boisson +€"
         comment: true
       },
       subCategory: 'Pizza'
@@ -19307,9 +19534,11 @@ function showCaisseProductDetail(p, mode) {
   const _marinadeCount = parseInt(p.marinadeCount) || 0;
   if (Array.isArray(cfg.bread) && cfg.bread.length > 0 && _marinadeCount <= 1) sel.bread = cfg.bread[0].label;
   // ★ Restaure menuChoice si on revient d'un re-render (consommé une seule fois)
+  let _menuChoiceRestored = false;
   if (typeof _pendingMenuChoice === 'string') {
     sel.menuChoice = _pendingMenuChoice;
     _pendingMenuChoice = null;
+    _menuChoiceRestored = true;
   }
   // Pré-sélections par défaut sur les nouveaux champs
   if (Array.isArray(cfg.base) && cfg.base.length > 0) {
@@ -19320,7 +19549,10 @@ function showCaisseProductDetail(p, mode) {
     const matchingBase = cfg.base.find(b => descLower.includes(String(b.label || '').toLowerCase()));
     sel.base = matchingBase ? matchingBase.label : cfg.base[0].label;
   }
-  if (Array.isArray(cfg.menu) && cfg.menu.length > 0 && !cfg.menu.available) sel.menuChoice = cfg.menu[0].label;
+  // Default menuChoice : "Sans menu" UNIQUEMENT si pas déjà restauré par _pendingMenuChoice
+  if (!_menuChoiceRestored && Array.isArray(cfg.menu) && cfg.menu.length > 0 && !cfg.menu.available) {
+    sel.menuChoice = cfg.menu[0].label;
+  }
   if (cfg.cheeseSauce === true) sel.cheeseSauce = false; // par défaut "sans"
 
   function calcDelta() {
@@ -19650,7 +19882,8 @@ function showCaisseProductDetail(p, mode) {
     }
   }
 
-  // ★ BOISSONS INCLUSES (multi-choix selon drinkCount)
+  // ★ BOISSONS INCLUSES (multi-choix selon drinkCount) — généré ici, ajouté EN FIN de modal
+  let includedDrinksSection = '';
   if (drinkCountIncluded > 0 && Array.isArray(cfg.drinks) && cfg.drinks.length > 0) {
     const includedDrinksHtml = cfg.drinks.map(d =>
       `<button class="pdm-opt" data-section="includedDrinks" data-val="${d.label.replace(/"/g, '&quot;')}" data-maxcount="${drinkCountIncluded}">
@@ -19659,12 +19892,13 @@ function showCaisseProductDetail(p, mode) {
         </span>
       </button>`).join('');
     const hint = drinkCountIncluded === 1 ? '1 boisson incluse' : `${drinkCountIncluded} boissons incluses`;
-    sections += `<div class="pdm-section" data-kind="includedDrinks"><div class="pdm-section-title">Boissons incluses <span class="pdm-section-hint">${hint}</span></div><div class="pdm-opts">${includedDrinksHtml}</div></div>`;
+    includedDrinksSection = `<div class="pdm-section" data-kind="includedDrinks" data-required="true" data-sel-key="includedDrinks" data-required-count="${drinkCountIncluded}"><div class="pdm-section-title">Boissons incluses <span class="pdm-required-badge">Requis</span> <span class="pdm-section-hint">${hint}</span></div><div class="pdm-opts">${includedDrinksHtml}</div></div>`;
   }
 
   // ★ Jumbo Plateau : afficher la bouteille 1.25L incluse en lecture seule (info)
+  let jumboBottleSection = '';
   if (p.jumboBottleIncluded) {
-    sections += `<div class="pdm-section" data-kind="bottleIncluded"><div class="pdm-section-title">Boisson incluse</div><div class="pdm-opts">
+    jumboBottleSection = `<div class="pdm-section" data-kind="bottleIncluded"><div class="pdm-section-title">Boisson incluse</div><div class="pdm-opts">
       <button type="button" class="pdm-opt selected" disabled style="cursor:default;opacity:0.95">
         <span class="pdm-opt-text">
           <span class="pdm-opt-name">🥤 Coca-Cola 1.25L</span>
@@ -19719,6 +19953,10 @@ function showCaisseProductDetail(p, mode) {
       </button>`).join('');
     sections += `<div class="pdm-section" data-kind="drinks"><div class="pdm-section-title">Boisson <span class="pdm-section-hint">Un seul choix</span></div><div class="pdm-opts">${drinksHtml}</div></div>`;
   }
+
+  // ★ BOISSONS INCLUSES & BOUTEILLE JUMBO : placées EN BAS, juste avant le commentaire
+  sections += includedDrinksSection;
+  sections += jumboBottleSection;
 
   if (cfg.comment) {
     sections += `<div class="pdm-section" data-kind="comment"><div class="pdm-section-title">Commentaire <span class="pdm-section-hint">Facultatif</span></div><textarea class="pdm-comment" id="${idPrefix}Comment" rows="2" maxlength="200" placeholder="Une demande spéciale ? (cuisson, allergies, livraison…)"></textarea></div>`;
@@ -21750,8 +21988,24 @@ async function fetchAddresses(query, listEl, inputEl) {
 function getEncoursOrders() {
   return state.orders.filter(o => o.status === 'en_cours');
 }
+// === Reset automatique des commandes terminées à 00h00 ============
+// Les commandes restent dans state.orders (utiles pour la comptabilité, l'historique
+// client, la fidélité, etc.) mais ne s'affichent plus dans l'onglet "Terminées"
+// après minuit. Pour les retrouver, utiliser l'onglet "Comptabilité" avec un filtre période.
+function _startOfTodayMs() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
 function getTermineesOrders() {
-  return state.orders.filter(o => o.status === 'terminee');
+  const dayStart = _startOfTodayMs();
+  return state.orders.filter(o => {
+    if (o.status !== 'terminee') return false;
+    // closedAt ou deliveredAt (livraison) sert de référence
+    const closedAt = o.closedAt || o.deliveredAt || o.createdAt;
+    return closedAt >= dayStart;
+  });
 }
 
 function renderEncours() {
@@ -24518,6 +24772,20 @@ function _autoZClosureCheck() {
 setInterval(_autoZClosureCheck, 60000);
 // Au chargement (au cas où on lance la caisse à 00:05 par exemple)
 setTimeout(_autoZClosureCheck, 5000);
+
+// === Reset automatique des "Terminées" à minuit (Bug : commandes terminées re-zéro à 00h00) ====
+// Refresh la liste si on traverse minuit avec l'app ouverte.
+let _lastTermineesDay = (new Date()).getDate();
+setInterval(() => {
+  const today = (new Date()).getDate();
+  if (today !== _lastTermineesDay) {
+    _lastTermineesDay = today;
+    if (currentTab === 'terminees' && typeof renderTerminees === 'function') {
+      renderTerminees();
+    }
+    if (typeof refreshAll === 'function') refreshAll();
+  }
+}, 30000);
 
 // Auto-clôture Z : sauvegarde du toggle
 function saveZAutoSetting() {
@@ -30897,6 +31165,7 @@ function saveMilestonesEnabled() {
   state.config.milestonesEnabled = enabled;
   saveState();
   toast(enabled ? '✓ Récompenses fidélité activées' : '✓ Récompenses fidélité désactivées');
+  if (typeof window._fidelitySyncBadges === 'function') window._fidelitySyncBadges();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -31101,6 +31370,7 @@ function saveWheelConfig() {
   state.config.wheelSectors = JSON.parse(JSON.stringify(_wheelEditSectors));
   saveState();
   toast(enabled ? `✓ Roue enregistrée · ${_wheelEditSectors.length} lots` : '✓ Roue désactivée', false, 4000);
+  if (typeof window._fidelitySyncBadges === 'function') window._fidelitySyncBadges();
 }
 
 function loadGoogleReviewSettings() {
@@ -33472,6 +33742,7 @@ function loyaltyToggleEnabled() {
   state.loyalty.enabled = !state.loyalty.enabled;
   const t = document.getElementById('loyaltyToggle');
   if (t) t.classList.toggle('on', state.loyalty.enabled);
+  if (typeof window._fidelitySyncBadges === 'function') window._fidelitySyncBadges();
 }
 
 function renderLoyaltyForm() {
@@ -33501,6 +33772,7 @@ function saveLoyalty() {
   state.loyalty.rewardValue = rew;
   saveState();
   toast('Fidélité enregistrée');
+  if (typeof window._fidelitySyncBadges === 'function') window._fidelitySyncBadges();
 }
 
 //
@@ -37601,7 +37873,59 @@ setTimeout(() => {
   function init() {
     updateCounts();
     showCat(_currentCat);
+    // Refonte Fidélité & Promos : déplacer les sections natives dans les nouveaux slots
+    _fidelityRelayout();
+    _fidelitySyncBadges();
   }
+
+  // === Refonte Fidélité & Promos : déplacement DOM des sections natives ===
+  function _fidelityRelayout() {
+    try {
+      // Programme de fidélité : trouver la settings-section avec id loyaltyToggle dedans
+      const progSlot = document.getElementById('fidProgramSlot');
+      const loyaltyToggle = document.getElementById('loyaltyToggle');
+      if (progSlot && loyaltyToggle) {
+        const progSection = loyaltyToggle.closest('.settings-section');
+        if (progSection && progSection.parentNode !== progSlot) {
+          progSlot.appendChild(progSection);
+        }
+      }
+      // Codes promo : trouver la settings-section avec id promoCodesList dedans
+      const promosSlot = document.getElementById('fidPromosSlot');
+      const promoList = document.getElementById('promoCodesList');
+      if (promosSlot && promoList) {
+        const promoSection = promoList.closest('.settings-section');
+        if (promoSection && promoSection.parentNode !== promosSlot) {
+          promosSlot.appendChild(promoSection);
+        }
+      }
+    } catch (e) {
+      console.warn('Fidelity relayout error:', e);
+    }
+  }
+
+  // Met à jour les badges Actif/Inactif selon la config
+  function _fidelitySyncBadges() {
+    try {
+      const setBadge = (id, isActive) => {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.classList.toggle('fidelity-badge--active', !!isActive);
+        b.classList.toggle('fidelity-badge--inactive', !isActive);
+        b.textContent = isActive ? 'Actif' : 'Inactif';
+      };
+      const st = (typeof state !== 'undefined') ? state : null;
+      if (!st) return;
+      // Programme fidélité : state.loyalty.enabled
+      setBadge('fidProgramBadge', !!(st.loyalty && st.loyalty.enabled));
+      // Milestones : state.config.milestonesEnabled
+      setBadge('fidMilestonesBadge', !!(st.config && st.config.milestonesEnabled));
+      // Roue : state.config.wheelEnabled
+      setBadge('fidWheelBadge', !!(st.config && st.config.wheelEnabled));
+    } catch (e) { /* silent */ }
+  }
+  // Exposer pour resync depuis les handlers save*
+  window._fidelitySyncBadges = _fidelitySyncBadges;
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
