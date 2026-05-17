@@ -17045,8 +17045,8 @@ let termineesFilter = 'all';
 let comptaPeriod = 'today';
 // Bug fix plateau : conserve l'index de formule choisi pendant un re-render de modal
 let _pendingFormulaIdx = null;
-// Bug fix menu : conserve le menuChoice à travers le re-render quand on bascule menu/sans-menu
-let _pendingMenuChoice = null;
+// (_pendingMenuChoice retiré : on n'utilise plus de re-render pour menuChoice,
+//  la section "Boissons incluses" est togglée dynamiquement par le handler.)
 
 // État de la borne
 let borneOrderType = null;
@@ -19533,13 +19533,6 @@ function showCaisseProductDetail(p, mode) {
   // Pour multi-marinades (plateaux), on laisse l'utilisateur choisir.
   const _marinadeCount = parseInt(p.marinadeCount) || 0;
   if (Array.isArray(cfg.bread) && cfg.bread.length > 0 && _marinadeCount <= 1) sel.bread = cfg.bread[0].label;
-  // ★ Restaure menuChoice si on revient d'un re-render (consommé une seule fois)
-  let _menuChoiceRestored = false;
-  if (typeof _pendingMenuChoice === 'string') {
-    sel.menuChoice = _pendingMenuChoice;
-    _pendingMenuChoice = null;
-    _menuChoiceRestored = true;
-  }
   // Pré-sélections par défaut sur les nouveaux champs
   if (Array.isArray(cfg.base) && cfg.base.length > 0) {
     // Pizza : la base par défaut = celle mentionnée dans la description du produit.
@@ -19549,8 +19542,8 @@ function showCaisseProductDetail(p, mode) {
     const matchingBase = cfg.base.find(b => descLower.includes(String(b.label || '').toLowerCase()));
     sel.base = matchingBase ? matchingBase.label : cfg.base[0].label;
   }
-  // Default menuChoice : "Sans menu" UNIQUEMENT si pas déjà restauré par _pendingMenuChoice
-  if (!_menuChoiceRestored && Array.isArray(cfg.menu) && cfg.menu.length > 0 && !cfg.menu.available) {
+  // Default menuChoice : "Sans menu" par défaut (le client doit explicitement cocher Menu)
+  if (Array.isArray(cfg.menu) && cfg.menu.length > 0 && !cfg.menu.available) {
     sel.menuChoice = cfg.menu[0].label;
   }
   if (cfg.cheeseSauce === true) sel.cheeseSauce = false; // par défaut "sans"
@@ -19824,9 +19817,14 @@ function showCaisseProductDetail(p, mode) {
   let grandAccompCount = 0;
   let petitAccompCount = 0;
   let drinkCountIncluded = parseInt(p.drinkCount) || 0;
-  // ★ Si le client sélectionne "Menu (frites + boisson)" via menuChoice, on active la boisson incluse
+  // ★ Si le produit a une option "Menu (frites + boisson)" + des drinks, on génère
+  //    TOUJOURS la section "Boissons incluses" — visible si menuChoice = Menu, cachée sinon.
+  //    (Évite un re-render quand on bascule menu/sans menu — voir handler menuChoice.)
+  const _hasMenuOption = Array.isArray(cfg.menu) && cfg.menu.some(m => /menu/i.test(m.label) && !/sans menu/i.test(m.label));
+  const _hasDrinks = Array.isArray(cfg.drinks) && cfg.drinks.length > 0;
+  if (_hasMenuOption && _hasDrinks && drinkCountIncluded === 0) drinkCountIncluded = 1;
+  // État initial : visible seulement si menuChoice est un menu réel
   const _menuChoiceIsMenu = sel.menuChoice && /menu/i.test(sel.menuChoice) && !/sans menu/i.test(sel.menuChoice);
-  if (_menuChoiceIsMenu && drinkCountIncluded === 0) drinkCountIncluded = 1;
   if (_hasFormulas) {
     if (sel.accompFormulaIdx == null) {
       // Restaure la formule choisie avant un re-render (handler accompFormulaIdx)
@@ -19892,7 +19890,10 @@ function showCaisseProductDetail(p, mode) {
         </span>
       </button>`).join('');
     const hint = drinkCountIncluded === 1 ? '1 boisson incluse' : `${drinkCountIncluded} boissons incluses`;
-    includedDrinksSection = `<div class="pdm-section" data-kind="includedDrinks" data-required="true" data-sel-key="includedDrinks" data-required-count="${drinkCountIncluded}"><div class="pdm-section-title">Boissons incluses <span class="pdm-required-badge">Requis</span> <span class="pdm-section-hint">${hint}</span></div><div class="pdm-opts">${includedDrinksHtml}</div></div>`;
+    // Cacher au départ si le menu n'est pas actif (toggle dynamique via le handler menuChoice)
+    const initiallyHidden = _hasMenuOption && !_menuChoiceIsMenu;
+    const styleAttr = initiallyHidden ? ' style="display:none"' : '';
+    includedDrinksSection = `<div class="pdm-section" data-kind="includedDrinks" data-required="true" data-sel-key="includedDrinks" data-required-count="${drinkCountIncluded}"${styleAttr}><div class="pdm-section-title">Boissons incluses <span class="pdm-required-badge">Requis</span> <span class="pdm-section-hint">${hint}</span></div><div class="pdm-opts">${includedDrinksHtml}</div></div>`;
   }
 
   // ★ Jumbo Plateau : afficher la bouteille 1.25L incluse en lecture seule (info)
@@ -20033,23 +20034,24 @@ function showCaisseProductDetail(p, mode) {
       btn.onclick = () => {
         const section = btn.dataset.section;
         const val = btn.dataset.val;
-        // ★ menuChoice : géré séparément car il faut re-render pour afficher/cacher la boisson incluse
+        // ★ menuChoice : sélection unique + toggle dynamique de la section "Boissons incluses"
         if (section === 'menuChoice') {
-          const previousVal = sel.menuChoice;
           sel.menuChoice = val;
-          // Si on change entre "Menu" et "Sans menu", il faut re-render
-          const wasMenu = previousVal && /menu/i.test(previousVal) && !/sans menu/i.test(previousVal);
-          const isMenu = val && /menu/i.test(val) && !/sans menu/i.test(val);
-          if (wasMenu !== isMenu) {
-            // Reset les boissons incluses si on quitte le menu
-            if (!isMenu) sel.includedDrinks = [];
-            _pendingMenuChoice = val;
-            closeModal();
-            setTimeout(() => showCaisseProductDetail(p, mode), 30);
-            return;
-          }
           document.querySelectorAll('[data-section="menuChoice"]').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
+          // Si on bascule, afficher ou cacher la section "Boissons incluses" sans re-render
+          const isMenu = val && /menu/i.test(val) && !/sans menu/i.test(val);
+          const drinksSection = document.querySelector('.pdm-section[data-kind="includedDrinks"]');
+          if (drinksSection) {
+            drinksSection.style.display = isMenu ? '' : 'none';
+            // Si on quitte le menu, désélectionner les boissons et retirer la classe selected
+            if (!isMenu) {
+              sel.includedDrinks = [];
+              drinksSection.querySelectorAll('.pdm-opt.selected').forEach(b => b.classList.remove('selected'));
+            }
+          }
+          // Refresh état "filled" des sections required
+          if (typeof _refreshSectionStates === 'function') _refreshSectionStates();
           return;
         }
         // Choix unique parmi les types simples
@@ -20278,8 +20280,10 @@ function showCaisseProductDetail(p, mode) {
         toast(`Choisis ${petitAccompCount} petit${petitAccompCount > 1 ? 's' : ''} accompagnement${petitAccompCount > 1 ? 's' : ''}`, true);
         return;
       }
-      // Validation boissons incluses
-      if (drinkCountIncluded > 0 && sel.includedDrinks.length !== drinkCountIncluded) {
+      // Validation boissons incluses (uniquement si la section est visible : menu activé)
+      const includedDrinksSectionEl = document.querySelector('.pdm-section[data-kind="includedDrinks"]');
+      const includedDrinksVisible = includedDrinksSectionEl && includedDrinksSectionEl.style.display !== 'none';
+      if (drinkCountIncluded > 0 && includedDrinksVisible && sel.includedDrinks.length !== drinkCountIncluded) {
         toast(`Choisis ${drinkCountIncluded} boisson${drinkCountIncluded > 1 ? 's' : ''} incluse${drinkCountIncluded > 1 ? 's' : ''}`, true);
         return;
       }
