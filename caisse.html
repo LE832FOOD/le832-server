@@ -10038,6 +10038,85 @@
     background: #ffffff;
     color: #1a1814;
   }
+
+  /* === Stepper pour viandes/marinades/sauces (duplication possible) === */
+  .pdm-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px 10px 14px;
+    background: #ffffff;
+    border: 2px solid transparent;
+    border-radius: 7px;
+    min-height: 52px;
+    color: #1a1814;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pdm-stepper.has-count {
+    border-color: var(--amber, #d4a056);
+    background: linear-gradient(180deg, #fff8e7, #fff);
+  }
+  .pdm-stepper-name {
+    flex: 1;
+    min-width: 0;
+    font-size: 14.5px;
+    font-weight: 700;
+    text-align: left;
+    color: #1a1814;
+  }
+  .pdm-stepper-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .pdm-stepper-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(0,0,0,0.18);
+    background: #f5f0e6;
+    color: #1a1814;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    user-select: none;
+  }
+  .pdm-stepper-btn:active { transform: scale(0.92); }
+  .pdm-stepper-btn:not(:disabled):hover {
+    background: var(--amber, #d4a056);
+    border-color: var(--amber, #d4a056);
+    color: #fff;
+  }
+  .pdm-stepper-btn:disabled {
+    opacity: 0.32;
+    cursor: not-allowed;
+  }
+  .pdm-stepper-count {
+    min-width: 26px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 800;
+    color: #1a1814;
+  }
+  .pdm-stepper.has-count .pdm-stepper-count { color: var(--amber, #d4a056); }
+  .pdm-stepper-summary {
+    margin-top: 6px;
+    padding: 8px 12px;
+    background: rgba(212,160,86,0.10);
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: var(--cream, #fff8e7);
+    font-weight: 600;
+  }
+  .pdm-stepper-summary.complete { background: rgba(122,154,77,0.18); color: #b0d479; }
+  .pdm-stepper-summary.incomplete { background: rgba(212,160,86,0.18); color: #e0a85e; }
   .pdm-mode-caisse .pdm-opt:hover {
     border-color: var(--amber);
   }
@@ -15491,52 +15570,7 @@
           </div>
         </div>
 
-        <!-- ═══════════════════════════════════════════════════════════
-             FIDÉLITÉ & PROMOS — Refonte design 2026
-             ═══════════════════════════════════════════════════════════ -->
-        <div class="fidelity-hero" data-cat="fidelite">
-          <div class="fidelity-hero-eyebrow">★ Engagement client</div>
-          <div class="fidelity-hero-title">Fidélité &amp; Promos</div>
-          <div class="fidelity-hero-sub">Construis une relation durable avec tes clients. Programme de points, codes promo manuels, récompenses automatiques aux paliers de commandes, et roue de la chance dans la PWA — tout est ici.</div>
-        </div>
-
-        <!-- ── Carte 1 : Programme de fidélité (déplacé en tête car c'est le réglage principal) ── -->
-        <div class="fidelity-card fidelity-card--program" data-cat="fidelite">
-          <div class="fidelity-card-head">
-            <div class="fidelity-card-icon">🏅</div>
-            <div class="fidelity-card-head-text">
-              <div class="fidelity-card-title">Programme de fidélité</div>
-              <div class="fidelity-card-desc">Les clients livraison cumulent des <strong>points à chaque paiement</strong>. Une fois le seuil atteint, ils peuvent les utiliser comme réduction sur leur prochaine commande.</div>
-              <div class="fidelity-badge fidelity-badge--inactive" id="fidProgramBadge">Inactif</div>
-            </div>
-          </div>
-          <div class="fidelity-card-body" id="fidProgramSlot"><!-- contenu déplacé ici --></div>
-        </div>
-
-        <!-- ── Carte 2 : Codes promo manuels ── -->
-        <div class="fidelity-card fidelity-card--promo" data-cat="fidelite">
-          <div class="fidelity-card-head">
-            <div class="fidelity-card-icon">🎟️</div>
-            <div class="fidelity-card-head-text">
-              <div class="fidelity-card-title">Codes promo manuels</div>
-              <div class="fidelity-card-desc">Réductions ponctuelles applicables manuellement à un ticket. <strong>Différent du Happy Hour</strong> qui s'applique automatiquement.</div>
-            </div>
-          </div>
-          <div class="fidelity-card-body" id="fidPromosSlot"><!-- contenu déplacé ici --></div>
-        </div>
-
-        <!-- ── Carte 3 : Récompenses automatiques aux paliers ── -->
-        <div class="fidelity-card fidelity-card--milestones" data-cat="fidelite">
-          <div class="fidelity-card-head">
-            <div class="fidelity-card-icon">🏆</div>
-            <div class="fidelity-card-head-text">
-              <div class="fidelity-card-title">Récompenses automatiques aux paliers</div>
-              <div class="fidelity-card-desc">Quand un client atteint un palier de commandes, il reçoit automatiquement un message avec un code promo cadeau. <strong style="color:#95b85e">Push gratuit pour les PWA, SMS sinon.</strong></div>
-              <div class="fidelity-badge fidelity-badge--inactive" id="fidMilestonesBadge">Inactif</div>
-            </div>
-          </div>
-          <div class="fidelity-card-body">
-
+        <!-- ── Récompenses automatiques aux paliers ── -->
         <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🏆 Récompenses fidélité automatiques</div>
           <div class="settings-desc">Quand un client atteint un palier de commandes, il reçoit automatiquement un message avec un code promo cadeau. <strong style="color:#95b85e">Push gratuit pour les clients PWA, SMS pour les autres.</strong> Personnalise tes paliers, montants et durées de validité.</div>
@@ -15566,19 +15600,6 @@
             💡 Le client reçoit le message en <strong>temps réel</strong> dès que sa commande atteint un palier. Le code promo est <strong>automatiquement créé</strong> et associé à son numéro (1 seule utilisation, par lui uniquement).
           </div>
         </div>
-        </div></div><!-- /fidelity-card milestones -->
-
-        <!-- ── Carte 4 : Roue de la chance ── -->
-        <div class="fidelity-card fidelity-card--wheel" data-cat="fidelite">
-          <div class="fidelity-card-head">
-            <div class="fidelity-card-icon">🎰</div>
-            <div class="fidelity-card-head-text">
-              <div class="fidelity-card-title">Roue de la chance (PWA)</div>
-              <div class="fidelity-card-desc">Personnalise les lots et chances de gain de la roue affichée dans la PWA. Le client peut tenter sa chance <strong>une fois par X jours</strong>. Quand il gagne, un code promo unique lui est envoyé automatiquement.</div>
-              <div class="fidelity-badge fidelity-badge--inactive" id="fidWheelBadge">Inactif</div>
-            </div>
-          </div>
-          <div class="fidelity-card-body">
 
         <div class="settings-section" data-cat="fidelite">
           <div class="settings-title">🎰 Roue de la chance (PWA)</div>
@@ -15620,7 +15641,6 @@
             💡 <strong style="color:var(--amber)">Conseil</strong> : pour une roue motivante, mets <strong>30-40% de chances de gagner</strong> avec une majorité de petits lots (-10%, -5€) et 1-2 gros lots rares (-25%, menu offert) pour créer l'effet "wow". Les "Encore !" font revenir le client la semaine suivante.
           </div>
         </div>
-        </div></div><!-- /fidelity-card wheel -->
 
         <div class="settings-section" data-cat="communication">
           <div class="settings-title">📨 Newsletter mensuelle</div>
@@ -17401,9 +17421,7 @@ const POULET_CONFIG = {
   comment: true
 };
 
-// 🍗 BOX / FINGERS — 1 sauce obligatoire (radio) + commentaire
-// On utilise le champ "bread" comme sélecteur radio. breadKind:'sauce' force
-// l'affichage "Sauce" plutôt que "Choix du pain" ou "Choix de la marinade".
+// 🍗 BOX / FINGERS — Choix de 4 sauces (multi-select avec duplication possible) + commentaire
 const BOX_SAUCES = [
   { label: 'Mayonnaise', price: 0 },
   { label: 'Ketchup', price: 0 },
@@ -17416,8 +17434,9 @@ const BOX_SAUCES = [
   { label: 'Basilic', price: 0 }
 ];
 const BOX_CONFIG = {
-  bread: BOX_SAUCES,            // radio "Sauce" (1 choix obligatoire)
-  breadKind: 'sauce',           // override : affiche "Sauce" au lieu de "Pain"/"Taille"/"Marinade"
+  // Champ "sauceList" + "sauceCount" → stepper multi-select avec duplication
+  sauceList: BOX_SAUCES,
+  sauceCount: 4,                // 4 sauces au choix, peuvent être identiques
   noRemovable: true,            // pas de "À retirer"
   comment: true
 };
@@ -17521,7 +17540,7 @@ function _resolveRemovableFromDesc(cfg, desc, product) {
 //
 // IMPORTANT : à incrémenter à chaque fois qu'on ajoute / modifie / supprime
 // un item dans RESTAURANT_MENU ou une config (PIZZA_CONFIG, BOX_CONFIG, etc.).
-const MENU_VERSION = 5;  // 2026-05-17 : Box mixte, frites 2 tailles, tiramisu, marinades plateaux, formules
+const MENU_VERSION = 6;  // 2026-05-17 : Menu enfant déplacé, sauces box 4 multi-select avec stepper, viandes/marinades en stepper
 
 const RESTAURANT_MENU = {
   // Une seule catégorie Pizzas : la taille est choisie via le formulaire de personnalisation
@@ -17563,7 +17582,9 @@ const RESTAURANT_MENU = {
     { id: 1503, name: 'Doublé 4 (menu)', desc: '1 Double Cheese + 8 Nuggets + frites + boisson 33cl', price: 13.50, config: BURGER_CONFIG, drinkCount: 1, subCategory: 'Burger' },
     // Panini (id=1400 conservé) ; le doublon "Panini menu" id=1401 a été supprimé.
     // La formule est désormais une option dans la fiche produit (PANINI_CONFIG.menu).
-    { id: 1400, name: 'Panini', desc: 'Au choix de viande', price: 5.00, config: PANINI_CONFIG, subCategory: 'Panini' }
+    { id: 1400, name: 'Panini', desc: 'Au choix de viande', price: 5.00, config: PANINI_CONFIG, subCategory: 'Panini' },
+    // ★ Menu Enfant déplacé ici (au lieu d'une catégorie séparée)
+    { id: 2800, name: 'Menu Enfant', desc: 'Cheeseburger ou 5 nuggets ou panini + petites frites + compote + Kinder', price: 7.00, config: MENU_ENFANT_CONFIG, subCategory: 'Menu Enfant' }
   ],
 
   // ★ Catégories 'Paninis' et 'Zap'wichs' fusionnées : Panini est dans Sandwichs & Burgers,
@@ -17634,9 +17655,7 @@ const RESTAURANT_MENU = {
     { id: 2705, name: 'Tiramisu nutella spéculos (fait maison)', desc: '', price: 3.00, noCustomization: true }
   ],
 
-  'Menu Enfant': [
-    { id: 2800, name: 'Menu Enfant', desc: 'Cheeseburger ou 5 nuggets ou panini + petites frites + compote + Kinder', price: 7.00, config: MENU_ENFANT_CONFIG }
-  ],
+  // ★ Catégorie 'Menu Enfant' supprimée : le Menu Enfant est désormais dans 'Sandwichs & Burgers'.
 
   'Boissons Chaudes': [
     { id: 2900, name: 'Thé', desc: '', price: 2.50, noCustomization: true },
@@ -19554,6 +19573,85 @@ function onTypeChipClick() {
   }
 })();
 
+// === Stepper réutilisable (viandes, marinades, sauces box) =====================
+// Formate un tableau de labels (avec doublons possibles) en "2× Kebab, 1× Poulet"
+function _formatTally(arr) {
+  if (!Array.isArray(arr) || arr.length === 0) return '';
+  const tally = {};
+  const order = [];
+  arr.forEach(lbl => {
+    if (tally[lbl] === undefined) order.push(lbl);
+    tally[lbl] = (tally[lbl] || 0) + 1;
+  });
+  return order.map(lbl => `${tally[lbl]}× ${lbl}`).join(', ');
+}
+
+// Re-render in-place d'une section stepper après un +/- click.
+function _refreshStepperSection(section, val, arr, maxTotal, sectionEl) {
+  if (!sectionEl) return;
+  // Compteurs par label
+  const tally = {};
+  arr.forEach(lbl => { tally[lbl] = (tally[lbl] || 0) + 1; });
+  const totalNow = arr.length;
+  const remaining = maxTotal - totalNow;
+  // Mettre à jour chaque ligne
+  sectionEl.querySelectorAll('[data-stepper-row]').forEach(row => {
+    const lbl = row.dataset.stepperRow;
+    const ct = tally[lbl] || 0;
+    const countEl = row.querySelector(`[data-stepper-count="${lbl.replace(/"/g, '&quot;')}"]`);
+    if (countEl) countEl.textContent = ct;
+    row.classList.toggle('has-count', ct > 0);
+    const decBtn = row.querySelector('[data-stepper-action="dec"]');
+    const incBtn = row.querySelector('[data-stepper-action="inc"]');
+    if (decBtn) decBtn.disabled = (ct === 0);
+    if (incBtn) incBtn.disabled = (remaining <= 0);
+  });
+  // Summary
+  const sum = sectionEl.querySelector(`[data-stepper-summary="${section}"]`);
+  if (sum) {
+    sum.classList.toggle('complete', totalNow === maxTotal);
+    sum.classList.toggle('incomplete', totalNow !== maxTotal);
+    sum.textContent = totalNow === maxTotal
+      ? `✓ ${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''}`
+      : `${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''} — encore ${remaining} à choisir`;
+  }
+}
+
+function _renderStepper({ kind, title, hint, required, options, maxTotal, counts }) {
+  const tally = {};  // label → count
+  (counts || []).forEach(lbl => { tally[lbl] = (tally[lbl] || 0) + 1; });
+  const totalNow = Object.values(tally).reduce((a, b) => a + b, 0);
+  const remaining = maxTotal - totalNow;
+  const rowsHtml = options.map(opt => {
+    const lbl = opt.label;
+    const ct = tally[lbl] || 0;
+    const lblSafe = String(lbl).replace(/"/g, '&quot;');
+    const priceHtml = opt.price ? `<span style="color:#7a9a4d;font-weight:600;font-size:12px;margin-left:8px">+${opt.price.toFixed(2).replace('.', ',')} €</span>` : '';
+    const minusDisabled = ct === 0 ? 'disabled' : '';
+    const plusDisabled = (remaining <= 0) ? 'disabled' : '';
+    const hasCount = ct > 0 ? 'has-count' : '';
+    return `
+      <div class="pdm-stepper ${hasCount}" data-stepper-row="${lblSafe}">
+        <div class="pdm-stepper-name">${opt.label}${priceHtml}</div>
+        <div class="pdm-stepper-controls">
+          <button type="button" class="pdm-stepper-btn" data-stepper-section="${kind}" data-stepper-val="${lblSafe}" data-stepper-action="dec" ${minusDisabled} aria-label="Retirer">−</button>
+          <div class="pdm-stepper-count" data-stepper-count="${lblSafe}">${ct}</div>
+          <button type="button" class="pdm-stepper-btn" data-stepper-section="${kind}" data-stepper-val="${lblSafe}" data-stepper-action="inc" ${plusDisabled} aria-label="Ajouter">+</button>
+        </div>
+      </div>`;
+  }).join('');
+  const summaryClass = totalNow === maxTotal ? 'complete' : 'incomplete';
+  const summaryText = totalNow === maxTotal
+    ? `✓ ${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''}`
+    : `${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''} — encore ${remaining} à choisir`;
+  const requiredAttrs = required ? ` data-required="true" data-sel-key="${kind}" data-required-count="${maxTotal}"` : '';
+  return `<div class="pdm-section" data-kind="${kind}"${requiredAttrs}>
+    <div class="pdm-section-title">${title} ${required ? '<span class="pdm-required-badge">Requis</span>' : ''} ${hint || ''}</div>
+    <div class="pdm-opts" style="grid-template-columns:1fr">${rowsHtml}</div>
+    <div class="pdm-stepper-summary ${summaryClass}" data-stepper-summary="${kind}">${summaryText}</div>
+  </div>`;
+}
+
 // Affiche le formulaire de personnalisation côté caisse, identique à la borne
 // mode: 'caisse' (par défaut) ou 'borne' — change la classe CSS et la fonction d'ajout au panier
 function showCaisseProductDetail(p, mode) {
@@ -19602,7 +19700,8 @@ function showCaisseProductDetail(p, mode) {
     meats: [],          // Tacos/Bowls 2v/3v : viandes multiples
     cheeseSauce: null,  // Tacos/Bowls : avec/sans sauce fromagère
     kidsMenu: null,     // Menu Enfant : Cheeseburger / Nuggets / Panini
-    meatIfPanini: null  // Menu Enfant : viande si Panini choisi
+    meatIfPanini: null, // Menu Enfant : viande si Panini choisi
+    boxSauces: []       // Box & Fingers : multi-select avec duplication (stepper)
   };
   // Pré-sélection bread : SEULEMENT si choix unique (marinadeCount<=1).
   // Pour multi-marinades (plateaux), on laisse l'utilisateur choisir.
@@ -19825,18 +19924,19 @@ function showCaisseProductDetail(p, mode) {
     sections += `<div class="pdm-section" data-kind="meat" data-required="true" data-sel-key="meat"><div class="pdm-section-title">Viande <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${meatHtml}</div></div>`;
   }
 
-  // ★ VIANDES MULTIPLES (Tacos/Bowls 1V/2V/3V)
+  // ★ VIANDES MULTIPLES (Tacos/Bowls 1V/2V/3V) — stepper avec duplication possible
   if (Array.isArray(cfg.meats) && cfg.meats.length > 0 && cfg.meatCount) {
     const labelTitle = cfg.meatCount === 1 ? 'Choix de la viande' : `Choix des ${cfg.meatCount} viandes`;
-    const hint = cfg.meatCount === 1 ? '' : `<span class="pdm-section-hint">${cfg.meatCount} à choisir</span>`;
-    const meatsHtml = cfg.meats.map(m =>
-      `<button class="pdm-opt" data-section="meats" data-val="${m.label.replace(/"/g, '&quot;')}" data-meatcount="${cfg.meatCount}">
-        <span class="pdm-opt-text">
-          <span class="pdm-opt-name">${m.label}</span>
-          ${m.price ? `<span class="pdm-opt-price">+${m.price.toFixed(2).replace('.', ',')} €</span>` : ''}
-        </span>
-      </button>`).join('');
-    sections += `<div class="pdm-section" data-kind="meats" data-required="true" data-sel-key="meats" data-required-count="${cfg.meatCount}"><div class="pdm-section-title">${labelTitle} <span class="pdm-required-badge">Requis</span> ${hint}</div><div class="pdm-opts">${meatsHtml}</div></div>`;
+    const hint = cfg.meatCount === 1 ? '' : `<span class="pdm-section-hint">${cfg.meatCount} au choix (même viande possible plusieurs fois)</span>`;
+    sections += _renderStepper({
+      kind: 'meats',
+      title: labelTitle,
+      hint: hint,
+      required: true,
+      options: cfg.meats,
+      maxTotal: cfg.meatCount,
+      counts: sel.meats
+    });
   }
 
   // ★ MEAT IF PANINI (Menu Enfant — affiché conditionnellement)
@@ -19860,16 +19960,18 @@ function showCaisseProductDetail(p, mode) {
 
   if (Array.isArray(cfg.bread) && cfg.bread.length > 0) {
     const isSize = _breadIsSize(cfg.bread);
-    // ★ Multi-marinades pour les plateaux : si p.marinadeCount > 1, on passe en multi-select
+    // ★ Multi-marinades pour les plateaux : stepper avec duplication possible
     if (_marinadeCount > 1) {
-      const marinadeHtml = cfg.bread.map(b =>
-        `<button class="pdm-opt ${sel.marinades.includes(b.label) ? 'selected' : ''}" data-section="marinades" data-val="${b.label.replace(/"/g, '&quot;')}" data-maxcount="${_marinadeCount}">
-          <span class="pdm-opt-text">
-            <span class="pdm-opt-name">${b.label}</span>
-          </span>
-        </button>`).join('');
-      const hint = `<span class="pdm-section-hint">Choisir ${_marinadeCount}</span>`;
-      sections += `<div class="pdm-section" data-kind="marinades" data-required="true" data-sel-key="marinades" data-required-count="${_marinadeCount}"><div class="pdm-section-title">Choix de la marinade <span class="pdm-required-badge">Requis</span> ${hint}</div><div class="pdm-opts">${marinadeHtml}</div></div>`;
+      const hint = `<span class="pdm-section-hint">${_marinadeCount} au choix (même marinade possible plusieurs fois)</span>`;
+      sections += _renderStepper({
+        kind: 'marinades',
+        title: 'Choix de la marinade',
+        hint: hint,
+        required: true,
+        options: cfg.bread,
+        maxTotal: _marinadeCount,
+        counts: sel.marinades
+      });
     } else {
       // Cas standard (radio - 1 choix)
       const breadHtml = cfg.bread.map(b =>
@@ -19881,6 +19983,20 @@ function showCaisseProductDetail(p, mode) {
         </button>`).join('');
       sections += `<div class="pdm-section" data-kind="${isSize ? 'size' : 'bread'}" data-required="true" data-sel-key="bread"><div class="pdm-section-title">${_breadSectionTitle(cfg.bread, cfg)} <span class="pdm-required-badge">Requis</span></div><div class="pdm-opts">${breadHtml}</div></div>`;
     }
+  }
+
+  // ★ BOX SAUCES (stepper avec duplication, ex: 4 sauces au choix dont possibles doublons)
+  if (Array.isArray(cfg.sauceList) && cfg.sauceList.length > 0 && cfg.sauceCount) {
+    const hint = `<span class="pdm-section-hint">${cfg.sauceCount} sauces au choix (même sauce possible plusieurs fois)</span>`;
+    sections += _renderStepper({
+      kind: 'boxSauces',
+      title: 'Choix des sauces',
+      hint: hint,
+      required: true,
+      options: cfg.sauceList,
+      maxTotal: cfg.sauceCount,
+      counts: sel.boxSauces
+    });
   }
 
   // ★ ACCOMPAGNEMENTS (Poulet, Brochette, Plateau)
@@ -20105,6 +20221,39 @@ function showCaisseProductDetail(p, mode) {
       };
     });
 
+    // === Handlers Stepper (boutons + / -) ===
+    // Pour viandes, marinades, sauces box — duplication possible (compteurs par option)
+    document.querySelectorAll('.pdm-stepper-btn').forEach(btn => {
+      btn.onclick = () => {
+        if (btn.disabled) return;
+        const section = btn.dataset.stepperSection;
+        const val = btn.dataset.stepperVal;
+        const action = btn.dataset.stepperAction;
+        const arr = sel[section];
+        if (!Array.isArray(arr)) return;
+        const config = {
+          meats: { max: cfg.meatCount, label: 'viande' },
+          marinades: { max: _marinadeCount, label: 'marinade' },
+          boxSauces: { max: cfg.sauceCount, label: 'sauce' }
+        }[section];
+        if (!config) return;
+        if (action === 'inc') {
+          if (arr.length >= config.max) {
+            toast(`Maximum ${config.max} ${config.label}${config.max > 1 ? 's' : ''}`, true);
+            return;
+          }
+          arr.push(val);
+        } else if (action === 'dec') {
+          const idx = arr.lastIndexOf(val);
+          if (idx >= 0) arr.splice(idx, 1);
+        }
+        // Re-render uniquement la section pour pas perdre le scroll
+        _refreshStepperSection(section, val, arr, config.max, btn.closest('.pdm-section'));
+        // Refresh state required
+        if (typeof _refreshSectionStates === 'function') _refreshSectionStates();
+      };
+    });
+
     document.querySelectorAll('.pdm-opt').forEach(btn => {
       btn.onclick = () => {
         const section = btn.dataset.section;
@@ -20159,7 +20308,8 @@ function showCaisseProductDetail(p, mode) {
           // Si on quitte Panini, reset la viande
           if (val !== 'Panini') sel.meatIfPanini = null;
         }
-        // Viandes multiples (Tacos/Bowls) : toggle avec limite
+        // ─── Viandes multiples (Tacos/Bowls) ───
+        // OBSOLÈTE : viandes désormais en stepper. Conservé pour rétrocompat avec ancien state.
         else if (section === 'meats') {
           const maxMeats = parseInt(btn.dataset.meatcount) || 1;
           const idx = sel.meats.indexOf(val);
@@ -20304,7 +20454,7 @@ function showCaisseProductDetail(p, mode) {
       if (sel.kidsMenu) labelParts.push('Plat : ' + sel.kidsMenu);
       if (sel.meatIfPanini) labelParts.push('Viande : ' + sel.meatIfPanini);
       if (sel.meat) labelParts.push('Viande : ' + sel.meat);
-      if (Array.isArray(sel.meats) && sel.meats.length) labelParts.push('Viandes : ' + sel.meats.join(', '));
+      if (Array.isArray(sel.meats) && sel.meats.length) labelParts.push('Viandes : ' + _formatTally(sel.meats));
       if (sel.base) labelParts.push('Base ' + sel.base.toLowerCase());
       if (sel.cheeseSauce === true) labelParts.push('Avec sauce fromagère');
       if (sel.cheeseSauce === false) labelParts.push('Sans sauce fromagère');
@@ -20318,9 +20468,13 @@ function showCaisseProductDetail(p, mode) {
         else breadPrefix = 'Pain ';
         labelParts.push(breadPrefix + sel.bread);
       }
-      // ★ Marinades multiples (plateaux)
+      // ★ Marinades multiples (plateaux) — grouper les doublons (ex: "2× BBQ, 1× Citron")
       if (Array.isArray(sel.marinades) && sel.marinades.length) {
-        labelParts.push('Marinades : ' + sel.marinades.join(', '));
+        labelParts.push('Marinades : ' + _formatTally(sel.marinades));
+      }
+      // ★ Sauces box (stepper avec doublons possibles)
+      if (Array.isArray(sel.boxSauces) && sel.boxSauces.length) {
+        labelParts.push('Sauces : ' + _formatTally(sel.boxSauces));
       }
       if (sel.sauces.length) labelParts.push('Sauce ' + sel.sauces.join(', '));
       if (sel.extras.length) labelParts.push('+' + sel.extras.join(', +'));
@@ -20342,6 +20496,20 @@ function showCaisseProductDetail(p, mode) {
       if (cfg.meatCount && cfg.meatCount > 1) {
         if (sel.meats.length !== cfg.meatCount) {
           toast(`Il faut choisir exactement ${cfg.meatCount} viandes`, true);
+          return;
+        }
+      }
+      // ★ Validation marinades multiples (plateaux)
+      if (_marinadeCount > 1) {
+        if (sel.marinades.length !== _marinadeCount) {
+          toast(`Il faut choisir exactement ${_marinadeCount} marinade${_marinadeCount > 1 ? 's' : ''}`, true);
+          return;
+        }
+      }
+      // ★ Validation sauces box
+      if (cfg.sauceCount && cfg.sauceCount > 0) {
+        if (sel.boxSauces.length !== cfg.sauceCount) {
+          toast(`Il faut choisir exactement ${cfg.sauceCount} sauce${cfg.sauceCount > 1 ? 's' : ''}`, true);
           return;
         }
       }
