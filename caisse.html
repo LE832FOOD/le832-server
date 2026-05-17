@@ -15969,6 +15969,30 @@
         <div class="settings-section" data-cat="menu">
           <div class="settings-title">Menu</div>
           <div class="settings-desc">Modifiez les produits et catégories. Les commandes existantes ne sont pas affectées.</div>
+
+          <!-- Bloc Version du menu -->
+          <div style="display:flex;flex-direction:column;gap:10px;padding:14px 16px;margin-bottom:18px;background:linear-gradient(135deg,rgba(212,160,86,0.10),rgba(122,154,77,0.06));border:1px solid rgba(212,160,86,0.25);border-radius:10px">
+            <div style="display:flex;align-items:center;gap:14px">
+              <div style="font-size:24px;flex-shrink:0">📦</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:700;color:var(--cream);margin-bottom:2px">Version du menu installée</div>
+                <div style="font-size:11.5px;color:var(--cream-dim);line-height:1.5">
+                  Version actuelle : <strong id="menuVersionCurrent" style="color:var(--amber)">—</strong> ·
+                  Version intégrée au code : <strong id="menuVersionCode" style="color:var(--amber)">—</strong>
+                  <span id="menuVersionStatus" style="display:inline-block;margin-left:6px"></span>
+                </div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <button class="btn" onclick="mergeMenuFromCodeNow()" title="Ajoute les nouveautés sans écraser vos prix/items modifiés manuellement" style="background:linear-gradient(180deg,#95b85e,#7a9a4d);border-color:#7a9a4d;color:#fff;font-weight:700;font-size:12px;padding:8px 10px">↻ Mettre à jour</button>
+              <button class="btn" onclick="loadRestaurantMenu()" title="Remplace TOUT le menu par celui du code (écrase vos modifs manuelles)" style="font-size:12px;padding:8px 10px">⚠ Tout remplacer</button>
+            </div>
+            <div style="font-size:10.5px;color:var(--cream-dim);line-height:1.45;padding-top:2px">
+              <strong style="color:#b0d479">↻ Mettre à jour</strong> : ajoute les nouveautés, retire les items supprimés, garde tes prix et noms.<br>
+              <strong style="color:#e0a85e">⚠ Tout remplacer</strong> : écrase intégralement le menu par celui du code (perte de toutes tes modifs).
+            </div>
+          </div>
+
           <div class="menu-editor-tabs" id="menuEditorTabs"></div>
           <div id="menuEditorContent"></div>
           <div class="settings-row" style="border:none;padding-top:14px">
@@ -17487,6 +17511,18 @@ function _resolveRemovableFromDesc(cfg, desc, product) {
   return Object.assign({}, cfg, { removable: merged });
 }
 
+// ============================================================================
+// VERSION DU MENU INTÉGRÉ — incrémenter à chaque modification du menu ci-dessous
+// ============================================================================
+// Quand cette version augmente, l'app détecte qu'une nouvelle version du menu
+// est disponible au prochain démarrage et propose de la charger (popup).
+// Cela évite de devoir cliquer manuellement sur "Recharger le menu" à chaque
+// redéploiement Render.
+//
+// IMPORTANT : à incrémenter à chaque fois qu'on ajoute / modifie / supprime
+// un item dans RESTAURANT_MENU ou une config (PIZZA_CONFIG, BOX_CONFIG, etc.).
+const MENU_VERSION = 5;  // 2026-05-17 : Box mixte, frites 2 tailles, tiramisu, marinades plateaux, formules
+
 const RESTAURANT_MENU = {
   // Une seule catégorie Pizzas : la taille est choisie via le formulaire de personnalisation
   // Prix de base = Junior (29cm). Le supplément taille s'ajoute au moment de la commande.
@@ -18203,7 +18239,46 @@ function loadState() {
         console.log('[Migration] Boissons ajoutées à ' + modified + ' produits');
       }
     }
-    // ===== AUTO-APPLICATION DES PHOTOS LE 832 =====
+    // ===== AUTO-MERGE DU MENU si nouvelle version =====
+    // Quand on incrémente MENU_VERSION dans le code (nouveau item, config modifiée, etc.),
+    // au prochain démarrage l'app fait un MERGE INTELLIGENT :
+    //   - Ajoute les NOUVEAUX items (id absent du state)
+    //   - Retire les items SUPPRIMÉS du code (id présent dans state mais absent du code)
+    //   - PRÉSERVE name / price / desc / photo des items existants (= modifs manuelles)
+    //   - MET À JOUR la config (drinks, removable, marinadeCount, etc. = logique métier)
+    //   - Ajoute les nouvelles catégories, retire celles supprimées
+    if (typeof MENU_VERSION === 'number' && state.config.menuVersion !== MENU_VERSION) {
+      const oldVersion = state.config.menuVersion;
+      if (typeof oldVersion !== 'number') {
+        // Première fois : on marque juste la version sans toucher au menu existant
+        state.config.menuVersion = MENU_VERSION;
+      } else {
+        // Vraie mise à jour : on merge automatiquement
+        try {
+          const result = _mergeMenuFromCode(state.menu, RESTAURANT_MENU);
+          state.menu = result.merged;
+          menu = state.menu;
+          state.config.menuVersion = MENU_VERSION;
+          // Toast au prochain renderTicket (timeout pour laisser l'init finir)
+          if (result.added + result.removed + result.configUpdated > 0) {
+            setTimeout(() => {
+              try {
+                const parts = [];
+                if (result.added > 0) parts.push('+' + result.added + ' ajouté' + (result.added > 1 ? 's' : ''));
+                if (result.removed > 0) parts.push('−' + result.removed + ' retiré' + (result.removed > 1 ? 's' : ''));
+                if (result.configUpdated > 0) parts.push(result.configUpdated + ' config' + (result.configUpdated > 1 ? 's' : '') + ' MAJ');
+                toast('✓ Menu mis à jour v' + oldVersion + '→v' + MENU_VERSION + ' · ' + parts.join(' · '), false, 5500);
+              } catch(e) {}
+            }, 1500);
+          }
+          console.log('[Menu merge v' + MENU_VERSION + ']', result);
+        } catch (e) {
+          console.error('Menu merge failed:', e);
+          // Fallback : on marque la version même si le merge a échoué pour ne pas boucler
+          state.config.menuVersion = MENU_VERSION;
+        }
+      }
+    }
     // Au premier chargement, on applique les 30 photos extraites du menu sur les produits matching
     // Le numéro de version permet de re-déclencher l'application si on ajoute de nouvelles photos
     const PHOTOS_VERSION = 3; // bump pour re-déclencher l'application (v3: URLs Unsplash plus réalistes pour non-pizza)
@@ -31594,6 +31669,8 @@ function renderPromoCodesList() {
 // ========== ÉDITEUR DE MENU ==========
 //
 function renderMenuEditor() {
+  // Mettre à jour l'affichage de la version (panneau en haut de l'onglet Menu)
+  if (typeof _updateMenuVersionDisplay === 'function') _updateMenuVersionDisplay();
   const tabsEl = document.getElementById('menuEditorTabs');
   const contentEl = document.getElementById('menuEditorContent');
   if (!tabsEl || !contentEl) return;
@@ -32612,12 +32689,161 @@ function exportMenuJson() {
   toast(`✓ Menu exporté · ${Object.keys(menuToExport).length} catégories, ${totalProducts} produits`, false, 5000);
 }
 
+// ============================================================================
+// MERGE INTELLIGENT DU MENU
+// ============================================================================
+// Fusionne le menu du code (RESTAURANT_MENU) avec le menu installé (state.menu) :
+//   - AJOUTE les items qui sont dans le code mais pas dans state (par id)
+//   - RETIRE ceux qui sont dans state mais plus dans le code (par id)
+//   - PRÉSERVE name, price, desc, photo, stock des items existants (= modifs manuelles)
+//   - REMPLACE config, drinkCount, marinadeCount, jumboBottleIncluded, noStandaloneDrink,
+//     noRemovable, noCustomization, accompFormulas (= logique métier qui doit évoluer)
+//   - Garde l'ORDRE des catégories du code (et l'ordre des items dans chaque cat)
+//
+// Retourne { merged, added, removed, configUpdated, categoriesAdded, categoriesRemoved }
+function _mergeMenuFromCode(stateMenu, codeMenu) {
+  const result = {
+    merged: {},
+    added: 0,
+    removed: 0,
+    configUpdated: 0,
+    categoriesAdded: 0,
+    categoriesRemoved: 0
+  };
+  if (!stateMenu || typeof stateMenu !== 'object') stateMenu = {};
+
+  // Index global des items existants par id (toutes catégories confondues)
+  const existingById = new Map();
+  Object.keys(stateMenu).forEach(cat => {
+    const items = Array.isArray(stateMenu[cat]) ? stateMenu[cat] : [];
+    items.forEach(it => {
+      if (it && typeof it.id !== 'undefined') existingById.set(it.id, { item: it, cat });
+    });
+  });
+
+  // Ids présents dans le code (pour détecter les suppressions)
+  const codeIds = new Set();
+  Object.keys(codeMenu).forEach(cat => {
+    const items = Array.isArray(codeMenu[cat]) ? codeMenu[cat] : [];
+    items.forEach(it => { if (it && typeof it.id !== 'undefined') codeIds.add(it.id); });
+  });
+
+  // Champs à PRÉSERVER depuis le state (modifs manuelles utilisateur)
+  const PRESERVE_FIELDS = ['name', 'price', 'desc', 'photo', 'stock'];
+  // Champs à TOUJOURS REMPLACER depuis le code (logique métier)
+  const REPLACE_FIELDS = [
+    'config', 'drinkCount', 'marinadeCount', 'jumboBottleIncluded',
+    'noStandaloneDrink', 'noRemovable', 'noCustomization',
+    'accompFormulas', 'grandAccompCount', 'petitAccompCount', 'accompCount',
+    'subCategory'
+  ];
+
+  // Parcourt les catégories du CODE (préserve l'ordre du code)
+  Object.keys(codeMenu).forEach(cat => {
+    const codeItems = Array.isArray(codeMenu[cat]) ? codeMenu[cat] : [];
+    const existedInState = Object.prototype.hasOwnProperty.call(stateMenu, cat);
+    if (!existedInState) result.categoriesAdded++;
+    const mergedItems = [];
+    codeItems.forEach(codeItem => {
+      if (!codeItem || typeof codeItem.id === 'undefined') return;
+      const found = existingById.get(codeItem.id);
+      if (found) {
+        // Item existe déjà : on merge — préserve champs user, remplace logique
+        const stateItem = found.item;
+        const merged = JSON.parse(JSON.stringify(codeItem));  // base = code
+        let configChanged = false;
+        PRESERVE_FIELDS.forEach(f => {
+          if (Object.prototype.hasOwnProperty.call(stateItem, f) && stateItem[f] !== undefined) {
+            merged[f] = stateItem[f];
+          }
+        });
+        // Pour les champs REPLACE_FIELDS, on garde la valeur du code (déjà copiée).
+        // On track si la config a changé pour le compteur configUpdated.
+        try {
+          if (JSON.stringify(stateItem.config) !== JSON.stringify(codeItem.config)) {
+            configChanged = true;
+          }
+        } catch(e) {}
+        if (configChanged) result.configUpdated++;
+        mergedItems.push(merged);
+      } else {
+        // Nouvel item (présent dans code, absent du state)
+        mergedItems.push(JSON.parse(JSON.stringify(codeItem)));
+        result.added++;
+      }
+    });
+    result.merged[cat] = mergedItems;
+  });
+
+  // Catégories qui étaient dans state mais ont disparu du code : on les retire
+  Object.keys(stateMenu).forEach(cat => {
+    if (!Object.prototype.hasOwnProperty.call(codeMenu, cat)) {
+      const items = Array.isArray(stateMenu[cat]) ? stateMenu[cat] : [];
+      // Sauf si la catégorie contient des items entièrement custom (ids hors codeIds)
+      // → on garde ces items dans une catégorie qui survit
+      const customItems = items.filter(it => it && !codeIds.has(it.id));
+      if (customItems.length > 0) {
+        // L'utilisateur a ajouté ses propres items → on garde la catégorie
+        result.merged[cat] = customItems;
+      } else {
+        result.categoriesRemoved++;
+      }
+    }
+  });
+
+  // Items supprimés du code : compte tous les ids du state qui ne sont plus dans codeIds
+  // (sauf si l'utilisateur a ajouté des items custom, déjà préservés ci-dessus)
+  existingById.forEach((_, id) => {
+    if (!codeIds.has(id)) {
+      // Cet id était dans state mais plus dans code.
+      // Si on l'a préservé (catégorie custom), on ne le compte pas comme supprimé.
+      const stillExists = Object.values(result.merged).some(arr =>
+        Array.isArray(arr) && arr.some(it => it && it.id === id)
+      );
+      if (!stillExists) result.removed++;
+    }
+  });
+
+  return result;
+}
+
+// Merge manuel : applique les nouveautés du code sans écraser les modifs manuelles
+function mergeMenuFromCodeNow() {
+  try {
+    const result = _mergeMenuFromCode(state.menu || {}, RESTAURANT_MENU);
+    if (result.added + result.removed + result.configUpdated + result.categoriesAdded + result.categoriesRemoved === 0) {
+      toast('Aucune mise à jour : le menu est déjà à jour', false, 3500);
+      return;
+    }
+    const summary = [
+      result.added > 0 ? `+${result.added} produit${result.added > 1 ? 's' : ''} ajouté${result.added > 1 ? 's' : ''}` : null,
+      result.removed > 0 ? `−${result.removed} produit${result.removed > 1 ? 's' : ''} retiré${result.removed > 1 ? 's' : ''}` : null,
+      result.configUpdated > 0 ? `${result.configUpdated} configuration${result.configUpdated > 1 ? 's' : ''} mise${result.configUpdated > 1 ? 's' : ''} à jour` : null,
+      result.categoriesAdded > 0 ? `+${result.categoriesAdded} catégorie${result.categoriesAdded > 1 ? 's' : ''}` : null,
+      result.categoriesRemoved > 0 ? `−${result.categoriesRemoved} catégorie${result.categoriesRemoved > 1 ? 's' : ''}` : null
+    ].filter(Boolean).join('\n• ');
+    if (!confirm('Appliquer la mise à jour du menu ?\n\n• ' + summary + '\n\nTes prix, noms et descriptions personnalisés seront PRÉSERVÉS.\nLes commandes existantes ne sont pas affectées.')) return;
+    state.menu = result.merged;
+    menu = state.menu;
+    if (typeof MENU_VERSION === 'number') state.config.menuVersion = MENU_VERSION;
+    saveState();
+    renderMenuEditor();
+    if (typeof refreshAll === 'function') refreshAll();
+    toast('✓ Menu mis à jour · ' + summary.replace(/\n• /g, ' · '), false, 5000);
+  } catch (e) {
+    console.error('Merge menu error:', e);
+    toast('Erreur lors de la mise à jour : ' + e.message, true, 5000);
+  }
+}
+
 // Charge le menu complet du restaurant en remplaçant l'existant
 function loadRestaurantMenu() {
   if (!confirm('Charger le menu complet du restaurant ?\n\nCela va remplacer l\'intégralité du menu actuel par :\n• 30 pizzas en 3 tailles (Junior, Sénior, Méga)\n• 8 sandwichs avec choix de pain et sauces\n• 4 burgers doublés\n• Tacos & bowls (1, 2, 3 viandes)\n• Salades, gratins, paninis\n• Poulet braisé, brochettes, plateaux\n• Boxes, fingers, accompagnements\n• Desserts, menu enfant, boissons\n\nLes commandes existantes ne seront pas touchées, mais les produits actuellement dans le menu seront remplacés. Continuer ?')) return;
   // Remplacer le menu en mémoire ET dans le state
   state.menu = JSON.parse(JSON.stringify(RESTAURANT_MENU));
   menu = state.menu;
+  // Marquer la version courante pour éviter de re-proposer un popup au prochain démarrage
+  if (typeof MENU_VERSION === 'number') state.config.menuVersion = MENU_VERSION;
   saveState();
   renderMenuEditor();
   // Mettre à jour aussi la config par défaut pour qu'elle reflète les sauces du resto
@@ -32626,7 +32852,27 @@ function loadRestaurantMenu() {
     saveState();
     renderGlobalCfgEditor();
   }
-  toast('Menu du restaurant chargé');
+  if (typeof _updateMenuVersionDisplay === 'function') _updateMenuVersionDisplay();
+  toast('Menu du restaurant chargé · v' + (typeof MENU_VERSION === 'number' ? MENU_VERSION : '?'), false, 4000);
+}
+
+// Affiche la version actuelle du menu dans le bloc Settings → Menu
+function _updateMenuVersionDisplay() {
+  const cur = document.getElementById('menuVersionCurrent');
+  const code = document.getElementById('menuVersionCode');
+  const status = document.getElementById('menuVersionStatus');
+  if (!cur || !code || !status) return;
+  const installed = (state.config && typeof state.config.menuVersion === 'number') ? state.config.menuVersion : null;
+  const inCode = (typeof MENU_VERSION === 'number') ? MENU_VERSION : null;
+  cur.textContent = installed !== null ? 'v' + installed : 'non initialisée';
+  code.textContent = inCode !== null ? 'v' + inCode : '—';
+  if (installed === null || installed < inCode) {
+    status.innerHTML = '<span style="color:#e0a85e;font-weight:700">⟳ Mise à jour disponible</span>';
+  } else if (installed === inCode) {
+    status.innerHTML = '<span style="color:#b0d479;font-weight:700">✓ À jour</span>';
+  } else {
+    status.innerHTML = '';
+  }
 }
 
 // Réinitialise tous les produits pour qu'ils utilisent le formulaire par défaut
