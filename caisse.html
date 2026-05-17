@@ -10039,84 +10039,147 @@
     color: #1a1814;
   }
 
-  /* === Stepper pour viandes/marinades/sauces (duplication possible) === */
-  .pdm-stepper {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px 10px 14px;
+  /* === Tuiles cliquables (viandes/marinades/sauces avec duplication) === */
+  .pdm-tiles-section .pdm-tiles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+  }
+  .pdm-tile {
+    position: relative;
+    min-height: 56px;
+    padding: 10px 14px;
     background: #ffffff;
+    color: #1a1814;
     border: 2px solid transparent;
-    border-radius: 7px;
-    min-height: 52px;
-    color: #1a1814;
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .pdm-stepper.has-count {
-    border-color: var(--amber, #d4a056);
-    background: linear-gradient(180deg, #fff8e7, #fff);
-  }
-  .pdm-stepper-name {
-    flex: 1;
-    min-width: 0;
-    font-size: 14.5px;
-    font-weight: 700;
-    text-align: left;
-    color: #1a1814;
-  }
-  .pdm-stepper-controls {
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
     display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
-  .pdm-stepper-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(0,0,0,0.18);
-    background: #f5f0e6;
-    color: #1a1814;
-    font-size: 18px;
-    font-weight: 800;
-    line-height: 1;
-    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    gap: 2px;
+    transition: border-color 0.12s, transform 0.08s, box-shadow 0.15s, background 0.12s;
     user-select: none;
   }
-  .pdm-stepper-btn:active { transform: scale(0.92); }
-  .pdm-stepper-btn:not(:disabled):hover {
-    background: var(--amber, #d4a056);
+  .pdm-tile:not(.disabled):hover {
     border-color: var(--amber, #d4a056);
-    color: #fff;
+    box-shadow: 0 3px 10px rgba(212,160,86,0.18);
   }
-  .pdm-stepper-btn:disabled {
-    opacity: 0.32;
+  .pdm-tile:not(.disabled):active { transform: scale(0.97); }
+  .pdm-tile.selected {
+    background: linear-gradient(180deg, #fff8e7 0%, #ffffff 100%);
+    border-color: var(--amber, #d4a056);
+    box-shadow: inset 0 0 0 1px rgba(212,160,86,0.20);
+  }
+  .pdm-tile.disabled {
+    opacity: 0.38;
     cursor: not-allowed;
+    background: #f5f0e6;
   }
-  .pdm-stepper-count {
-    min-width: 26px;
-    text-align: center;
-    font-size: 17px;
-    font-weight: 800;
+  .pdm-tile-name {
+    font-size: 14.5px;
+    font-weight: 700;
     color: #1a1814;
+    text-align: center;
+    line-height: 1.2;
   }
-  .pdm-stepper.has-count .pdm-stepper-count { color: var(--amber, #d4a056); }
-  .pdm-stepper-summary {
-    margin-top: 6px;
-    padding: 8px 12px;
-    background: rgba(212,160,86,0.10);
-    border-radius: 6px;
-    font-size: 12.5px;
-    color: var(--cream, #fff8e7);
+  .pdm-tile-price {
+    font-size: 11.5px;
     font-weight: 600;
+    color: #7a9a4d;
   }
-  .pdm-stepper-summary.complete { background: rgba(122,154,77,0.18); color: #b0d479; }
-  .pdm-stepper-summary.incomplete { background: rgba(212,160,86,0.18); color: #e0a85e; }
+  .pdm-tile-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    border-radius: 12px;
+    background: var(--amber, #d4a056);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    line-height: 1;
+  }
+
+  /* Zone récap (pills cliquables = retirer) */
+  .pdm-tile-recap {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px dashed rgba(255,255,255,0.10);
+    border-radius: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+  }
+  .pdm-tile-recap-empty {
+    color: var(--cream-dim, #a39481);
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 500;
+  }
+  .pdm-tile-recap-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    flex: 1;
+  }
+  .pdm-tile-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 10px;
+    background: var(--amber, #d4a056);
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.12s, transform 0.08s;
+  }
+  .pdm-tile-pill:hover { background: #b8853e; }
+  .pdm-tile-pill:active { transform: scale(0.94); }
+  .pdm-tile-pill-count {
+    background: rgba(0,0,0,0.18);
+    padding: 1px 6px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+  }
+  .pdm-tile-pill-close {
+    width: 18px;
+    height: 18px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .pdm-tile-recap-counter {
+    margin-left: auto;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--cream-dim, #a39481);
+    letter-spacing: 0.04em;
+  }
+  .pdm-tile-recap-counter.complete {
+    color: #b0d479;
+  }
   .pdm-mode-caisse .pdm-opt:hover {
     border-color: var(--amber);
   }
@@ -19589,66 +19652,97 @@ function _formatTally(arr) {
 // Re-render in-place d'une section stepper après un +/- click.
 function _refreshStepperSection(section, val, arr, maxTotal, sectionEl) {
   if (!sectionEl) return;
-  // Compteurs par label
   const tally = {};
   arr.forEach(lbl => { tally[lbl] = (tally[lbl] || 0) + 1; });
   const totalNow = arr.length;
   const remaining = maxTotal - totalNow;
-  // Mettre à jour chaque ligne
-  sectionEl.querySelectorAll('[data-stepper-row]').forEach(row => {
-    const lbl = row.dataset.stepperRow;
+  const isFull = remaining <= 0;
+  // Mettre à jour chaque tuile (badge compteur + classe selected/disabled)
+  sectionEl.querySelectorAll('[data-tile-row]').forEach(tile => {
+    const lbl = tile.dataset.tileRow;
     const ct = tally[lbl] || 0;
-    const countEl = row.querySelector(`[data-stepper-count="${lbl.replace(/"/g, '&quot;')}"]`);
-    if (countEl) countEl.textContent = ct;
-    row.classList.toggle('has-count', ct > 0);
-    const decBtn = row.querySelector('[data-stepper-action="dec"]');
-    const incBtn = row.querySelector('[data-stepper-action="inc"]');
-    if (decBtn) decBtn.disabled = (ct === 0);
-    if (incBtn) incBtn.disabled = (remaining <= 0);
+    const badge = tile.querySelector('.pdm-tile-badge');
+    if (badge) {
+      badge.textContent = ct > 0 ? '×' + ct : '';
+      badge.style.display = ct > 0 ? 'inline-flex' : 'none';
+    }
+    tile.classList.toggle('selected', ct > 0);
+    tile.classList.toggle('disabled', isFull && ct === 0);
   });
-  // Summary
-  const sum = sectionEl.querySelector(`[data-stepper-summary="${section}"]`);
-  if (sum) {
-    sum.classList.toggle('complete', totalNow === maxTotal);
-    sum.classList.toggle('incomplete', totalNow !== maxTotal);
-    sum.textContent = totalNow === maxTotal
-      ? `✓ ${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''}`
-      : `${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''} — encore ${remaining} à choisir`;
+  // Mettre à jour la zone récap (pills cliquables)
+  const recap = sectionEl.querySelector('[data-tile-recap]');
+  if (recap) recap.innerHTML = _renderStepperRecap(section, arr, maxTotal);
+  // Réattacher les listeners sur les pills (innerHTML a effacé les onclick)
+  if (recap) {
+    recap.querySelectorAll('.pdm-tile-pill').forEach(pill => {
+      pill.onclick = () => {
+        const v = pill.dataset.pillVal;
+        const idx = arr.lastIndexOf(v);
+        if (idx >= 0) {
+          arr.splice(idx, 1);
+          _refreshStepperSection(section, v, arr, maxTotal, sectionEl);
+          if (typeof _refreshSectionStates === 'function') _refreshSectionStates();
+        }
+      };
+    });
   }
 }
 
+// Génère le HTML de la zone récap (pills cliquables = retirer)
+function _renderStepperRecap(section, arr, maxTotal) {
+  const total = arr.length;
+  const remaining = maxTotal - total;
+  if (total === 0) {
+    return `<div class="pdm-tile-recap-empty">Tape une option ci-dessus pour l'ajouter · ${maxTotal} au choix</div>`;
+  }
+  // Grouper les doublons
+  const tally = {};
+  const order = [];
+  arr.forEach(lbl => {
+    if (tally[lbl] === undefined) order.push(lbl);
+    tally[lbl] = (tally[lbl] || 0) + 1;
+  });
+  const pillsHtml = order.map(lbl => {
+    const ct = tally[lbl];
+    const lblSafe = String(lbl).replace(/"/g, '&quot;');
+    return `<button type="button" class="pdm-tile-pill" data-pill-val="${lblSafe}" title="Cliquer pour retirer">
+      ${ct > 1 ? `<span class="pdm-tile-pill-count">×${ct}</span>` : ''}
+      <span class="pdm-tile-pill-label">${lbl}</span>
+      <span class="pdm-tile-pill-close">×</span>
+    </button>`;
+  }).join('');
+  const counter = remaining > 0
+    ? `<span class="pdm-tile-recap-counter">${total} / ${maxTotal} · encore ${remaining}</span>`
+    : `<span class="pdm-tile-recap-counter complete">✓ ${total} / ${maxTotal}</span>`;
+  return `<div class="pdm-tile-recap-pills">${pillsHtml}</div>${counter}`;
+}
+
 function _renderStepper({ kind, title, hint, required, options, maxTotal, counts }) {
-  const tally = {};  // label → count
+  const tally = {};
   (counts || []).forEach(lbl => { tally[lbl] = (tally[lbl] || 0) + 1; });
-  const totalNow = Object.values(tally).reduce((a, b) => a + b, 0);
-  const remaining = maxTotal - totalNow;
-  const rowsHtml = options.map(opt => {
+  const totalNow = (counts || []).length;
+  const isFull = totalNow >= maxTotal;
+  // Tuiles cliquables (tap = +1)
+  const tilesHtml = options.map(opt => {
     const lbl = opt.label;
     const ct = tally[lbl] || 0;
     const lblSafe = String(lbl).replace(/"/g, '&quot;');
-    const priceHtml = opt.price ? `<span style="color:#7a9a4d;font-weight:600;font-size:12px;margin-left:8px">+${opt.price.toFixed(2).replace('.', ',')} €</span>` : '';
-    const minusDisabled = ct === 0 ? 'disabled' : '';
-    const plusDisabled = (remaining <= 0) ? 'disabled' : '';
-    const hasCount = ct > 0 ? 'has-count' : '';
+    const priceHtml = opt.price ? `<span class="pdm-tile-price">+${opt.price.toFixed(2).replace('.', ',')} €</span>` : '';
+    const selectedCls = ct > 0 ? 'selected' : '';
+    const disabledCls = (isFull && ct === 0) ? 'disabled' : '';
     return `
-      <div class="pdm-stepper ${hasCount}" data-stepper-row="${lblSafe}">
-        <div class="pdm-stepper-name">${opt.label}${priceHtml}</div>
-        <div class="pdm-stepper-controls">
-          <button type="button" class="pdm-stepper-btn" data-stepper-section="${kind}" data-stepper-val="${lblSafe}" data-stepper-action="dec" ${minusDisabled} aria-label="Retirer">−</button>
-          <div class="pdm-stepper-count" data-stepper-count="${lblSafe}">${ct}</div>
-          <button type="button" class="pdm-stepper-btn" data-stepper-section="${kind}" data-stepper-val="${lblSafe}" data-stepper-action="inc" ${plusDisabled} aria-label="Ajouter">+</button>
-        </div>
-      </div>`;
+      <button type="button" class="pdm-tile ${selectedCls} ${disabledCls}" data-tile-row="${lblSafe}" data-tile-section="${kind}" data-tile-val="${lblSafe}">
+        <span class="pdm-tile-name">${opt.label}</span>
+        ${priceHtml}
+        <span class="pdm-tile-badge" style="display:${ct > 0 ? 'inline-flex' : 'none'}">${ct > 0 ? '×' + ct : ''}</span>
+      </button>`;
   }).join('');
-  const summaryClass = totalNow === maxTotal ? 'complete' : 'incomplete';
-  const summaryText = totalNow === maxTotal
-    ? `✓ ${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''}`
-    : `${totalNow} / ${maxTotal} sélectionné${totalNow > 1 ? 's' : ''} — encore ${remaining} à choisir`;
   const requiredAttrs = required ? ` data-required="true" data-sel-key="${kind}" data-required-count="${maxTotal}"` : '';
-  return `<div class="pdm-section" data-kind="${kind}"${requiredAttrs}>
+  const recapHtml = _renderStepperRecap(kind, counts || [], maxTotal);
+  return `<div class="pdm-section pdm-tiles-section" data-kind="${kind}"${requiredAttrs}>
     <div class="pdm-section-title">${title} ${required ? '<span class="pdm-required-badge">Requis</span>' : ''} ${hint || ''}</div>
-    <div class="pdm-opts" style="grid-template-columns:1fr">${rowsHtml}</div>
-    <div class="pdm-stepper-summary ${summaryClass}" data-stepper-summary="${kind}">${summaryText}</div>
+    <div class="pdm-tiles-grid">${tilesHtml}</div>
+    <div class="pdm-tile-recap" data-tile-recap="${kind}">${recapHtml}</div>
   </div>`;
 }
 
@@ -20221,14 +20315,12 @@ function showCaisseProductDetail(p, mode) {
       };
     });
 
-    // === Handlers Stepper (boutons + / -) ===
-    // Pour viandes, marinades, sauces box — duplication possible (compteurs par option)
-    document.querySelectorAll('.pdm-stepper-btn').forEach(btn => {
-      btn.onclick = () => {
-        if (btn.disabled) return;
-        const section = btn.dataset.stepperSection;
-        const val = btn.dataset.stepperVal;
-        const action = btn.dataset.stepperAction;
+    // === Handlers Stepper (tap tuile = +1, tap pill du recap = −1) ===
+    document.querySelectorAll('.pdm-tile').forEach(tile => {
+      tile.onclick = () => {
+        if (tile.classList.contains('disabled')) return;
+        const section = tile.dataset.tileSection;
+        const val = tile.dataset.tileVal;
         const arr = sel[section];
         if (!Array.isArray(arr)) return;
         const config = {
@@ -20237,20 +20329,30 @@ function showCaisseProductDetail(p, mode) {
           boxSauces: { max: cfg.sauceCount, label: 'sauce' }
         }[section];
         if (!config) return;
-        if (action === 'inc') {
-          if (arr.length >= config.max) {
-            toast(`Maximum ${config.max} ${config.label}${config.max > 1 ? 's' : ''}`, true);
-            return;
-          }
-          arr.push(val);
-        } else if (action === 'dec') {
-          const idx = arr.lastIndexOf(val);
-          if (idx >= 0) arr.splice(idx, 1);
+        if (arr.length >= config.max) {
+          toast(`Maximum ${config.max} ${config.label}${config.max > 1 ? 's' : ''}`, true);
+          return;
         }
-        // Re-render uniquement la section pour pas perdre le scroll
-        _refreshStepperSection(section, val, arr, config.max, btn.closest('.pdm-section'));
-        // Refresh state required
+        arr.push(val);
+        _refreshStepperSection(section, val, arr, config.max, tile.closest('.pdm-section'));
         if (typeof _refreshSectionStates === 'function') _refreshSectionStates();
+      };
+    });
+
+    // Listeners initiaux sur les pills déjà présentes au render initial
+    document.querySelectorAll('.pdm-tile-recap .pdm-tile-pill').forEach(pill => {
+      pill.onclick = () => {
+        const section = pill.closest('[data-tile-recap]').dataset.tileRecap;
+        const val = pill.dataset.pillVal;
+        const arr = sel[section];
+        if (!Array.isArray(arr)) return;
+        const idx = arr.lastIndexOf(val);
+        if (idx >= 0) {
+          arr.splice(idx, 1);
+          const maxMap = { meats: cfg.meatCount, marinades: _marinadeCount, boxSauces: cfg.sauceCount };
+          _refreshStepperSection(section, val, arr, maxMap[section], pill.closest('.pdm-section'));
+          if (typeof _refreshSectionStates === 'function') _refreshSectionStates();
+        }
       };
     });
 
